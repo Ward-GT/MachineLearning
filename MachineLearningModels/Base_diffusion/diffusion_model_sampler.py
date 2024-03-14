@@ -33,7 +33,7 @@ def show_tensor_image(tensor_image):
 def forward_diffusion_sample(x_0, t, device="cpu"):
     """
     Takes an image and a timestep as input and
-    returns the noisy version of it
+    returns the noisy version of it at timestep t
     """
     noise = torch.randn_like(x_0)
     sqrt_alphas_cumprod_t = get_index_from_list(sqrt_alphas_cumprod, t, x_0.shape)

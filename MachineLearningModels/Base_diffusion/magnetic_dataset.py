@@ -10,7 +10,7 @@ from torchvision.io import read_image
 from diffusion_parameters import *
 
 
-# Define the transforms
+# Define the transform
 data_transform = transforms.Compose([
     transforms.Resize((IMG_size, IMG_size)),
     transforms.Lambda(lambda t: t/ 255.0),
@@ -63,7 +63,7 @@ def rename_images_to_index(folder_path):
         os.rename(original_file_path, new_file_path)
         print(f"Renamed '{file}' to '{new_file_name}'")
 
-class DiffusionDataset(Dataset):
+class MagneticDataset(Dataset):
     def __init__(self, input_dir, transform=None):
         """
         Args:
