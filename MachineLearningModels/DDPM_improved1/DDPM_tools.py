@@ -62,7 +62,7 @@ def train():
     setup_logging(RUN_NAME)
     device = DEVICE
     dataloader = get_data()
-    model = UNet().to(device)
+    model = UNet(img_size=IMAGE_SIZE).to(device)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR)
     mse = nn.MSELoss()
     diffusion = DiffusionTools(img_size=IMAGE_SIZE, device=device)
@@ -71,6 +71,7 @@ def train():
 
     logging.info(f"Starting training on {device}")
     start_time = time.time()
+    model.train()
     for epoch in range(EPOCHS):
         logging.info(f"Starting epoch {epoch}:")
         pbar = tqdm(dataloader)

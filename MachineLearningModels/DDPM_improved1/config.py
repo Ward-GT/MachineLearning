@@ -12,8 +12,8 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Training parameters
-EPOCHS = 100
-BATCH_SIZE = 10
+EPOCHS = 10
+BATCH_SIZE = 1
 IMAGE_SIZE = 64
 INIT_LR = 3e-4
 
