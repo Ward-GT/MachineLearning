@@ -100,28 +100,28 @@ class Up(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, c_in=3, c_out=3, time_dim=64, img_size=64, device="cuda"):
+    def __init__(self, c_in=3, c_out=3, time_dim=128, img_size=64, device="cuda"):
         super().__init__()
         self.device = device
         self.time_dim = time_dim
         self.size = img_size
         self.inc = DoubleConv(c_in, 64)
-        self.down1 = Down(64, 128)
+        self.down1 = Down(64, 128, emb_dim=self.time_dim)
         self.sa1 = SelfAttention(128, self.size//2)
-        self.down2 = Down(128, 256)
+        self.down2 = Down(128, 256, emb_dim=self.time_dim)
         self.sa2 = SelfAttention(256, self.size//4)
-        self.down3 = Down(256, 256)
+        self.down3 = Down(256, 256, emb_dim=self.time_dim)
         self.sa3 = SelfAttention(256, self.size//8)
 
         self.bot1 = DoubleConv(256, 512)
         self.bot2 = DoubleConv(512, 512)
         self.bot3 = DoubleConv(512, 256)
 
-        self.up1 = Up(512, 128)
+        self.up1 = Up(512, 128, emb_dim=self.time_dim)
         self.sa4 = SelfAttention(128, self.size//4)
-        self.up2 = Up(256, 64)
+        self.up2 = Up(256, 64, emb_dim=self.time_dim)
         self.sa5 = SelfAttention(64, self.size//2)
-        self.up3 = Up(128, 64)
+        self.up3 = Up(128, 64, emb_dim=self.time_dim)
         self.sa6 = SelfAttention(64, self.size)
         self.outc = nn.Conv2d(64, c_out, kernel_size=1)
 

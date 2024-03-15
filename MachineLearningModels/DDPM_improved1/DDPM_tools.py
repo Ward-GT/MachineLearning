@@ -48,6 +48,7 @@ class DiffusionTools:
                 alpha = self.alphas[t][:, None, None, None]
                 alpha_hat = self.alphas_hat[t][:, None, None, None]
                 beta = self.betas[t][:, None, None, None]
+
                 if i > 1:
                     noise = torch.randn_like(x)
                 else:
@@ -62,7 +63,7 @@ def train():
     setup_logging(RUN_NAME)
     device = DEVICE
     dataloader = get_data()
-    model = SimpleUnet().to(device)
+    model = UNet(img_size=IMAGE_SIZE, time_dim=TIME_DIM).to(device)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR)
     mse = nn.MSELoss()
     diffusion = DiffusionTools(img_size=IMAGE_SIZE, device=device)
@@ -91,11 +92,11 @@ def train():
             logger.add_scalar("MSE", loss.item(), global_step=epoch * l + i)
 
         if epoch % 5 == 0:
-            sampled_images = diffusion.sample(model, n=images.shape[0])
+            sampled_images = diffusion.sample(model, n=1)
             save_images(sampled_images, os.path.join(RESULT_PATH, RUN_NAME, f"{epoch}.jpg"))
 
     torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}.pth"))
     end_time = time.time()
     logging.info(f"Training took {end_time - start_time} seconds")
 
-#train()
+train()
