@@ -98,4 +98,4 @@ def train():
     end_time = time.time()
     logging.info(f"Training took {end_time - start_time} seconds")
 
-train()
+#train()
