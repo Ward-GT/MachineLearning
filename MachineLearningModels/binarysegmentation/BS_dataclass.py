@@ -2,6 +2,7 @@ from torch.utils.data import Dataset
 from torchvision.io import read_image
 from torchvision import transforms
 from PIL import Image
+from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import os
 import torch
@@ -40,7 +41,14 @@ class SegmentationDataset(Dataset):
             mask_image = self.transform(mask_image)
 
         return input_image, mask_image
+def get_data():
+    data_transform = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+    ])
 
+    dataset = SegmentationDataset(IMAGE_DATASET_PATH, MASK_DATASET_PATH, transform=data_transform)
+    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+    return dataloader
 def convert_to_binary_mask(input_dir, output_dir, threshold=128):
     """
     Converts all images in the input directory to binary mask format
