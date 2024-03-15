@@ -10,6 +10,7 @@ from torchvision.io import read_image
 from diffusion_parameters import *
 
 
+
 # Define the transform
 data_transform = transforms.Compose([
     transforms.Resize((IMG_size, IMG_size)),
@@ -90,3 +91,6 @@ class MagneticDataset(Dataset):
             input_image = self.transform(input_image)
 
         return input_image
+
+rename_images_to_index(r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B\Output")
+rename_images_to_index(r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B\Structure")
