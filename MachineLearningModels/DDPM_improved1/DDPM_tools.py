@@ -1,5 +1,6 @@
 import os
 import torch
+import time
 import torch.nn as nn
 from matplotlib import pyplot as plt
 from torch import optim
@@ -8,6 +9,7 @@ import logging
 from torch.utils.tensorboard import SummaryWriter
 from DDPM_utils import save_images, plot_images, setup_logging, get_data
 from DDPM_model import UNet, SimpleUnet
+from config import *
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")
 
@@ -56,18 +58,20 @@ class DiffusionTools:
         x = (x * 255).type(torch.uint8)
         return x
 
-def train(args):
-    setup_logging(args.run_name)
-    device = args.device
-    dataloader = get_data(args)
-    model = SimpleUnet().to(device)
-    optimizer = optim.AdamW(model.parameters(), lr=args.lr)
+def train():
+    setup_logging(RUN_NAME)
+    device = DEVICE
+    dataloader = get_data()
+    model = UNet().to(device)
+    optimizer = optim.AdamW(model.parameters(), lr=INIT_LR)
     mse = nn.MSELoss()
-    diffusion = DiffusionTools(img_size=args.image_size, device=device)
-    logger = SummaryWriter(os.path.join("runs", args.run_name))
+    diffusion = DiffusionTools(img_size=IMAGE_SIZE, device=device)
+    logger = SummaryWriter(os.path.join("runs", RUN_NAME))
     l = len(dataloader)
 
-    for epoch in range(args.epochs):
+    logging.info(f"Starting training on {device}")
+    start_time = time.time()
+    for epoch in range(EPOCHS):
         logging.info(f"Starting epoch {epoch}:")
         pbar = tqdm(dataloader)
         for i, images in enumerate(pbar):
@@ -86,6 +90,10 @@ def train(args):
 
         if epoch % 5 == 0:
             sampled_images = diffusion.sample(model, n=images.shape[0])
-            save_images(sampled_images, os.path.join(args.result_path, args.run_name, f"{epoch}.jpg"))
+            save_images(sampled_images, os.path.join(RESULT_PATH, RUN_NAME, f"{epoch}.jpg"))
 
-    torch.save(model.state_dict(), os.path.join(args.model_path, f"{args.run_name}.pth"))
+    torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}.pth"))
+    end_time = time.time()
+    logging.info(f"Training took {end_time - start_time} seconds")
+
+train()

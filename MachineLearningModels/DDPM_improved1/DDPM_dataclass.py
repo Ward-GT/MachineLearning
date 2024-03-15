@@ -2,6 +2,7 @@ from torch.utils.data import Dataset
 from torchvision.io import read_image
 import os
 import torch
+from config import *
 class MagneticDataset(Dataset):
     def __init__(self, input_dir, transform=None):
         """

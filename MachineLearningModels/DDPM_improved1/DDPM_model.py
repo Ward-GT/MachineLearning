@@ -2,6 +2,7 @@ import torch
 import math
 import torch.nn as nn
 import torch.nn.functional as F
+from config import *
 
 class SelfAttention(nn.Module):
     def __init__(self, channels, size):
