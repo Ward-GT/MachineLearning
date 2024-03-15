@@ -3,6 +3,7 @@ from torch.optim import Adam
 import torch
 from diffusion_model_sampler import forward_diffusion_sample, sample_plot_image
 from diffusion_parameters import *
+
 def get_loss(model, x_0, t, device = "cpu"):
     x_noisy, noise = forward_diffusion_sample(x_0, t, device)
     noise_pred = model(x_noisy, t)
