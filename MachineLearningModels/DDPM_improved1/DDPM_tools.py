@@ -62,7 +62,7 @@ def train():
     setup_logging(RUN_NAME)
     device = DEVICE
     dataloader = get_data()
-    model = UNet(img_size=IMAGE_SIZE).to(device)
+    model = SimpleUnet().to(device)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR)
     mse = nn.MSELoss()
     diffusion = DiffusionTools(img_size=IMAGE_SIZE, device=device)
@@ -83,6 +83,7 @@ def train():
             loss = mse(noise, predicted_noise)
 
             optimizer.zero_grad()
+
             loss.backward()
             optimizer.step()
 
