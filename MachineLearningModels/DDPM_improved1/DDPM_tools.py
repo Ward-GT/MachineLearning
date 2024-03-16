@@ -8,7 +8,7 @@ from tqdm import tqdm
 import logging
 from torch.utils.tensorboard import SummaryWriter
 from DDPM_utils import save_images, plot_images, setup_logging, get_data
-from DDPM_model import UNet, SimpleUnet
+from DDPM_model import UNet
 from config import *
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")
@@ -63,7 +63,7 @@ def train():
     setup_logging(RUN_NAME)
     device = DEVICE
     dataloader = get_data()
-    model = UNet(img_size=IMAGE_SIZE, time_dim=TIME_DIM).to(device)
+    model = UNet().to(device)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR)
     mse = nn.MSELoss()
     diffusion = DiffusionTools(img_size=IMAGE_SIZE, device=device)
@@ -99,4 +99,4 @@ def train():
     end_time = time.time()
     logging.info(f"Training took {end_time - start_time} seconds")
 
-train()
+#train()
