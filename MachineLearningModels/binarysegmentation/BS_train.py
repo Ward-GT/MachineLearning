@@ -6,6 +6,7 @@ from torch.optim import Adam
 from torchvision import transforms
 from tqdm import tqdm
 import time
+import logging
 import os
 
 
@@ -15,12 +16,14 @@ def train():
     dataloader = get_data()
     opt = Adam(model.parameters(), lr=INIT_LR)
 
-    print ("[INFO] Starting training")
+    logging.info(f"Starting training on {DEVICE}")
     startTime = time.time()
-    for epoch in tqdm(range(NUM_EPOCHS)):
+    for epoch in range(NUM_EPOCHS):
+        logging.info(f"Starting epoch {epoch}:")
         model.train()
         totalTrainLoss = 0
-        for i, (images, masks) in enumerate(dataloader):
+        pbar = tqdm(dataloader)
+        for i, (images, masks) in enumerate(pbar):
             images = images.to(DEVICE)
             masks = masks.to(DEVICE)
 
@@ -31,10 +34,10 @@ def train():
             loss.backward()
             opt.step()
 
-        print(f"Epoch {epoch+1}/{NUM_EPOCHS}, Loss: {loss.item()}")
+            pbar.set_postfix(BCE=loss.item())
 
     endTime = time.time()
-    print(f"Training took {endTime - startTime} seconds")
+    logging.info(f"Training took {endTime - startTime} seconds")
 
     torch.save(model.state_dict(), MODEL_PATH)
 

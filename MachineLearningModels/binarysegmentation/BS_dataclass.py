@@ -31,10 +31,11 @@ class SegmentationDataset(Dataset):
 
         input_image_path = os.path.join(self.input_dir, self.input_images[idx])
         input_image = Image.open(input_image_path)
-        input_image = transforms.ToTensor()(input_image).float()
+        input_image = transforms.ToTensor()(input_image)
 
         mask_image_path = os.path.join(self.mask_dir, self.mask_images[idx])
-        mask_image = read_image(mask_image_path).float()
+        mask_image = Image.open(mask_image_path)
+        mask_image = transforms.ToTensor()(mask_image)
 
         if self.transform:
             input_image = self.transform(input_image)

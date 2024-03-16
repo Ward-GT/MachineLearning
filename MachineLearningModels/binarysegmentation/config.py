@@ -2,6 +2,7 @@
 import torch
 import os
 
+RUN_NAME = "BinarySegmentation_128"
 # paths dataset
 DATASET_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B"
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
@@ -20,10 +21,10 @@ NUM_LEVELS = 3
 # Training parameters
 INIT_LR = 0.001
 NUM_EPOCHS = 40
-BATCH_SIZE = 64
+BATCH_SIZE = 10
 
 # image dimension
-IMAGE_SIZE = 64
+IMAGE_SIZE = 128
 
 # threshold for weak predictions
 THRESHOLD = 0.5

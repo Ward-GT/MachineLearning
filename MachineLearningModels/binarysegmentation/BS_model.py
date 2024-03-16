@@ -8,9 +8,9 @@ class Block(nn.Module):
     def __init__(self, inChannels, outChannels):
         super().__init__()
         # store the convolution and RELU layers
-        self.conv1 = nn.Conv2d(inChannels, outChannels, 3)
+        self.conv1 = nn.Conv2d(inChannels, outChannels, 3, padding=1)
         self.relu = nn.ReLU()
-        self.conv2 = nn.Conv2d(outChannels, outChannels, 3)
+        self.conv2 = nn.Conv2d(outChannels, outChannels, 3, padding=1)
     def forward(self, x):
         # apply CONV => RELU => CONV block to the inputs and return it
         return self.conv2(self.relu(self.conv1(x)))
@@ -40,7 +40,7 @@ class Decoder(nn.Module):
 
         self.channels = channels
         self.upconvs = nn.ModuleList(
-            [nn.ConvTranspose2d(channels[i], channels[i + 1], 2, 2)
+            [nn.ConvTranspose2d(channels[i], channels[i + 1], 2, 2, 1)
              for i in range(len(channels) - 1)])
         self.decBlocks = nn.ModuleList(
             [Block(channels[i], channels[i + 1])
@@ -60,8 +60,8 @@ class Decoder(nn.Module):
         return encFeatures
 
 class UNet(nn.Module):
-    def __init__(self, encChannels=(3, 16, 32, 64),
-        decChannels=(64, 32, 16),
+    def __init__(self, encChannels=(3, 64, 128, 256, 512),
+        decChannels=(512, 256, 128, 64),
         nbClasses=1, retainDim=True,
         outSize=(IMAGE_SIZE,  IMAGE_SIZE)):
         super().__init__()
