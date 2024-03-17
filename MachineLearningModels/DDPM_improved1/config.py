@@ -15,7 +15,7 @@ PIN_MEMORY = True if DEVICE == "cuda" else False
 # Training parameters
 EPOCHS = 60
 BATCH_SIZE = 10
-IMAGE_SIZE = 64
+IMAGE_SIZE = 128
 TIME_DIM = 128
 INIT_LR = 3e-4
 

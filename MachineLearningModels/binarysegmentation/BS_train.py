@@ -9,6 +9,7 @@ import time
 import logging
 import os
 
+logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")
 
 def train():
     lossFunction = nn.BCEWithLogitsLoss()

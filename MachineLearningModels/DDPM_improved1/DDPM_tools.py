@@ -94,8 +94,8 @@ def train():
         if epoch % 5 == 0:
             sampled_images = diffusion.sample(model, n=1)
             save_images(sampled_images, os.path.join(RESULT_PATH, RUN_NAME, f"{epoch}.jpg"))
+            torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_{epoch}.pth"))
 
-    torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}.pth"))
     end_time = time.time()
     logging.info(f"Training took {end_time - start_time} seconds")
 
