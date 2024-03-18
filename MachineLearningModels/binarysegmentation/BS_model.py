@@ -60,8 +60,8 @@ class Decoder(nn.Module):
         return encFeatures
 
 class UNet(nn.Module):
-    def __init__(self, encChannels=(3, 64, 128, 256, 512),
-        decChannels=(512, 256, 128, 64),
+    def __init__(self, encChannels=(3, 64, 128, 256, 512, 1024),
+        decChannels=(1024, 512, 256, 128, 64),
         nbClasses=1, retainDim=True,
         outSize=(IMAGE_SIZE,  IMAGE_SIZE)):
         super().__init__()

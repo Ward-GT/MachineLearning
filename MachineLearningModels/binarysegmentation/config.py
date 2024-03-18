@@ -2,9 +2,10 @@
 import torch
 import os
 
-RUN_NAME = "BinarySegmentation_200_128"
+RUN_NAME = "BinarySegmentation_150_128"
 # paths dataset
-DATASET_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B"
+# DATASET_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B"
+DATASET_PATH = r"E:\Ward Taborsky\figure_B"
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 MASK_DATASET_PATH = os.path.join(DATASET_PATH, "Mask")
 
@@ -19,7 +20,7 @@ NUM_CLASSES = 1
 NUM_LEVELS = 3
 
 # Training parameters
-INIT_LR = 0.003
+INIT_LR = 0.001
 NUM_EPOCHS = 150
 BATCH_SIZE = 10
 
@@ -29,7 +30,7 @@ IMAGE_SIZE = 128
 # threshold for weak predictions
 THRESHOLD = 0.5
 
-BASE_OUTPUT = "output"
-MODEL_PATH = os.path.join(r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\saved_models", RUN_NAME)
+BASE_OUTPUT = "results"
+MODEL_PATH = os.path.join(BASE_OUTPUT, RUN_NAME)
 PLOT_PATH = os.path.join(BASE_OUTPUT, "plot.png")
 TEST_PATH = os.path.join(BASE_OUTPUT, "test_paths.txt")
