@@ -20,17 +20,17 @@ NUM_CLASSES = 1
 NUM_LEVELS = 3
 
 # Training parameters
-INIT_LR = 0.0005
+INIT_LR = 0.001
 NUM_EPOCHS = 10
 BATCH_SIZE = 10
 
 # image dimension
-IMAGE_SIZE = 64
+IMAGE_SIZE = 128
 
 # threshold for weak predictions
 THRESHOLD = 0.5
 
-BASE_OUTPUT = "results"
+BASE_OUTPUT = os.path.join("results", RUN_NAME)
 MODEL_PATH = os.path.join(BASE_OUTPUT, f"{RUN_NAME}_model.pth")
 PLOT_PATH = os.path.join(BASE_OUTPUT, f"{RUN_NAME}_lossplot.png")
 LOG_PATH = os.path.join(BASE_OUTPUT, f"{RUN_NAME}_log.npz")

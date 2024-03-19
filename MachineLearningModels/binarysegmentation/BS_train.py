@@ -3,7 +3,7 @@ from BS_dataclass import get_data
 from BS_model import UNet
 from config import *
 from torch import nn
-from torch.optim import Adam
+import torch.optim as optim
 from torchvision import transforms
 from tqdm import tqdm
 import time
@@ -18,7 +18,8 @@ def train():
     lossFunction = nn.BCEWithLogitsLoss()
     model = UNet().to(DEVICE)
     train_dataloader, test_dataloader = get_data()
-    opt = Adam(model.parameters(), lr=INIT_LR)
+    opt = optim.Adam(model.parameters(), lr=INIT_LR)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(opt, 'min')
 
     training_losses = []
     testing_losses = []
@@ -47,7 +48,8 @@ def train():
 
             train_loss_total += train_loss.item()
 
-        training_losses.append(train_loss_total / len(train_dataloader))
+        average_train_loss = train_loss_total / len(train_dataloader)
+        training_losses.append(average_train_loss)
 
         model.eval()
         test_loss_total = 0
@@ -62,9 +64,11 @@ def train():
 
                 test_loss_total += test_loss.item()
 
-        logging.info("Test loss: " + str(test_loss_total / len(test_dataloader)))
+        average_test_loss = test_loss_total / len(test_dataloader)
+        logging.info("Train loss: " + str(average_train_loss), "Test loss: " + str(average_test_loss))
+        testing_losses.append(average_test_loss)
 
-        testing_losses.append(test_loss_total / len(test_dataloader))
+        scheduler.step(average_test_loss)
 
     endTime = time.time()
     logging.info(f"Training took {endTime - startTime} seconds")
