@@ -32,6 +32,6 @@ THRESHOLD = 0.5
 
 BASE_OUTPUT = "results"
 MODEL_PATH = os.path.join(BASE_OUTPUT, f"{RUN_NAME}_model.pth")
-PLOT_PATH = os.path.join(BASE_OUTPUT, f"{RUN_NAME}_plot.png")
+PLOT_PATH = os.path.join(BASE_OUTPUT, f"{RUN_NAME}_lossplot.png")
 LOG_PATH = os.path.join(BASE_OUTPUT, f"{RUN_NAME}_log.npz")
 TEST_PATH = os.path.join(BASE_OUTPUT, "test_paths.txt")

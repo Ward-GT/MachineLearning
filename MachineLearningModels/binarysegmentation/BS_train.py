@@ -79,6 +79,7 @@ def train():
     plt.ylabel('Loss')
     plt.title('Training and Test Loss')
     plt.legend()
+    plt.savefig(PLOT_PATH)
     plt.show()
 
 train()
