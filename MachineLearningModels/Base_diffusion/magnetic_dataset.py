@@ -38,32 +38,6 @@ def get_image_size(output_dir, structure_dir):
     image_size = min(structure_image.size, output_image.size)
     return image_size
 
-def rename_images_to_index(folder_path):
-    """
-    Renames all image files in the specified folder to their index.
-
-    Args:
-    folder_path (str): The path to the folder containing the images.
-    """
-    # List all files in the folder
-    files = os.listdir(folder_path)
-
-    # Sort files to maintain a consistent order
-    files.sort()
-
-    # Loop through all files and rename them
-    for index, file in enumerate(files):
-        # Define the new file name using the index, preserving the original file extension
-        new_file_name = f"{index}{os.path.splitext(file)[1]}"
-
-        # Define the full path for the original and new file names
-        original_file_path = os.path.join(folder_path, file)
-        new_file_path = os.path.join(folder_path, new_file_name)
-
-        # Rename the file
-        os.rename(original_file_path, new_file_path)
-        print(f"Renamed '{file}' to '{new_file_name}'")
-
 class MagneticDataset(Dataset):
     def __init__(self, input_dir, transform=None):
         """
