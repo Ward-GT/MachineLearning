@@ -31,6 +31,10 @@ IMAGE_SIZE = 128
 THRESHOLD = 0.5
 
 BASE_OUTPUT = os.path.join("results", RUN_NAME)
+
+if not os.path.exists(BASE_OUTPUT):
+    os.makedirs(BASE_OUTPUT)
+
 MODEL_PATH = os.path.join(BASE_OUTPUT, f"{RUN_NAME}_model.pth")
 PLOT_PATH = os.path.join(BASE_OUTPUT, f"{RUN_NAME}_lossplot.png")
 LOG_PATH = os.path.join(BASE_OUTPUT, f"{RUN_NAME}_log.npz")

@@ -65,7 +65,7 @@ def train():
                 test_loss_total += test_loss.item()
 
         average_test_loss = test_loss_total / len(test_dataloader)
-        logging.info("Train loss: " + str(average_train_loss), "Test loss: " + str(average_test_loss))
+        logging.info("Train loss: " + str(average_train_loss) + ", Test loss: " + str(average_test_loss))
         testing_losses.append(average_test_loss)
 
         scheduler.step(average_test_loss)
