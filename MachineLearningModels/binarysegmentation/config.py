@@ -4,8 +4,8 @@ import os
 
 RUN_NAME = "BinarySegmentation_test"
 # paths dataset
-DATASET_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B"
-# DATASET_PATH = r"E:\Ward Taborsky\figure_B"
+# DATASET_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B"
+DATASET_PATH = r"E:\Ward Taborsky\figure_B"
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 MASK_DATASET_PATH = os.path.join(DATASET_PATH, "Mask")
 
@@ -21,7 +21,7 @@ NUM_LEVELS = 3
 
 # Training parameters
 INIT_LR = 0.001
-NUM_EPOCHS = 10
+NUM_EPOCHS = 300
 BATCH_SIZE = 10
 
 # image dimension

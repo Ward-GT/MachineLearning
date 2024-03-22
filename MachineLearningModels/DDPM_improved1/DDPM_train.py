@@ -7,19 +7,13 @@ from torch import optim
 from tqdm import tqdm
 import logging
 from torch.utils.tensorboard import SummaryWriter
-from torcheval.metrics import FrechetInceptionDistance
-from DDPM_utils import save_images, plot_images, setup_logging, get_data
+from DDPM_utils import save_images, plot_images, get_data, calculate_FID
 from DDPM_tools import DiffusionTools
 from DDPM_model import UNet
 from config import *
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")
 
-def calculate_FID(real_images, sampled_images):
-    fid = FrechetInceptionDistance()
-    fid.update(images=real_images, is_real=True)
-    fid.update(images=sampled_images, is_real=False)
-    return fid.compute()
 def train():
     device = DEVICE
     dataloader = get_data()
@@ -62,4 +56,4 @@ def train():
     end_time = time.time()
     logging.info(f"Training took {end_time - start_time} seconds")
 
-#train()
+train()

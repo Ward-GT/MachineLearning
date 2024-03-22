@@ -5,6 +5,7 @@ from PIL import Image
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 from torchvision import transforms
+from torcheval.metrics import FrechetInceptionDistance
 from DDPM_dataclass import MagneticDataset
 from config import *
 
@@ -31,3 +32,13 @@ def get_data():
     dataset = MagneticDataset(IMAGE_DATASET_PATH, transform=data_transform)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
     return dataloader
+
+
+def calculate_FID(real_images, sampled_images):
+    fid = FrechetInceptionDistance()
+    real_images = transforms.Lambda(lambda t: t / 255.0)(real_images)
+    sampled_images = transforms.Lambda(lambda t: t / 255.0)(sampled_images)
+
+    fid.update(images=real_images, is_real=True)
+    fid.update(images=sampled_images, is_real=False)
+    return fid.compute()

@@ -17,7 +17,7 @@ EPOCHS = 60
 BATCH_SIZE = 10
 IMAGE_SIZE = 128
 TIME_DIM = 128
-INIT_LR = 3e-4
+INIT_LR = 0.001
 
 # Output paths
 BASE_OUTPUT = "results"
