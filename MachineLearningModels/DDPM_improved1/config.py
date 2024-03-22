@@ -20,5 +20,11 @@ TIME_DIM = 128
 INIT_LR = 3e-4
 
 # Output paths
-RESULT_PATH = "results"
-MODEL_PATH = "models"
+BASE_OUTPUT = "results"
+RESULT_PATH = os.path.join(BASE_OUTPUT, RUN_NAME)
+MODEL_PATH = os.path.join(RESULT_PATH, "models")
+if not os.path.exists(MODEL_PATH):
+    os.makedirs(MODEL_PATH)
+IMAGE_PATH = os.path.join(RESULT_PATH, "images")
+if not os.path.exists(IMAGE_PATH):
+    os.makedirs(IMAGE_PATH)
