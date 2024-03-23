@@ -19,7 +19,7 @@ def train():
     device = DEVICE
     dataloader = get_data()
     model = UNet().to(device)
-    optimizer = optim.AdamW(model.parameters(), lr=INIT_LR)
+    optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=0.001)
     mse = nn.MSELoss()
     diffusion = DiffusionTools(img_size=IMAGE_SIZE, device=device)
     l = len(dataloader)
@@ -61,7 +61,7 @@ def train():
     end_time = time.time()
     logging.info(f"Training took {end_time - start_time} seconds")
     np.savez(LOG_PATH, losses = losses)
-
+    torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_final.pth"))
     plt.figure(figsize=(12, 6))
     plt.plot(losses[1:], label='Loss')
     plt.xlabel('Epoch')
