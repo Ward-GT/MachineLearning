@@ -1,11 +1,13 @@
 import torch
 import os
 
-#DATASET_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B"
-DATASET_PATH = r"E:\Ward Taborsky\figure_B"
-IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
-
 RUN_NAME = "DDPM_Unconditional_128"
+
+DATASET_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B"
+#DATASET_PATH = r"E:\Ward Taborsky\figure_B"
+
+IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
+STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 
 TEST_SPLIT = 0.2
 

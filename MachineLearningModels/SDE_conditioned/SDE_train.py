@@ -7,13 +7,13 @@ from matplotlib import pyplot as plt
 from torch import optim
 from tqdm import tqdm
 import logging
-from torch.utils.tensorboard import SummaryWriter
-from DDPM_utils import save_images, plot_images, get_data, calculate_FID
-from DDPM_tools import DiffusionTools
-from DDPM_model import UNet
+from SDE_model import UNet
+from SDE_utils import *
+from SDE_tools import DiffusionTools
 from config import *
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")
+
 
 def train():
     device = DEVICE
@@ -22,7 +22,6 @@ def train():
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR)
     mse = nn.MSELoss()
     diffusion = DiffusionTools(img_size=IMAGE_SIZE, device=device)
-    logger = SummaryWriter(os.path.join("runs", RUN_NAME))
     l = len(dataloader)
     losses = []
 
@@ -33,11 +32,13 @@ def train():
         loss_total = 0
         logging.info(f"Starting epoch {epoch}:")
         pbar = tqdm(dataloader)
-        for i, images in enumerate(pbar):
+        for i, (images, structures) in enumerate(pbar):
             images = images.to(device)
+            structures = structures.to(device)
             t = diffusion.sample_timesteps(images.shape[0]).to(device)
             x_t, noise = diffusion.noise_images(images, t)
-            predicted_noise = model(x_t, t)
+            x_t_struct = concatenate_images(x_t, structures)
+            predicted_noise = model(x_t_struct, t)
             loss = mse(noise, predicted_noise)
 
             optimizer.zero_grad()
@@ -46,15 +47,14 @@ def train():
             optimizer.step()
 
             pbar.set_postfix(MSE=loss.item())
-            logger.add_scalar("MSE", loss.item(), global_step=epoch * l + i)
             loss_total += loss.item()
 
         average_loss = loss_total / len(dataloader)
         losses.append(average_loss)
 
         if epoch % 5 == 0:
-            sampled_images = diffusion.sample(model, n=images.shape[0])
-            save_images(sampled_images, os.path.join(IMAGE_PATH, f"{epoch}.jpg"))
+            sampled_images, structures = diffusion.sample(model, n=5, structures=structures)
+            save_images_structures(sampled_images, structures, os.path.join(IMAGE_PATH, f"{epoch}.jpg"))
             torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_{epoch}.pth"))
 
 
@@ -68,5 +68,3 @@ def train():
     plt.ylabel('Loss')
     plt.title('Loss over Epochs')
     plt.show()
-
-# train()
