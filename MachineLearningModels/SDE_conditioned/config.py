@@ -3,23 +3,23 @@ import os
 
 RUN_NAME = "DDPM_Unconditional_128"
 
-DATASET_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B"
-#DATASET_PATH = r"E:\Ward Taborsky\figure_B"
+#DATASET_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B"
+DATASET_PATH = r"E:\Ward Taborsky\figure_B"
 
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 
-TEST_SPLIT = 0.2
+TEST_SPLIT = 0.1
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Training parameters
-EPOCHS = 60
+EPOCHS = 500
 BATCH_SIZE = 10
 IMAGE_SIZE = 128
 TIME_DIM = 128
-INIT_LR = 0.001
+INIT_LR = 0.0001
 
 # Output paths
 BASE_OUTPUT = "results"

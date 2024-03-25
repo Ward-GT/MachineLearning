@@ -10,6 +10,7 @@ import logging
 from SDE_model import UNet
 from SDE_utils import *
 from SDE_tools import DiffusionTools
+from itertools import cycle
 from config import *
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")
@@ -17,12 +18,12 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= lo
 
 def train():
     device = DEVICE
-    dataloader = get_data()
+    train_dataloader, test_dataloader = get_data()
     model = UNet().to(device)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=0.001)
     mse = nn.MSELoss()
     diffusion = DiffusionTools(img_size=IMAGE_SIZE, device=device)
-    l = len(dataloader)
+    l = len(train_dataloader)
     losses = []
 
     logging.info(f"Starting training on {device}")
@@ -31,7 +32,7 @@ def train():
     for epoch in range(EPOCHS):
         loss_total = 0
         logging.info(f"Starting epoch {epoch}:")
-        pbar = tqdm(dataloader)
+        pbar = tqdm(train_dataloader)
         for i, (images, structures) in enumerate(pbar):
             images = images.to(device)
             structures = structures.to(device)
@@ -49,12 +50,13 @@ def train():
             pbar.set_postfix(MSE=loss.item())
             loss_total += loss.item()
 
-        average_loss = loss_total / len(dataloader)
+        average_loss = loss_total / len(train_dataloader)
         losses.append(average_loss)
 
         if epoch % 5 == 0:
-            sampled_images, structures = diffusion.sample(model, n=5, structures=structures)
-            save_images_structures(sampled_images, structures, os.path.join(IMAGE_PATH, f"{epoch}.jpg"))
+            test_images, test_structures = next(cycle(test_dataloader))
+            sampled_images, structures = diffusion.sample(model, n=5, structures=test_structures)
+            save_images(reference_images=test_images, sampled_images=sampled_images, structure_images=structures, path=os.path.join(IMAGE_PATH, f"{epoch}.jpg"))
             torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_{epoch}.pth"))
 
 
@@ -67,4 +69,5 @@ def train():
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.title('Loss over Epochs')
+    plt.savefig(os.path.join(RESULT_PATH, "loss.jpg"))
     plt.show()
