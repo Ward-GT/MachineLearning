@@ -55,6 +55,8 @@ def train():
 
         if epoch % 5 == 0:
             test_images, test_structures = next(cycle(test_dataloader))
+            test_images = test_images.to(device)
+            test_structures = test_structures.to(device)
             sampled_images, structures = diffusion.sample(model, n=5, structures=test_structures)
             save_images(reference_images=test_images, sampled_images=sampled_images, structure_images=structures, path=os.path.join(IMAGE_PATH, f"{epoch}.jpg"))
             torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_{epoch}.pth"))
