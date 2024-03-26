@@ -2,27 +2,52 @@ import os
 import torch
 import torchvision
 from PIL import Image
-from matplotlib import pyplot as plt
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset, SubsetRandomSampler
 from torchvision import transforms
+import numpy as np
+from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import peak_signal_noise_ratio as psnr
+from skimage.metrics import mean_squared_error as mse
 import matplotlib.pyplot as plt
 from torcheval.metrics import FrechetInceptionDistance
 from SDE_dataclass import LabeledDataset
 from config import *
 
-def save_model_output(model, sampler, img_size=IMAGE_SIZE,  n=BATCH_SIZE, device=DEVICE, path=None):
+def calculate_metrics(image_set1, image_set2):
+    if len(image_set1) != len(image_set2):
+        raise ValueError("Number of images in image sets do not match")
+
+    ssim_values = []
+    psnr_values = []
+    mse_values = []
+
+    for i in range(len(image_set1)):
+        ssim_values.append(ssim(np.array(image_set1[i]), np.array(image_set2[i]), channel_axis=-1, multichannel=True))
+        psnr_values.append(psnr(np.array(image_set1[i]), np.array(image_set2[i]), data_range=np.array(image_set1[i]).max() - np.array(image_set1[i]).min()))
+        mse_values.append(mse(np.array(image_set1[i]), np.array(image_set2[i])))
+
+    return ssim_values, psnr_values, mse_values
+
+def sample_model_output(model, sampler, n=BATCH_SIZE, device=DEVICE, test_path=None, path=None):
     if path is not None:
         path = os.path.join(path, "output.jpg")
 
-    dataloader = get_data(n)
+    if test_path is not None:
+        print("Using test data")
+        dataloader = get_test_data(test_path, batch_size=n)
+    else:
+        _, dataloader = get_data(n)
+
     references, structures = next(iter(dataloader))
     model = model.to(device)
     structures = structures.to(device)
     references = references.to(device)
     generated, structures = sampler.sample(model, n, structures)
     references = tensor_to_PIL(references)
-    save_images(reference_images=references, generated_images=generated, structure_images=structures, path=path)
-
+    return references, generated, structures
+def save_image_list(image_list, path):
+    for i, image in enumerate(image_list):
+        image.save(os.path.join(path, f"{i}.jpg"))
 def save_images(reference_images=None, generated_images=None, structure_images=None, path=None, **kwargs):
 
     # Determine how many image sets are provided
@@ -71,10 +96,27 @@ def get_data(batch_size=BATCH_SIZE):
     torch.save(train_dataset.indices, os.path.join(RESULT_PATH, "train_indices.pth"))
     torch.save(test_dataset.indices, os.path.join(RESULT_PATH, "test_indices.pth"))
 
-    train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
     return train_dataloader, test_dataloader
+
+def get_test_data(test_path, batch_size=BATCH_SIZE):
+    data_transform = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.Lambda(lambda t: t / 255.0),
+        transforms.Lambda(lambda t: (t * 2) - 1)
+    ])
+
+    dataset = LabeledDataset(IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH, transform=data_transform)
+
+    test_indices = torch.load(test_path)
+    print(f"Loaded {len(test_indices)} test indices")
+    sampler = SubsetRandomSampler(test_indices)
+
+    test_dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler)
+
+    return test_dataloader
 
 def concatenate_images(images, structures):
     return torch.cat((images, structures), dim=1)

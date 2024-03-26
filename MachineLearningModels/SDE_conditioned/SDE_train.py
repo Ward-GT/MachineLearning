@@ -64,7 +64,6 @@ def train():
             if epoch > 0.9*EPOCHS:
                 torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_{epoch}.pth"))
 
-
     end_time = time.time()
     logging.info(f"Training took {end_time - start_time} seconds")
     np.savez(LOG_PATH, losses = losses)
