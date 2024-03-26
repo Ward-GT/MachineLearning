@@ -24,6 +24,7 @@ def save_model_output(model, sampler, img_size=IMAGE_SIZE,  n=BATCH_SIZE, device
     save_images(reference_images=references, generated_images=generated, structure_images=structures, path=path)
 
 def save_images(reference_images=None, generated_images=None, structure_images=None, path=None, **kwargs):
+
     # Determine how many image sets are provided
     image_sets_with_titles = {
         'Reference': reference_images,
