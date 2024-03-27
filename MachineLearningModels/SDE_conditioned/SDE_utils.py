@@ -7,12 +7,23 @@ from torchvision import transforms
 import numpy as np
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
-from skimage.metrics import mean_squared_error as mse
 import matplotlib.pyplot as plt
 from torcheval.metrics import FrechetInceptionDistance
 from SDE_dataclass import LabeledDataset
 from config import *
 
+def load_images(folder_path):
+    images = []
+    for filename in os.listdir(folder_path):
+        img = Image.open(os.path.join(folder_path, filename))
+        images.append(img)
+    return images
+def mse(imageA, imageB):
+    # The 'mean' function calculates the average of the array elements.
+    # The 'square' function calculates the squared value of each element.
+    # np.subtract(imageA, imageB) computes the difference between the images.
+    err = np.sqrt((np.square(np.subtract(imageA, imageB)))/(255**2))
+    return err
 def calculate_metrics(image_set1, image_set2):
     if len(image_set1) != len(image_set2):
         raise ValueError("Number of images in image sets do not match")
@@ -24,13 +35,11 @@ def calculate_metrics(image_set1, image_set2):
     for i in range(len(image_set1)):
         ssim_values.append(ssim(np.array(image_set1[i]), np.array(image_set2[i]), channel_axis=-1, multichannel=True))
         psnr_values.append(psnr(np.array(image_set1[i]), np.array(image_set2[i]), data_range=np.array(image_set1[i]).max() - np.array(image_set1[i]).min()))
-        mse_values.append(mse(np.array(image_set1[i]), np.array(image_set2[i])))
+        mse_values.append(mse(np.array(image_set1[i]).flatten(), np.array(image_set2[i]).flatten()))
 
     return ssim_values, psnr_values, mse_values
 
-def sample_model_output(model, sampler, n=BATCH_SIZE, device=DEVICE, test_path=None, path=None):
-    if path is not None:
-        path = os.path.join(path, "output.jpg")
+def sample_model_output(model, sampler, n=BATCH_SIZE, device=DEVICE, test_path=None):
 
     if test_path is not None:
         print("Using test data")
@@ -49,7 +58,8 @@ def save_image_list(image_list, path):
     for i, image in enumerate(image_list):
         image.save(os.path.join(path, f"{i}.jpg"))
 def save_images(reference_images=None, generated_images=None, structure_images=None, path=None, **kwargs):
-
+    if path is not None:
+        path = os.path.join(path, "output.jpg")
     # Determine how many image sets are provided
     image_sets_with_titles = {
         'Reference': reference_images,
