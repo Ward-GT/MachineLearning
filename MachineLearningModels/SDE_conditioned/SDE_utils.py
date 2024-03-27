@@ -18,26 +18,33 @@ def load_images(folder_path):
         img = Image.open(os.path.join(folder_path, filename))
         images.append(img)
     return images
+
 def mse(imageA, imageB):
     # The 'mean' function calculates the average of the array elements.
     # The 'square' function calculates the squared value of each element.
     # np.subtract(imageA, imageB) computes the difference between the images.
     err = np.sqrt((np.square(np.subtract(imageA, imageB)))/(255**2))
-    return err
+    mean_err = np.mean(err)
+    max_err = np.max(err)
+    return mean_err, max_err
+
 def calculate_metrics(image_set1, image_set2):
     if len(image_set1) != len(image_set2):
         raise ValueError("Number of images in image sets do not match")
 
     ssim_values = []
     psnr_values = []
-    mse_values = []
+    mse_mean_values = []
+    mse_max_values = []
 
     for i in range(len(image_set1)):
         ssim_values.append(ssim(np.array(image_set1[i]), np.array(image_set2[i]), channel_axis=-1, multichannel=True))
         psnr_values.append(psnr(np.array(image_set1[i]), np.array(image_set2[i]), data_range=np.array(image_set1[i]).max() - np.array(image_set1[i]).min()))
-        mse_values.append(mse(np.array(image_set1[i]).flatten(), np.array(image_set2[i]).flatten()))
+        mse_mean, mse_max = mse(np.array(image_set1[i]).flatten(), np.array(image_set2[i]).flatten())
+        mse_mean_values.append(mse_mean)
+        mse_max_values.append(mse_max)
 
-    return ssim_values, psnr_values, mse_values
+    return ssim_values, psnr_values, mse_mean_values, mse_max_values
 
 def sample_model_output(model, sampler, n=BATCH_SIZE, device=DEVICE, test_path=None):
 
@@ -54,12 +61,12 @@ def sample_model_output(model, sampler, n=BATCH_SIZE, device=DEVICE, test_path=N
     generated, structures = sampler.sample(model, n, structures)
     references = tensor_to_PIL(references)
     return references, generated, structures
+
 def save_image_list(image_list, path):
     for i, image in enumerate(image_list):
         image.save(os.path.join(path, f"{i}.jpg"))
+
 def save_images(reference_images=None, generated_images=None, structure_images=None, path=None, **kwargs):
-    if path is not None:
-        path = os.path.join(path, "output.jpg")
     # Determine how many image sets are provided
     image_sets_with_titles = {
         'Reference': reference_images,
@@ -88,7 +95,6 @@ def save_images(reference_images=None, generated_images=None, structure_images=N
     plt.tight_layout()
     if path:
         plt.savefig(path, **kwargs)  # Save the figure if a path is provided
-    plt.show()  # Show the plot
 
 def get_data(batch_size=BATCH_SIZE):
     data_transform = transforms.Compose([
@@ -139,11 +145,10 @@ def concat_to_batchsize(images, n):
     if m == n:
         return images
     elif m < n:
-        indices = torch.randint(0, m, (n-m,))
+        indices = torch.arrange(0, (n-m,))
         return torch.cat((images, images[indices]), dim=0)
     else:
-        indices = torch.randint(0, m, (n,))
-        return torch.cat([images[i].unsqueeze(0) for i in indices], dim=0)
+        return images[:n]
 
 def tensor_to_PIL(tensor):
     tensor = (tensor.clamp(-1, 1) + 1) / 2
