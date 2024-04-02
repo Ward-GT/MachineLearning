@@ -3,6 +3,7 @@ import os
 
 RUN_NAME = "SDE_ConditionedwTest_128_500"
 
+# DATASET_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_specific"
 DATASET_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B"
 # DATASET_PATH = r"E:\Ward Taborsky\figure_B"
 
@@ -16,6 +17,7 @@ PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Training parameters
 EPOCHS = 500
+NOISE_STEPS = 1000
 BATCH_SIZE = 10
 IMAGE_SIZE = 128
 TIME_DIM = 128

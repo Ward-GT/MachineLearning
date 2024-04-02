@@ -1,6 +1,7 @@
 import os
 import torch
 import torchvision
+import torch.nn as nn
 from PIL import Image
 from torch.utils.data import DataLoader, Subset, SubsetRandomSampler
 from torchvision import transforms
@@ -8,9 +9,11 @@ import numpy as np
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 import matplotlib.pyplot as plt
-from torcheval.metrics import FrechetInceptionDistance
 from SDE_dataclass import LabeledDataset
 from config import *
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters())
 
 def load_images(folder_path):
     images = []
@@ -46,21 +49,32 @@ def calculate_metrics(image_set1, image_set2):
 
     return ssim_values, psnr_values, mse_mean_values, mse_max_values
 
-def sample_model_output(model, sampler, n=BATCH_SIZE, device=DEVICE, test_path=None):
-
+def sample_model_output(model, sampler, n, batch_size=BATCH_SIZE, device=DEVICE, test_path=None):
     if test_path is not None:
         print("Using test data")
-        dataloader = get_test_data(test_path, batch_size=n)
+        dataloader = get_test_data(test_path, batch_size=batch_size)
     else:
-        _, dataloader = get_data(n)
+        _, dataloader = get_data(batch_size)
 
-    references, structures = next(iter(dataloader))
     model = model.to(device)
-    structures = structures.to(device)
-    references = references.to(device)
-    generated, structures = sampler.sample(model, n, structures)
-    references = tensor_to_PIL(references)
-    return references, generated, structures
+
+    references_list = []
+    generated_list = []
+    structures_list = []
+
+    for i in range(0, n, batch_size):
+        references, structures = next(iter(dataloader))
+        structures = structures.to(device)
+        references = references.to(device)
+        generated, structures = sampler.sample(model, batch_size, structures)
+        references = tensor_to_PIL(references)
+
+        references_list.extend(references)
+        generated_list.extend(generated)
+        structures_list.extend(structures)
+        print(f"Reference: {len(references_list)}, Generated: {len(generated_list)}, Structures: {len(structures_list)}")
+
+    return references_list, generated_list, structures_list
 
 def save_image_list(image_list, path):
     for i, image in enumerate(image_list):
@@ -128,9 +142,9 @@ def get_test_data(test_path, batch_size=BATCH_SIZE):
 
     test_indices = torch.load(test_path)
     print(f"Loaded {len(test_indices)} test indices")
-    sampler = SubsetRandomSampler(test_indices)
+    test_subset = Subset(dataset, test_indices)
 
-    test_dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler)
+    test_dataloader = DataLoader(dataset, batch_size=batch_size)
 
     return test_dataloader
 
@@ -145,7 +159,7 @@ def concat_to_batchsize(images, n):
     if m == n:
         return images
     elif m < n:
-        indices = torch.arrange(0, (n-m,))
+        indices = torch.arange(0, n-m)
         return torch.cat((images, images[indices]), dim=0)
     else:
         return images[:n]

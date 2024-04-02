@@ -23,7 +23,7 @@ def train():
     model = UNet().to(device)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=0.001)
     mse = nn.MSELoss()
-    diffusion = DiffusionTools(img_size=IMAGE_SIZE, device=device)
+    diffusion = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=device)
     l = len(train_dataloader)
     losses = []
 
