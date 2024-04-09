@@ -6,14 +6,9 @@ from PIL import Image
 from torch.utils.data import DataLoader, Subset, SubsetRandomSampler
 from torchvision import transforms
 import numpy as np
-from skimage.metrics import structural_similarity as ssim
-from skimage.metrics import peak_signal_noise_ratio as psnr
 import matplotlib.pyplot as plt
 from SDE_dataclass import LabeledDataset
 from config import *
-
-def count_parameters(model):
-    return sum(p.numel() for p in model.parameters())
 
 def load_images(folder_path):
     images = []
@@ -21,33 +16,6 @@ def load_images(folder_path):
         img = Image.open(os.path.join(folder_path, filename))
         images.append(img)
     return images
-
-def mse(imageA, imageB):
-    # The 'mean' function calculates the average of the array elements.
-    # The 'square' function calculates the squared value of each element.
-    # np.subtract(imageA, imageB) computes the difference between the images.
-    err = np.sqrt((np.square(np.subtract(imageA, imageB)))/(255**2))
-    mean_err = np.mean(err)
-    max_err = np.max(err)
-    return mean_err, max_err
-
-def calculate_metrics(image_set1, image_set2):
-    if len(image_set1) != len(image_set2):
-        raise ValueError("Number of images in image sets do not match")
-
-    ssim_values = []
-    psnr_values = []
-    mse_mean_values = []
-    mse_max_values = []
-
-    for i in range(len(image_set1)):
-        ssim_values.append(ssim(np.array(image_set1[i]), np.array(image_set2[i]), channel_axis=-1, multichannel=True))
-        psnr_values.append(psnr(np.array(image_set1[i]), np.array(image_set2[i]), data_range=np.array(image_set1[i]).max() - np.array(image_set1[i]).min()))
-        mse_mean, mse_max = mse(np.array(image_set1[i]).flatten(), np.array(image_set2[i]).flatten())
-        mse_mean_values.append(mse_mean)
-        mse_max_values.append(mse_max)
-
-    return ssim_values, psnr_values, mse_mean_values, mse_max_values
 
 def sample_model_output(model, sampler, n, batch_size=BATCH_SIZE, device=DEVICE, test_path=None):
     if test_path is not None:
