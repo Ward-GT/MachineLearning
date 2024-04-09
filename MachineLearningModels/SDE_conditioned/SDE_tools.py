@@ -4,7 +4,7 @@ from config import *
 from SDE_utils import *
 
 class DiffusionTools:
-    def __init__(self, noise_steps=1000, beta_start=1e-4, beta_end=0.02, img_size=128, device="cuda"):
+    def __init__(self, noise_steps=NOISE_STEPS, beta_start=1e-4, beta_end=0.02, img_size=IMAGE_SIZE, device=DEVICE):
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end

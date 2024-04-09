@@ -30,6 +30,7 @@ def sample_model_output(model, sampler, n, batch_size=BATCH_SIZE, device=DEVICE,
     generated_list = []
     structures_list = []
 
+    print(f"Sampling on {device}")
     for i in range(0, n, batch_size):
         references, structures = next(iter(dataloader))
         structures = structures.to(device)

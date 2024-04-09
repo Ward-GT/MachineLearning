@@ -21,10 +21,9 @@ def train():
     nr_samples = 5
     train_dataloader, test_dataloader = get_data()
     model = UNet().to(device)
-    optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=0.001)
+    optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=WEIGHT_DECAY)
     mse = nn.MSELoss()
-    diffusion = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=device)
-    l = len(train_dataloader)
+    diffusion = DiffusionTools()
     losses = []
 
     logging.info(f"Starting training on {device}")

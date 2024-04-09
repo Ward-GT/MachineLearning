@@ -35,12 +35,12 @@ def calculate_metrics(image_set1, image_set2):
 
     return ssim_values, psnr_values, mse_mean_values, mse_max_values
 
-model_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\SDE_ConditionedwBigTest_128_500\models\SDE_ConditionedwBigTest_128_500_final.pth"
-test_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\SDE_ConditionedwBigTest_128_500\test_indices.pth"
+model_path = r"C:\Users\20202137\PycharmProjects\MachineLearning\MachineLearningModels\SDE_conditioned\results\SDE_ConditionedwTestSpecific_256_500\models\SDE_ConditionedwTestSpecific_256_500_final.pth"
+test_path = r"C:\Users\20202137\PycharmProjects\MachineLearning\MachineLearningModels\SDE_conditioned\results\SDE_ConditionedwTestSpecific_256_500\test_indices.pth"
 model = UNet()
 model.load_state_dict(torch.load(model_path))
 
-sampler = DiffusionTools()
+sampler = DiffusionTools(img_size=IMAGE_SIZE)
 references, generated, structure = sample_model_output(model, sampler,n=200, batch_size=5, test_path=test_path)
 
 ssim, psnr, mse_mean, mse_max = calculate_metrics(references, generated)

@@ -4,8 +4,8 @@ import os
 # Base Paths
 RUN_NAME = "SDE_ConditionedwTestSpecific_256_500"
 BASE_OUTPUT = "results"
-BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
-# BASE_INPUT = r"E:\Ward Taborsky"
+# BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
+BASE_INPUT = r"E:\Ward Taborsky"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
@@ -24,6 +24,7 @@ BATCH_SIZE = 10
 IMAGE_SIZE = 256
 TIME_DIM = 128
 INIT_LR = 0.0001
+WEIGHT_DECAY = 0.001
 
 # Output paths
 RESULT_PATH = os.path.join(BASE_OUTPUT, RUN_NAME)
