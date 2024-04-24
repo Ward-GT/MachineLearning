@@ -169,7 +169,6 @@ class UNet(nn.Module):
                 self.up_blocks.append(UpBlock(in_channels, out_channels, n_channels*4, is_attn[i], False))
 
             out_channels = in_channels // ch_mults[i]
-            print(f"out channels: {out_channels}, in channels: {in_channels}")
             self.up_blocks.append(UpBlock(in_channels, out_channels, n_channels*4, is_attn[i], (i >= 0)))
             in_channels = out_channels
 
@@ -183,21 +182,14 @@ class UNet(nn.Module):
         h = [x]
 
         for block in self.down_blocks:
-            print(f"down_block, x shape {x.shape}")
-            print(f"down sample: {block.down_sample}")
             x = block(x, t)
             h.append(x)
 
-        print(f"middle block, x shape: {x.shape}")
         x = self.middle(x, t)
-        print(f"middle block out, x shape {x.shape}")
         for block in self.up_blocks:
-            print(f"up_block, x shape {x.shape}")
-            print(f"up sample: {block.up_sample}")
             if block.up_sample:
                 x = block(x, t)
             else:
-                print(f"x shape cat {x.shape}, h shape cat {h[-1].shape}")
                 x = block(torch.cat([x, h.pop()], dim=1), t)
 
         return self.out(self.act(self.norm(x)))
