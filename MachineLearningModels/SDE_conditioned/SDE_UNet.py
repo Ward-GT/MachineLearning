@@ -87,14 +87,14 @@ class DownBlock(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, time_channels: int, has_attention: bool, down_sample: bool):
         super().__init__()
         self.res = ResidualBlock(in_channels, out_channels, time_channels)
-
+        self.down_sample = down_sample
         if has_attention:
             self.attn = AttentionBlock(out_channels)
         else:
             self.attn = nn.Identity()
 
         if down_sample:
-            self.down = nn.Conv2d(out_channels, out_channels, kernel_size=(3,3), stride=(2,2), padding=(1,1))
+            self.down = nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
         else:
             self.down = nn.Identity()
 
@@ -106,7 +106,6 @@ class DownBlock(nn.Module):
 class UpBlock(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, time_channels: int, has_attention: bool, up_sample: bool):
         super().__init__()
-        self.res = ResidualBlock(in_channels+out_channels, out_channels, time_channels)
         self.up_sample = up_sample
 
         if has_attention:
@@ -115,8 +114,10 @@ class UpBlock(nn.Module):
             self.attn = nn.Identity()
 
         if up_sample:
-            self.up = nn.ConvTranspose2d(out_channels, out_channels, kernel_size=(4,4), stride=(2,2), padding=(1,1))
+            self.up = nn.ConvTranspose2d(out_channels, out_channels, kernel_size=(4, 4), stride=(2,2), padding=(1, 1))
+            self.res = ResidualBlock(in_channels, out_channels, time_channels)
         else:
+            self.res = ResidualBlock(in_channels + out_channels, out_channels, time_channels)
             self.up = nn.Identity()
 
     def forward(self, x: torch.Tensor, t: torch.Tensor):
@@ -137,22 +138,21 @@ class MiddleBlock(nn.Module):
         return self.res2(h, t)
 
 class UNet(nn.Module):
-    def __init__(self, input_channels: int = 6, output_channels: int = 3, n_channels: int = 64, ch_mults: List[int] = (2, 4, 8, 16), is_attn: List[bool] = (False, False, True, True), n_blocks: int = 2):
+    def __init__(self, input_channels: int = 6, output_channels: int = 3, n_channels: int = 64, ch_mults: List[int] = (1, 2, 2, 4), is_attn: List[bool] = (False, False, True, True), n_blocks: int = 1):
         super().__init__()
 
         self.image_proj = nn.Conv2d(input_channels, n_channels, kernel_size=(3, 3), padding=(1, 1))
         self.time_emb = TimeEmbedding(n_channels*4)
-        self.up_sample = False
         out_channels = in_channels = n_channels
-
+        n_resolutions = len(ch_mults)
         self.down_blocks = nn.ModuleList()
 
-        for i in range(len(ch_mults)):
+        for i in range(n_resolutions):
 
             out_channels = in_channels * ch_mults[i]
 
             for j in range(n_blocks):
-                self.down_blocks.append(DownBlock(in_channels, out_channels, n_channels*4, is_attn[i], (j < n_blocks-1 and i < len(ch_mults)-1)))
+                self.down_blocks.append(DownBlock(in_channels, out_channels, n_channels*4, is_attn[i], (j == n_blocks-1 and i < n_resolutions)))
                 in_channels = out_channels
 
         self.middle = MiddleBlock(out_channels, n_channels*4)
@@ -161,7 +161,7 @@ class UNet(nn.Module):
 
         in_channels = out_channels
 
-        for i in reversed(range(len(ch_mults))):
+        for i in reversed(range(n_resolutions)):
 
             out_channels = in_channels
 
@@ -169,7 +169,8 @@ class UNet(nn.Module):
                 self.up_blocks.append(UpBlock(in_channels, out_channels, n_channels*4, is_attn[i], False))
 
             out_channels = in_channels // ch_mults[i]
-            self.up_blocks.append(UpBlock(in_channels, out_channels, n_channels*4, is_attn[i], (i > 0)))
+            print(f"out channels: {out_channels}, in channels: {in_channels}")
+            self.up_blocks.append(UpBlock(in_channels, out_channels, n_channels*4, is_attn[i], (i >= 0)))
             in_channels = out_channels
 
         self.norm = nn.GroupNorm(8, n_channels)
@@ -182,21 +183,24 @@ class UNet(nn.Module):
         h = [x]
 
         for block in self.down_blocks:
+            print(f"down_block, x shape {x.shape}")
+            print(f"down sample: {block.down_sample}")
             x = block(x, t)
             h.append(x)
 
+        print(f"middle block, x shape: {x.shape}")
         x = self.middle(x, t)
-
+        print(f"middle block out, x shape {x.shape}")
         for block in self.up_blocks:
+            print(f"up_block, x shape {x.shape}")
+            print(f"up sample: {block.up_sample}")
             if block.up_sample:
-                x = block(x,t)
+                x = block(x, t)
             else:
+                print(f"x shape cat {x.shape}, h shape cat {h[-1].shape}")
                 x = block(torch.cat([x, h.pop()], dim=1), t)
 
         return self.out(self.act(self.norm(x)))
-
-model = UNet()
-print
 
 
 
