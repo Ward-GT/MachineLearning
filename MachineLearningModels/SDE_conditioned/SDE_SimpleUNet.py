@@ -46,7 +46,7 @@ class SinusoidalPositionEmbeddings(nn.Module):
         embeddings = time[:, None] * embeddings[None, :]
         embeddings = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
         return embeddings
-class UNet(nn.Module):
+class SimpleUNet(nn.Module):
     """
     A simplified variant of the Unet architecture.
     """
@@ -56,7 +56,7 @@ class UNet(nn.Module):
         down_channels = (64, 128, 256, 512, 1024)
         up_channels = (1024, 512, 256, 128, 64)
         out_dim = 3
-        time_emb_dim = 128
+        time_emb_dim = TIME_EMB_DIM
 
         # Time embedding
         self.time_mlp = nn.Sequential(

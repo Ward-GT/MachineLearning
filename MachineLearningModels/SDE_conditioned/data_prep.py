@@ -1,5 +1,7 @@
 import os
 import torch
+import re
+import pandas as pd
 from torchvision import transforms
 from PIL import Image
 
@@ -77,6 +79,52 @@ def convert_to_binary_mask(input_dir, output_dir, threshold=200):
             mask_image.save(output_file_path)
             print(f"Saved binary mask to {output_file_path}")
 
-rename_images_to_index(structure_dir)
-rename_images_to_index(output_dir)
-# convert_to_binary_mask(structure_dir, mask_dir)
+def output_dict_to_excel(dictionary, output_file):
+    # Convert the dictionary to a DataFrame
+    df = pd.DataFrame.from_dict(dictionary, orient='index')
+
+    # Output the DataFrame to an Excel file
+    df.to_excel(output_file)
+
+def extract_dimensions_from_filename(filename):
+    # Define the pattern to match dimensions and their numerical values
+    pattern = r'(o_hw1|hw2|dww_ii_x|dww_oo_x|dww_x|lcore_x1_IW|dcs|hw|dw)_([0-9.]+)'
+
+    # Use re.findall to find all matches of the pattern
+    matches = re.findall(pattern, filename)
+
+    # Convert the matches into a dictionary where keys are dimensions and values are numerical values
+    dimensions = {dim: float(value) for dim, value in matches}
+
+    return dimensions
+
+def extract_dimensions(input_dir, file_name):
+    # List all files in the input directory
+    files = os.listdir(input_dir)
+    files = [os.path.splitext(file)[0] for file in files]
+
+    # Initialize an empty dictionary to store the dimensions
+    dimensions_dict = {}
+
+    # Process each file
+    for i, file in enumerate(files):
+        print(file)
+        # Extract the dimensions from the file name
+        dimensions = extract_dimensions_from_filename(file)
+
+        # Store the dimensions in the dictionary
+        dimensions_dict[file] = dimensions
+
+        # Add the index to the dictionary
+        dimensions_dict[file]["index"] = i
+
+    output_dir = os.path.join(input_dir, file_name)
+    output_dict_to_excel(dimensions_dict, output_dir)
+
+    return dimensions_dict
+
+#TODO: Rename images to index
+#TODO: Link index to the dimensions of the images
+input_dir = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined\Structure"
+
+dimensions = extract_dimensions(input_dir, "dimensions.xlsx")

@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from torch import optim
 from tqdm import tqdm
 import logging
-from SDE_model import UNet
+from SDE_SimpleUNet import UNet
 from SDE_utils import *
 from SDE_tools import DiffusionTools
 from itertools import cycle
