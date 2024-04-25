@@ -5,10 +5,10 @@ import pandas as pd
 from torchvision import transforms
 from PIL import Image
 
-structure_dir = r"/MachineLearningModels/data/figure_B_specific/Structure"
-output_dir = r"/MachineLearningModels/data/figure_B_specific/Output"
+structure_dir = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined\Structure"
+output_dir = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined\Output"
 mask_dir = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_specific\Mask"
-def rename_images_to_index(folder_path):
+def rename_images_to_index(folder_path: str):
     """
     Renames all image files in the specified folder to their index.
 
@@ -34,7 +34,19 @@ def rename_images_to_index(folder_path):
         os.rename(original_file_path, new_file_path)
         print(f"Renamed '{file}' to '{new_file_name}'")
 
-def convert_to_binary_mask(input_dir, output_dir, threshold=200):
+def rename_images(folder_path: str):
+    files = os.listdir(folder_path)
+
+    for file in files:
+        new_file_name = file[2:]
+
+        original_file_path = os.path.join(folder_path, file)
+        new_file_path = os.path.join(folder_path, new_file_name)
+
+        os.rename(original_file_path, new_file_path)
+        print(f"Renamed {file} to {new_file_name}")
+
+def convert_to_binary_mask(input_dir: str, output_dir: str, threshold: int = 200):
     """
     Converts all images in the input directory to binary mask format
     and saves them to the output directory.
@@ -125,6 +137,6 @@ def extract_dimensions(input_dir, file_name):
 
 #TODO: Rename images to index
 #TODO: Link index to the dimensions of the images
-input_dir = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined\Structure"
 
-dimensions = extract_dimensions(input_dir, "dimensions.xlsx")
+rename_images(structure_dir)
+rename_images(output_dir)
