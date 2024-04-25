@@ -54,7 +54,7 @@ def train():
         average_loss = loss_total / len(train_dataloader)
         losses.append(average_loss)
 
-        if epoch % 5 == 0:
+        if epoch+1 % 5 == 0:
             test_images, test_structures = next(cycle(test_dataloader))
             test_images = concat_to_batchsize(test_images, nr_samples)
             test_images = tensor_to_PIL(test_images)

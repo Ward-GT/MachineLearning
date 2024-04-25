@@ -2,14 +2,14 @@ import torch
 import os
 
 # Base Paths
-RUN_NAME = "UNet_ConditionedwTestSpecific_128_200"
+RUN_NAME = "UNet_ConditionedCombined_2res_01_128_500"
 BASE_OUTPUT = "results"
 # BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
 BASE_INPUT = r"E:\Ward Taborsky"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
-DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
+DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 
@@ -17,13 +17,13 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Training parameters
-TEST_SPLIT = 0.2
-EPOCHS = 200
+TEST_SPLIT = 0.1
+EPOCHS = 500
 NOISE_STEPS = 1000
 BATCH_SIZE = 10
 IMAGE_SIZE = 128
 TIME_EMB_DIM = 128
-INIT_LR = 0.0001
+INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
 
 # Output paths
