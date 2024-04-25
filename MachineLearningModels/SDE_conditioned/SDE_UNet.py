@@ -84,46 +84,34 @@ class AttentionBlock(nn.Module):
         return res.permute(0, 2, 1).reshape(batch_size, n_channels, height, width)
 
 class DownBlock(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, time_channels: int, has_attention: bool, down_sample: bool):
+    def __init__(self, in_channels: int, out_channels: int, time_channels: int, has_attention: bool):
         super().__init__()
+
         self.res = ResidualBlock(in_channels, out_channels, time_channels)
-        self.down_sample = down_sample
+
         if has_attention:
             self.attn = AttentionBlock(out_channels)
         else:
             self.attn = nn.Identity()
 
-        if down_sample:
-            self.down = nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
-        else:
-            self.down = nn.Identity()
-
     def forward(self, x: torch.Tensor, t: torch.Tensor):
         h = self.res(x, t)
-        h = self.attn(h)
-        return self.down(h)
+        return self.attn(h)
 
 class UpBlock(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, time_channels: int, has_attention: bool, up_sample: bool):
+    def __init__(self, in_channels: int, out_channels: int, time_channels: int, has_attention: bool):
         super().__init__()
-        self.up_sample = up_sample
+
+        self.res = ResidualBlock(in_channels + out_channels, out_channels, time_channels)
 
         if has_attention:
             self.attn = AttentionBlock(out_channels)
         else:
             self.attn = nn.Identity()
 
-        if up_sample:
-            self.up = nn.ConvTranspose2d(out_channels, out_channels, kernel_size=(4, 4), stride=(2,2), padding=(1, 1))
-            self.res = ResidualBlock(in_channels, out_channels, time_channels)
-        else:
-            self.res = ResidualBlock(in_channels + out_channels, out_channels, time_channels)
-            self.up = nn.Identity()
-
     def forward(self, x: torch.Tensor, t: torch.Tensor):
         h = self.res(x, t)
-        h = self.attn(h)
-        return self.up(h)
+        return self.attn(h)
 
 class MiddleBlock(nn.Module):
     def __init__(self, n_channels: int, time_channels: int):
@@ -136,6 +124,24 @@ class MiddleBlock(nn.Module):
         h = self.res1(x, t)
         h = self.attn(h)
         return self.res2(h, t)
+
+class DownSample(nn.Module):
+    def __init__(self, n_channels: int):
+        super().__init__()
+        self.down = nn.Conv2d(n_channels, n_channels, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
+
+    def forward(self, x: torch.Tensor, t: torch.Tensor):
+        _ = t
+        return self.down(x)
+
+class UpSample(nn.Module):
+    def __init__(self, n_channels: int):
+        super().__init__()
+        self.up = nn.ConvTranspose2d(n_channels, n_channels, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+
+    def forward(self, x: torch.Tensor, t: torch.Tensor):
+        _ = t
+        return self.up(x)
 
 class UNet(nn.Module):
     def __init__(self, input_channels: int = 6, output_channels: int = 3, n_channels: int = 64, ch_mults: List[int] = (1, 2, 2, 4), is_attn: List[bool] = (False, False, True, True), n_blocks: int = 1):
@@ -151,9 +157,12 @@ class UNet(nn.Module):
 
             out_channels = in_channels * ch_mults[i]
 
-            for j in range(n_blocks):
-                self.down_blocks.append(DownBlock(in_channels, out_channels, n_channels*4, is_attn[i], (j == n_blocks-1 and i < n_resolutions)))
+            for _ in range(n_blocks):
+                self.down_blocks.append(DownBlock(in_channels, out_channels, n_channels*4, is_attn[i]))
                 in_channels = out_channels
+
+            if i < n_resolutions - 1:
+                self.down_blocks.append(DownSample(in_channels))
 
         self.middle = MiddleBlock(out_channels, n_channels*4)
 
@@ -165,12 +174,15 @@ class UNet(nn.Module):
 
             out_channels = in_channels
 
-            for j in range(n_blocks):
-                self.up_blocks.append(UpBlock(in_channels, out_channels, n_channels*4, is_attn[i], False))
+            for _ in range(n_blocks):
+                self.up_blocks.append(UpBlock(in_channels, out_channels, n_channels*4, is_attn[i]))
 
             out_channels = in_channels // ch_mults[i]
-            self.up_blocks.append(UpBlock(in_channels, out_channels, n_channels*4, is_attn[i], (i >= 0)))
+            self.up_blocks.append(UpBlock(in_channels, out_channels, n_channels*4, is_attn[i]))
             in_channels = out_channels
+
+            if i > 0:
+                self.up_blocks.append(UpSample(in_channels))
 
         self.norm = nn.GroupNorm(8, n_channels)
         self.act = Swish()
@@ -187,7 +199,7 @@ class UNet(nn.Module):
 
         x = self.middle(x, t)
         for block in self.up_blocks:
-            if block.up_sample:
+            if isinstance(block, UpSample)
                 x = block(x, t)
             else:
                 x = block(torch.cat([x, h.pop()], dim=1), t)
