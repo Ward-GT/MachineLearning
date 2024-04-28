@@ -17,8 +17,11 @@ def load_images(folder_path):
         images.append(img)
     return images
 
-def sample_model_output(model, sampler, n, batch_size=BATCH_SIZE, device=DEVICE, test_path=None):
-    if test_path is not None:
+def sample_model_output(model: torch.nn.Module, sampler, n: int, batch_size: int = BATCH_SIZE, device=DEVICE, test_path: str = None, test_dataloader: torch.utils.data.DataLoader = None):
+    if test_dataloader is not None and test_path is None:
+        print("Using test dataloader")
+        dataloader = test_dataloader
+    elif test_path is not None and test_dataloader is None:
         print("Using test data")
         dataloader = get_test_data(test_path, batch_size=batch_size)
     else:
@@ -42,6 +45,8 @@ def sample_model_output(model, sampler, n, batch_size=BATCH_SIZE, device=DEVICE,
         generated_list.extend(generated)
         structures_list.extend(structures)
         print(f"Reference: {len(references_list)}, Generated: {len(generated_list)}, Structures: {len(structures_list)}")
+
+    generated_list = [convert_grey_to_white(image) for image in generated_list]
 
     return references_list, generated_list, structures_list
 
@@ -117,13 +122,13 @@ def get_test_data(test_path, batch_size=BATCH_SIZE):
 
     return test_dataloader
 
-def concatenate_images(images, structures):
+def concatenate_images(images: torch.Tensor, structures: torch.Tensor):
     return torch.cat((images, structures), dim=1)
 
 def split_images(concatenated_images):
     return concatenated_images[:, :3], concatenated_images[:, 3:]
 
-def concat_to_batchsize(images, n):
+def concat_to_batchsize(images: torch.Tensor, n: int):
     m = images.shape[0]
     if m == n:
         return images
@@ -133,7 +138,7 @@ def concat_to_batchsize(images, n):
     else:
         return images[:n]
 
-def tensor_to_PIL(tensor):
+def tensor_to_PIL(tensor: torch.Tensor):
     tensor = (tensor.clamp(-1, 1) + 1) / 2
     tensor = (tensor * 255).type(torch.uint8)
     images = []
@@ -141,4 +146,29 @@ def tensor_to_PIL(tensor):
         image = transforms.ToPILImage()(tensor[i])
         images.append(image)
     return images
+
+def convert_grey_to_white(image: Image, threshold: int = 200):
+    """
+    Converts light gray pixels in the image to white.
+
+    Parameters:
+    - image: The Image to be Converted
+    - threshold: The value above which a pixel will be set to white.
+    """
+
+    image_array = np.array(image)
+    # Define a function to apply to each pixel
+    def change_color(pixel):
+        # If all the channels of the pixel value are above the threshold, change it to white
+        if np.all(pixel > threshold):
+            return (255, 255, 255)
+        else:
+            return pixel
+
+    # Apply the function to each pixel in the image
+    new_image_array = np.apply_along_axis(change_color, axis=-1, arr=image_array)
+    new_image = Image.fromarray(new_image_array.astype('uint8'), 'RGB')
+    return new_image
+
+
 

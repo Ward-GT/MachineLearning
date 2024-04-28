@@ -78,4 +78,12 @@ def train():
     plt.savefig(os.path.join(RESULT_PATH, "loss.jpg"))
     plt.show()
 
+    if GENERATE_IMAGES == True:
+        references_list, generated_list, structures_list = sample_model_output(model=model, sampler=diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader)
+        save_image_list(references_list, REFERENCE_PATH)
+        save_image_list(generated_list, SAMPLE_PATH)
+        save_image_list(structures_list, STRUCTURE_PATH)
+
+
+
 train()
