@@ -55,12 +55,14 @@ def train():
         losses.append(average_loss)
 
         if (epoch+1) % 5 == 0:
-            test_images, test_structures = next(cycle(test_dataloader))
-            test_images = concat_to_batchsize(test_images, nr_samples)
-            test_images = tensor_to_PIL(test_images)
-            test_structures = test_structures.to(device)
-            sampled_images, structures = diffusion.sample(model, n=nr_samples, structures=test_structures)
-            save_images(reference_images=test_images, generated_images=sampled_images, structure_images=structures, path=os.path.join(IMAGE_PATH, f"{epoch}.jpg"))
+            if REFERENCE_IMAGES == True:
+                test_images, test_structures = next(cycle(test_dataloader))
+                test_images = concat_to_batchsize(test_images, nr_samples)
+                test_images = tensor_to_PIL(test_images)
+                test_structures = test_structures.to(device)
+                sampled_images, structures = diffusion.sample(model, n=nr_samples, structures=test_structures)
+                save_images(reference_images=test_images, generated_images=sampled_images, structure_images=structures, path=os.path.join(IMAGE_PATH, f"{epoch}.jpg"))
+
             if epoch > 0.9*EPOCHS:
                 torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_{epoch}.pth"))
 
