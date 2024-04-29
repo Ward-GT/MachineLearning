@@ -32,10 +32,10 @@ def sample_model_output(model: torch.nn.Module, sampler, n: int, batch_size: int
     references_list = []
     generated_list = []
     structures_list = []
-
+    iterator = iter(dataloader)
     print(f"Sampling on {device}")
     for i in range(0, n, batch_size):
-        references, structures = next(iter(dataloader))
+        references, structures = next(iterator)
         structures = structures.to(device)
         references = references.to(device)
         generated, structures = sampler.sample(model, batch_size, structures)

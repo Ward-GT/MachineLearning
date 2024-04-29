@@ -2,7 +2,6 @@ import torch
 import os
 
 # Base Paths
-RUN_NAME = "UNet_ConditionedCombined_2res_01_256_500"
 BASE_OUTPUT = "results"
 # BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
 # BASE_INPUT = r"E:\Ward Taborsky"
@@ -27,7 +26,14 @@ TIME_EMB_DIM = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
 REFERENCE_IMAGES = True
+NR_SAMPLES = 5
 GENERATE_IMAGES = False
+
+# UNet Parameters
+MODEL = "UNet"
+N_BLOCKS = 1
+
+RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
 
 # Output paths
 RESULT_PATH = os.path.join(BASE_OUTPUT, RUN_NAME)

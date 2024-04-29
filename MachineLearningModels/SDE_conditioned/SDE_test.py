@@ -50,15 +50,15 @@ def calculate_metrics(image_set1, image_set2):
 # save_image_list(generated, SAMPLE_PATH)
 # save_image_list(structure, STRUCTURE_PATH)
 
-# reference_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\SDE_ConditionedwBigTestSpecific_256_500\images\References"
-# sample_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\SDE_ConditionedwBigTestSpecific_256_500\images\Samples"
-#
-# reference_images = load_images(reference_path)
-# sampled_images = load_images(sample_path)
-#
-# ssim_values, psnr_values, mse_mean_values, mse_max_values = calculate_metrics(reference_images, sampled_images)
-#
-# print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
+reference_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_ConditionedCombined_1res_01_128_500\images\References"
+sample_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_ConditionedCombined_1res_01_128_500\images\Samples"
 
-model = UNet()
+reference_images = load_images(reference_path)
+sampled_images = load_images(sample_path)
+
+ssim_values, psnr_values, mse_mean_values, mse_max_values = calculate_metrics(reference_images, sampled_images)
+
+print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
+
+model = UNet(n_blocks=N_BLOCKS)
 print(count_parameters(model))

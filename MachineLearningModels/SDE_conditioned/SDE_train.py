@@ -19,9 +19,9 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= lo
 
 def train():
     device = DEVICE
-    nr_samples = 5
+    nr_samples = NR_SAMPLES
     train_dataloader, test_dataloader = get_data()
-    model = UNet().to(device)
+    model = UNet(n_blocks=N_BLOCKS).to(device)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=WEIGHT_DECAY)
     mse = nn.MSELoss()
     diffusion = DiffusionTools()
