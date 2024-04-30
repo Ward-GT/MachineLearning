@@ -95,13 +95,12 @@ def get_data(batch_size=BATCH_SIZE):
 
     train_size = int((1 - TEST_SPLIT) * len(dataset))
     test_size = len(dataset) - train_size
-
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
     torch.save(train_dataset.indices, os.path.join(RESULT_PATH, "train_indices.pth"))
     torch.save(test_dataset.indices, os.path.join(RESULT_PATH, "test_indices.pth"))
 
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     return train_dataloader, test_dataloader
 
@@ -117,8 +116,9 @@ def get_test_data(test_path, batch_size=BATCH_SIZE):
     test_indices = torch.load(test_path)
     print(f"Loaded {len(test_indices)} test indices")
     test_subset = Subset(dataset, test_indices)
+    print(f"Made subset with {len(test_subset)} images")
 
-    test_dataloader = DataLoader(dataset, batch_size=batch_size)
+    test_dataloader = DataLoader(test_subset, batch_size=batch_size)
 
     return test_dataloader
 

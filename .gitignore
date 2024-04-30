@@ -2,5 +2,6 @@
 .venv
 data
 saved_models
+models
 results
 runs
