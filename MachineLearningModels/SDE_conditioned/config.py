@@ -33,7 +33,8 @@ GENERATE_IMAGES = False
 MODEL = "UNet"
 N_BLOCKS = 1
 
-RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
+# RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
+RUN_NAME = "/home/tue/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/UNet_ConditionedCombined_2res_01_256_500"
 
 # Output paths
 RESULT_PATH = os.path.join(BASE_OUTPUT, RUN_NAME)
