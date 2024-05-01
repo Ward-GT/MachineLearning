@@ -95,6 +95,7 @@ def get_data(batch_size=BATCH_SIZE):
 
     train_size = int((1 - TEST_SPLIT) * len(dataset))
     test_size = len(dataset) - train_size
+    set_seed()
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
     torch.save(train_dataset.indices, os.path.join(RESULT_PATH, "train_indices.pth"))
     torch.save(test_dataset.indices, os.path.join(RESULT_PATH, "test_indices.pth"))
@@ -169,6 +170,39 @@ def convert_grey_to_white(image: Image, threshold: int = 200):
     new_image_array = np.apply_along_axis(change_color, axis=-1, arr=image_array)
     new_image = Image.fromarray(new_image_array.astype('uint8'), 'RGB')
     return new_image
+
+def set_seed(seed: int = DEFAULT_SEED, fully_deterministic: bool = False):
+    """
+    Set seed for reproducible behavior.
+
+    Parameters
+    ----------
+    seed : int
+        Seed value to set. By default, 1958.
+    fully_deterministic : bool
+        Whether to set the environment to fully deterministic. By default, False.
+        This should only be used for debugging and testing, as it can significantly
+        slow down training at little to no benefit.
+    """
+    if fully_deterministic:
+        os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
+        os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
+        torch.use_deterministic_algorithms(True, warn_only=True)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cuda.matmul.allow_tf32 = False
+        torch.backends.cudnn.allow_tf32 = False
+    else:
+        torch.set_float32_matmul_precision("high")
+        torch.backends.cudnn.deterministic = False
+        torch.backends.cudnn.benchmark = True
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    print("Seed set!")
 
 
 

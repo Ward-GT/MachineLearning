@@ -18,6 +18,7 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= lo
 
 
 def train():
+    set_seed()
     device = DEVICE
     nr_samples = NR_SAMPLES
     train_dataloader, test_dataloader = get_data()
