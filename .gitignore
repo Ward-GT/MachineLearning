@@ -5,4 +5,4 @@ saved_models
 models
 results
 runs
-*.pyc
+__pycache__
