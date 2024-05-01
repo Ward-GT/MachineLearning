@@ -5,3 +5,4 @@ saved_models
 models
 results
 runs
+*.pyc
