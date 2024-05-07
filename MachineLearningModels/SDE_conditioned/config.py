@@ -4,13 +4,14 @@ import numpy as np
 
 # Base Paths
 BASE_OUTPUT = "results"
-# BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
+BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
-DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
+DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined_small")
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 

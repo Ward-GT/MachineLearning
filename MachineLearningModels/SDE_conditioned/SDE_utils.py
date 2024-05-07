@@ -84,7 +84,7 @@ def save_images(reference_images=None, generated_images=None, structure_images=N
     if path:
         plt.savefig(path, **kwargs)  # Save the figure if a path is provided
 
-def get_data(batch_size=BATCH_SIZE):
+def get_data(batch_size: int = BATCH_SIZE, split: bool = True):
     data_transform = transforms.Compose([
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
         transforms.Lambda(lambda t: t / 255.0),
@@ -93,17 +93,21 @@ def get_data(batch_size=BATCH_SIZE):
 
     dataset = LabeledDataset(IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH, transform=data_transform)
 
-    train_size = int((1 - TEST_SPLIT) * len(dataset))
-    test_size = len(dataset) - train_size
-    set_seed()
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
-    torch.save(train_dataset.indices, os.path.join(RESULT_PATH, "train_indices.pth"))
-    torch.save(test_dataset.indices, os.path.join(RESULT_PATH, "test_indices.pth"))
+    if split == True:
+        train_size = int((1 - TEST_SPLIT) * len(dataset))
+        test_size = len(dataset) - train_size
+        set_seed()
+        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
+        torch.save(train_dataset.indices, os.path.join(RESULT_PATH, "train_indices.pth"))
+        torch.save(test_dataset.indices, os.path.join(RESULT_PATH, "test_indices.pth"))
 
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-    return train_dataloader, test_dataloader
+        return train_dataloader, test_dataloader, train_dataset, test_dataset
+    else:
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        return dataloader, dataset, -1, -1
 
 def get_test_data(test_path, batch_size=BATCH_SIZE):
     data_transform = transforms.Compose([
@@ -118,7 +122,7 @@ def get_test_data(test_path, batch_size=BATCH_SIZE):
     print(f"Loaded {len(test_indices)} test indices")
     test_subset = Subset(dataset, test_indices)
     print(f"Made subset with {len(test_subset)} images")
-
+    set_seed()
     test_dataloader = DataLoader(test_subset, batch_size=batch_size)
 
     return test_dataloader

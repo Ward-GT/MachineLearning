@@ -16,12 +16,13 @@ from config import *
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")
 
-
+#TODO add validation, train and test set and validation in the loop
+#TODO dimension dict fix
 def train():
     set_seed()
     device = DEVICE
     nr_samples = NR_SAMPLES
-    train_dataloader, test_dataloader = get_data()
+    train_dataloader, test_dataloader, _, _ = get_data()
     model = UNet(n_blocks=N_BLOCKS).to(device)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=WEIGHT_DECAY)
     mse = nn.MSELoss()

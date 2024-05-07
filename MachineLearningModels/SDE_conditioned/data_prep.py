@@ -1,6 +1,8 @@
 import os
 import torch
 import re
+import shutil
+import random
 import pandas as pd
 from torchvision import transforms
 from PIL import Image
@@ -98,45 +100,25 @@ def output_dict_to_excel(dictionary, output_file):
     # Output the DataFrame to an Excel file
     df.to_excel(output_file)
 
-def extract_dimensions_from_filename(filename):
-    # Define the pattern to match dimensions and their numerical values
-    pattern = r'(o_hw1|hw2|dww_ii_x|dww_oo_x|dww_x|lcore_x1_IW|dcs|hw|dw)_([0-9.]+)'
+def sample_files(input_folder1, input_folder2, output_folder1, output_folder2, output_length):
+    # List all files in the first input folder
+    files = os.listdir(input_folder1)
 
-    # Use re.findall to find all matches of the pattern
-    matches = re.findall(pattern, filename)
+    # Generate a list of random indices
+    indices = random.sample(range(len(files)), output_length)
 
-    # Convert the matches into a dictionary where keys are dimensions and values are numerical values
-    dimensions = {dim: float(value) for dim, value in matches}
+    # Ensure output directories exist
+    os.makedirs(output_folder1, exist_ok=True)
+    os.makedirs(output_folder2, exist_ok=True)
 
-    return dimensions
+    # Copy files
+    for index in indices:
+        shutil.copy(os.path.join(input_folder1, files[index]), output_folder1)
+        shutil.copy(os.path.join(input_folder2, files[index]), output_folder2)
 
-def extract_dimensions(input_dir, file_name):
-    # List all files in the input directory
-    files = os.listdir(input_dir)
-    files = [os.path.splitext(file)[0] for file in files]
+input_folder1 = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined\Output"
+input_folder2 = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined\Structure"
+output_folder1 = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined_small\Output"
+output_folder2 = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined_small\Structure"
 
-    # Initialize an empty dictionary to store the dimensions
-    dimensions_dict = {}
-
-    # Process each file
-    for i, file in enumerate(files):
-        print(file)
-        # Extract the dimensions from the file name
-        dimensions = extract_dimensions_from_filename(file)
-
-        # Store the dimensions in the dictionary
-        dimensions_dict[file] = dimensions
-
-        # Add the index to the dictionary
-        dimensions_dict[file]["index"] = i
-
-    output_dir = os.path.join(input_dir, file_name)
-    output_dict_to_excel(dimensions_dict, output_dir)
-
-    return dimensions_dict
-
-#TODO: Rename images to index
-#TODO: Link index to the dimensions of the images
-
-rename_images(structure_dir)
-rename_images(output_dir)
+sample_files(input_folder1, input_folder2, output_folder1, output_folder2, 50)
