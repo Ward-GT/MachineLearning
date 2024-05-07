@@ -94,20 +94,25 @@ def get_data(batch_size: int = BATCH_SIZE, split: bool = True):
     dataset = LabeledDataset(IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH, transform=data_transform)
 
     if split == True:
-        train_size = int((1 - TEST_SPLIT) * len(dataset))
-        test_size = len(dataset) - train_size
+        train_size = int((1 - TEST_SPLIT - VALIDATION_SPLIT) * len(dataset))
+        val_size = int(VALIDATION_SPLIT * len(dataset))
+        test_size = int(TEST_SPLIT * len(dataset))
+
         set_seed()
-        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
+        train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
+
         torch.save(train_dataset.indices, os.path.join(RESULT_PATH, "train_indices.pth"))
+        torch.save(val_dataset.indice, os.path.join(RESULT_PATH, "val_indices.pth"))
         torch.save(test_dataset.indices, os.path.join(RESULT_PATH, "test_indices.pth"))
 
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
         test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-        return train_dataloader, test_dataloader, train_dataset, test_dataset
+        return train_dataloader, val_dataloader, test_dataloader, train_dataset, val_dataset, test_dataset
     else:
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-        return dataloader, dataset, -1, -1
+        return dataloader, dataset, -1, -1, -1, -1
 
 def get_test_data(test_path, batch_size=BATCH_SIZE):
     data_transform = transforms.Compose([

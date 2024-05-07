@@ -27,7 +27,6 @@ def extract_dimension_vectors(dimension_dict : dict):
 
     return core_vector, winding_vector
 
-
 def scaled_dot_product(vector1, vector2):
     # Compute the dot product
     dot_product = np.dot(vector1, vector2)
