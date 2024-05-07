@@ -102,7 +102,7 @@ def get_data(batch_size: int = BATCH_SIZE, split: bool = True):
         train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
 
         torch.save(train_dataset.indices, os.path.join(RESULT_PATH, "train_indices.pth"))
-        torch.save(val_dataset.indice, os.path.join(RESULT_PATH, "val_indices.pth"))
+        torch.save(val_dataset.indices, os.path.join(RESULT_PATH, "val_indices.pth"))
         torch.save(test_dataset.indices, os.path.join(RESULT_PATH, "test_indices.pth"))
 
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)

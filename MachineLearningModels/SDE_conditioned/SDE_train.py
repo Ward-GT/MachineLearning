@@ -69,7 +69,7 @@ def train():
                 loss = mse(noise, predicted_noise)
 
                 pbar.set_postfix(MSE=loss.item())
-                loss_total += loss.item
+                loss_total += loss.item()
 
         average_loss = loss_total / len(val_dataloader)
         val_losses.append(average_loss)

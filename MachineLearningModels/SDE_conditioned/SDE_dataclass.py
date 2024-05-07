@@ -65,7 +65,6 @@ class LabeledDataset(Dataset):
 
         input_image_path = os.path.join(self.input_dir, self.input_images[idx])
         label_image_path = os.path.join(self.label_dir, self.label_images[idx])
-        print(self.input_images[idx])
         dimensions = extract_dimensions_from_filename(self.input_images[idx])
         input_image = read_image(input_image_path)
         label_image = read_image(label_image_path)
