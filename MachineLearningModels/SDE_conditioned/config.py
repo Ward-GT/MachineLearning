@@ -3,15 +3,16 @@ import os
 import numpy as np
 
 # Base Paths
-BASE_OUTPUT = "results"
-BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
-# BASE_INPUT = r"E:\Ward Taborsky"
+# BASE_OUTPUT = "results"
+BASE_OUTPUT = r"E:\Ward Taborsky\results"
+# BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
+BASE_INPUT = r"E:\Ward Taborsky"
 # BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
-# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
-DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined_small")
+DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined_small")
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 
@@ -23,7 +24,7 @@ TEST_SPLIT = 0.1
 EPOCHS = 500
 NOISE_STEPS = 1000
 BATCH_SIZE = 20
-IMAGE_SIZE = 256
+IMAGE_SIZE = 128
 TIME_EMB_DIM = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
@@ -37,7 +38,7 @@ MODEL = "UNet"
 N_BLOCKS = 1
 
 # RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
-RUN_NAME = "UNet_ConditionedCombined_2res_01_256_500"
+RUN_NAME = "UNet_ConditionedCombined_1res_01_256_500"
 
 # Output paths
 RESULT_PATH = os.path.join(BASE_OUTPUT, RUN_NAME)
