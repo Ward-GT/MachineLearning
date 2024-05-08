@@ -51,7 +51,7 @@ class LabeledDataset(Dataset):
         self.transform = transform
 
         self.input_images = os.listdir(input_dir)
-        self.label_images = os.listdir(label_dir)
+        self.label_images = self.input_images # os.listdir(label_dir)
 
         if len(self.input_images) != len(self.label_images):
             raise ValueError("Number of input images and label images do not match")
