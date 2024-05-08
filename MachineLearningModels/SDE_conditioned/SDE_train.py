@@ -76,7 +76,7 @@ def train():
 
         if (epoch+1) % 5 == 0:
             if REFERENCE_IMAGES == True:
-                test_images, test_structures = next(cycle(test_dataloader))
+                test_images, test_structures, _ = next(cycle(test_dataloader))
                 test_images = concat_to_batchsize(test_images, nr_samples)
                 test_images = tensor_to_PIL(test_images)
                 test_structures = test_structures.to(device)
