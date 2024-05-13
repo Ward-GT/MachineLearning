@@ -50,7 +50,7 @@ class LabeledDataset(Dataset):
         self.label_dir = label_dir
         self.transform = transform
 
-        self.input_images = os.listdir(input_dir)
+        self.input_images = sorted(os.listdir(input_dir))
         self.label_images = self.input_images # os.listdir(label_dir)
 
         if len(self.input_images) != len(self.label_images):

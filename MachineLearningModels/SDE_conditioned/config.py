@@ -6,9 +6,9 @@ import numpy as np
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-# BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
+BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
@@ -21,7 +21,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Training parameters
-TRAINING = True
+TRAINING = False
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 500
@@ -45,7 +45,6 @@ RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_
 
 # Output paths
 RESULT_PATH = os.path.join(BASE_OUTPUT, RUN_NAME)
-LOG_PATH = os.path.join(RESULT_PATH, f"{RUN_NAME},losses.npz")
 MODEL_PATH = os.path.join(RESULT_PATH, "models")
 IMAGE_PATH = os.path.join(RESULT_PATH, "images")
 SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")

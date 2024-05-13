@@ -86,20 +86,20 @@ def comparison_plot(structure: Image, reference: Image, sample: Image, path: str
     plt.show()
 
 
-model_path = r"E:\Ward Taborsky\results\UNet_ConditionedCombined_1res_01_128_500\models\UNet_ConditionedCombined_2res_01_128_500_final.pth"
-test_path = r"E:\Ward Taborsky\results\UNet_ConditionedCombined_1res_01_128_500\test_indices.pth"
-model = UNet(n_blocks=N_BLOCKS)
-model.load_state_dict(torch.load(model_path))
-sampler = DiffusionTools(img_size=IMAGE_SIZE)
-sample_save_metrics(model, sampler, test_path, n=300, batch_size=5)
+# model_path = r"E:\Ward Taborsky\results\UNet_ConditionedCombined_1res_01_128_500\models\UNet_ConditionedCombined_2res_01_128_500_final.pth"
+# test_path = r"E:\Ward Taborsky\results\UNet_ConditionedCombined_1res_01_128_500\test_indices.pth"
+# model = UNet(n_blocks=N_BLOCKS)
+# model.load_state_dict(torch.load(model_path))
+# sampler = DiffusionTools(img_size=IMAGE_SIZE)
+# sample_save_metrics(model, sampler, test_path, n=300, batch_size=5)
 
-# structure_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\SDE_ConditionedwTestSpecific_256_500\images\Structures"
-# reference_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\SDE_ConditionedwTestSpecific_256_500\images\References"
-# sample_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\SDE_ConditionedwTestSpecific_256_500\images\Samples"
-# structure_images = load_images(structure_path)
-# reference_images = load_images(reference_path)
-# sampled_images = load_images(sample_path)
-# ssim_values, psnr_values, mse_mean_values, mse_max_values = calculate_metrics(reference_images, sampled_images)
-# print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
+structure_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_split_0.3_imgsize_128_epochs_500\images\Structures"
+reference_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_split_0.3_imgsize_128_epochs_500\images\References"
+sample_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_split_0.3_imgsize_128_epochs_500\images\Samples"
+structure_images = load_images(structure_path)
+reference_images = load_images(reference_path)
+sampled_images = load_images(sample_path)
+ssim_values, psnr_values, mse_mean_values, mse_max_values = calculate_metrics(reference_images, sampled_images)
+print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
 
 # comparison_plot(structure_images[0], reference_images[0], sampled_images[0], r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\SDE_conditioned\results\comparison.eps")
