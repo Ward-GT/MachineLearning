@@ -6,9 +6,9 @@ import numpy as np
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
+# BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
@@ -23,22 +23,22 @@ PIN_MEMORY = True if DEVICE == "cuda" else False
 # Training parameters
 TRAINING = True
 SMART_SPLIT = True
-TEST_SPLIT = 0.1
+TEST_SPLIT = 0.7
 VALIDATION_SPLIT = 0.1
 EPOCHS = 500
 NOISE_STEPS = 1000
-BATCH_SIZE = 10
+BATCH_SIZE = 20
 IMAGE_SIZE = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
 REFERENCE_IMAGES = True
 NR_SAMPLES = 5
-GENERATE_IMAGES = False
+GENERATE_IMAGES = True
 DEFAULT_SEED = 42
 
 # UNet Parameters
 MODEL = "UNet"
-N_BLOCKS = 2
+N_BLOCKS = 1
 TIME_EMB_DIM = 128
 
 RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"

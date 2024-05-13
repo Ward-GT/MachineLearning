@@ -203,38 +203,3 @@ def get_test_data(test_path, batch_size=BATCH_SIZE):
     test_dataloader = DataLoader(test_subset, batch_size=batch_size)
 
     return test_dataloader
-
-# _, dataset, _, _, _, _ = get_data(split=False)
-
-# SSIM_matrix = SSIM_matrix(dataset, dataset)
-#
-# print(dimensions)
-# print(extract_dimension_vectors(dimensions))
-
-# multiplied_matrix, total_matrix = calculate_dot_matrix_datasets(dataset, dataset)
-
-# multiplied_max_indices = np.argmax(multiplied_matrix, axis=0)
-# total_max_indices = np.argmax(total_matrix, axis=0)
-# SSIM_max_indices = np.argmax(SSIM_matrix, axis=0)
-
-# indices = np.random.randint(0, len(multiplied_max_indices), size=10)
-
-# path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\sampling"
-# matrix_path = os.path.join(path, "matrices.npz")
-#
-# data = np.load(matrix_path)
-# total_matrix = data['total_matrix']
-#
-# folder = os.path.join(path, "samplemax2")
-# if not os.path.exists(folder):
-#     os.makedirs(folder)
-#
-# indices, similarities = optimize_flatten_similarity(total_matrix, 1000)
-# save_ordered_dataset(dataset, indices, folder)
-
-# show_similarity_pair(dataset, multiplied_max_indices, indices)
-# show_similarity_pair(dataset, total_max_indices, indices)
-# show_similarity_pair(dataset, SSIM_max_indices, indices)
-
-_, _, _, train_dataset, val_dataset, test_dataset = get_data(smart_split=True)
-print(f"Train: {len(train_dataset)}, Val: {len(val_dataset)}, Test: {len(test_dataset)}")

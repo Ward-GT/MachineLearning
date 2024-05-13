@@ -10,6 +10,7 @@
 #SBATCH --time=30:00:00
 
 # Load Modules
+module purge
 module load Python/3.11.3-GCCcore-12.3.0
 module load anaconda/2022.10-pth39
 
