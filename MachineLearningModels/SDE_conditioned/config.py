@@ -21,7 +21,8 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Training parameters
-TRAINING = False
+TRAINING = True
+SMART_SPLIT = True
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 500
@@ -40,7 +41,7 @@ MODEL = "UNet"
 N_BLOCKS = 2
 TIME_EMB_DIM = 128
 
-RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
+RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
 # RUN_NAME = "UNet_ConditionedCombined_1res_01_256_500"
 
 # Output paths

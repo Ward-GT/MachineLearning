@@ -17,39 +17,6 @@ def load_images(folder_path):
         images.append(img)
     return images
 
-def sample_model_output(model: torch.nn.Module, sampler, n: int, batch_size: int = BATCH_SIZE, device=DEVICE, test_path: str = None, test_dataloader: torch.utils.data.DataLoader = None):
-    if test_dataloader is not None and test_path is None:
-        print("Using test dataloader")
-        dataloader = test_dataloader
-    elif test_path is not None and test_dataloader is None:
-        print("Using test data")
-        dataloader = get_test_data(test_path, batch_size=batch_size)
-    else:
-        _, dataloader = get_data(batch_size)
-
-    model = model.to(device)
-
-    references_list = []
-    generated_list = []
-    structures_list = []
-    iterator = iter(dataloader)
-    print(f"Sampling on {device}")
-    for i in range(0, n, batch_size):
-        references, structures, _ = next(iterator)
-        structures = structures.to(device)
-        references = references.to(device)
-        generated, structures = sampler.sample(model, batch_size, structures)
-        references = tensor_to_PIL(references)
-
-        references_list.extend(references)
-        generated_list.extend(generated)
-        structures_list.extend(structures)
-        print(f"Reference: {len(references_list)}, Generated: {len(generated_list)}, Structures: {len(structures_list)}")
-
-    generated_list = [convert_grey_to_white(image) for image in generated_list]
-
-    return references_list, generated_list, structures_list
-
 def save_image_list(image_list, path):
     for i, image in enumerate(image_list):
         image.save(os.path.join(path, f"{i}.jpg"))
@@ -83,54 +50,6 @@ def save_images(reference_images=None, generated_images=None, structure_images=N
     plt.tight_layout()
     if path:
         plt.savefig(path, **kwargs)  # Save the figure if a path is provided
-
-def get_data(batch_size: int = BATCH_SIZE, split: bool = True):
-    data_transform = transforms.Compose([
-        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-        transforms.Lambda(lambda t: t / 255.0),
-        transforms.Lambda(lambda t: (t * 2) - 1)
-    ])
-
-    dataset = LabeledDataset(IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH, transform=data_transform)
-
-    if split == True:
-        train_size = int((1 - TEST_SPLIT - VALIDATION_SPLIT) * len(dataset))
-        val_size = int(VALIDATION_SPLIT * len(dataset))
-        test_size = int(TEST_SPLIT * len(dataset))
-
-        set_seed()
-        train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
-
-        torch.save(train_dataset.indices, os.path.join(RESULT_PATH, "train_indices.pth"))
-        torch.save(val_dataset.indices, os.path.join(RESULT_PATH, "val_indices.pth"))
-        torch.save(test_dataset.indices, os.path.join(RESULT_PATH, "test_indices.pth"))
-
-        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
-        test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-
-        return train_dataloader, val_dataloader, test_dataloader, train_dataset, val_dataset, test_dataset
-    else:
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-        return dataloader, dataset, -1, -1, -1, -1
-
-def get_test_data(test_path, batch_size=BATCH_SIZE):
-    data_transform = transforms.Compose([
-        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-        transforms.Lambda(lambda t: t / 255.0),
-        transforms.Lambda(lambda t: (t * 2) - 1)
-    ])
-
-    dataset = LabeledDataset(IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH, transform=data_transform)
-
-    test_indices = torch.load(test_path)
-    print(f"Loaded {len(test_indices)} test indices")
-    test_subset = Subset(dataset, test_indices)
-    print(f"Made subset with {len(test_subset)} images")
-    set_seed()
-    test_dataloader = DataLoader(test_subset, batch_size=batch_size)
-
-    return test_dataloader
 
 def concatenate_images(images: torch.Tensor, structures: torch.Tensor):
     return torch.cat((images, structures), dim=1)

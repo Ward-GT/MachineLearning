@@ -90,6 +90,7 @@ def show_similarity_pair(dataset, similarity_vector, indices):
         axs[1].imshow(image2)
 
         plt.show()
+
 def flatten_similarity(similarity_matrix: np.array, starting_index: int = 0):
     similarity_matrix_copy = similarity_matrix.copy()
     index = starting_index
@@ -127,21 +128,85 @@ def save_ordered_dataset(dataset, indices, path):
     images = []
 
     for index in indices:
-        image = dataset[index]
+        image, _, _ = dataset[index]
         image = np.transpose(tensor_to_PIL(image), (1, 2, 0))
         image = Image.fromarray(image)
         images.append(image)
 
     save_image_list(images, path)
 
+def smart_data_split(dataset, train_size: int, val_size: int, test_size: int, optimization_steps: int = 500):
+    _, total_matrix = calculate_dot_matrix_datasets(dataset, dataset)
 
+    indices, similarities = optimize_flatten_similarity(total_matrix, optimization_steps)
 
-_, dataset, _, _, _, _ = get_data(split=False)
+    evenly_spaced_numbers = np.linspace(0, len(indices) - 1, train_size)
+
+    train_indices = [indices[int(index)] for index in evenly_spaced_numbers]
+
+    all_indices = list(range(len(indices)))
+
+    remaining_indices = [index for index in all_indices if index not in train_indices]
+
+    train_dataset = Subset(dataset, train_indices)
+    val_dataset, test_dataset = torch.utils.data.random_split(Subset(dataset, remaining_indices), [val_size, test_size])
+
+    return train_dataset, val_dataset, test_dataset
+
+def get_data(batch_size: int = BATCH_SIZE, split: bool = True, smart_split: bool = False):
+    data_transform = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.Lambda(lambda t: t / 255.0),
+        transforms.Lambda(lambda t: (t * 2) - 1)
+    ])
+
+    dataset = LabeledDataset(IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH, transform=data_transform)
+
+    if split == True:
+        train_size = int((1 - TEST_SPLIT - VALIDATION_SPLIT) * len(dataset))
+        val_size = int(VALIDATION_SPLIT * len(dataset))
+        test_size = int(TEST_SPLIT * len(dataset))
+
+        set_seed()
+        if smart_split == True:
+            train_dataset, val_dataset, test_dataset = smart_data_split(dataset, train_size, val_size, test_size)
+        else:
+            train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
+
+        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
+        test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+        torch.save(train_dataset.indices, os.path.join(RESULT_PATH, "train_indices.pth"))
+        torch.save(val_dataset.indices, os.path.join(RESULT_PATH, "val_indices.pth"))
+        torch.save(test_dataset.indices, os.path.join(RESULT_PATH, "test_indices.pth"))
+
+        return train_dataloader, val_dataloader, test_dataloader, train_dataset, val_dataset, test_dataset
+    else:
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        return dataloader, dataset, -1, -1, -1, -1
+
+def get_test_data(test_path, batch_size=BATCH_SIZE):
+    data_transform = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.Lambda(lambda t: t / 255.0),
+        transforms.Lambda(lambda t: (t * 2) - 1)
+    ])
+
+    dataset = LabeledDataset(IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH, transform=data_transform)
+
+    test_indices = torch.load(test_path)
+    print(f"Loaded {len(test_indices)} test indices")
+    test_subset = Subset(dataset, test_indices)
+    print(f"Made subset with {len(test_subset)} images")
+    set_seed()
+    test_dataloader = DataLoader(test_subset, batch_size=batch_size)
+
+    return test_dataloader
+
+# _, dataset, _, _, _, _ = get_data(split=False)
 
 # SSIM_matrix = SSIM_matrix(dataset, dataset)
-
-
-_, _, dimensions = dataset[1]
 #
 # print(dimensions)
 # print(extract_dimension_vectors(dimensions))
@@ -154,14 +219,22 @@ _, _, dimensions = dataset[1]
 
 # indices = np.random.randint(0, len(multiplied_max_indices), size=10)
 
-path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\sampling"
-matrix_path = os.path.join(path, "matrices.npz")
-
-data = np.load(matrix_path)
-total_matrix = data['total_matrix']
-
-indices, similarities = optimize_flatten_similarity(total_matrix, 3000)
+# path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\sampling"
+# matrix_path = os.path.join(path, "matrices.npz")
+#
+# data = np.load(matrix_path)
+# total_matrix = data['total_matrix']
+#
+# folder = os.path.join(path, "samplemax2")
+# if not os.path.exists(folder):
+#     os.makedirs(folder)
+#
+# indices, similarities = optimize_flatten_similarity(total_matrix, 1000)
+# save_ordered_dataset(dataset, indices, folder)
 
 # show_similarity_pair(dataset, multiplied_max_indices, indices)
 # show_similarity_pair(dataset, total_max_indices, indices)
 # show_similarity_pair(dataset, SSIM_max_indices, indices)
+
+_, _, _, train_dataset, val_dataset, test_dataset = get_data(smart_split=True)
+print(f"Train: {len(train_dataset)}, Val: {len(val_dataset)}, Test: {len(test_dataset)}")

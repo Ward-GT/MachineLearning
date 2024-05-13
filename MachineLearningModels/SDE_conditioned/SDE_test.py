@@ -6,6 +6,40 @@ from SDE_tools import DiffusionTools
 from SDE_SimpleUNet import SimpleUNet
 from SDE_UNet import UNet
 from SDE_utils import *
+from SDE_datareduction import get_data, get_test_data
+
+def sample_model_output(model: torch.nn.Module, sampler, n: int, batch_size: int = BATCH_SIZE, device=DEVICE, test_path: str = None, test_dataloader: torch.utils.data.DataLoader = None):
+    if test_dataloader is not None and test_path is None:
+        print("Using test dataloader")
+        dataloader = test_dataloader
+    elif test_path is not None and test_dataloader is None:
+        print("Using test data")
+        dataloader = get_test_data(test_path, batch_size=batch_size)
+    else:
+        _, dataloader = get_data(batch_size)
+
+    model = model.to(device)
+
+    references_list = []
+    generated_list = []
+    structures_list = []
+    iterator = iter(dataloader)
+    print(f"Sampling on {device}")
+    for i in range(0, n, batch_size):
+        references, structures, _ = next(iterator)
+        structures = structures.to(device)
+        references = references.to(device)
+        generated, structures = sampler.sample(model, batch_size, structures)
+        references = tensor_to_PIL(references)
+
+        references_list.extend(references)
+        generated_list.extend(generated)
+        structures_list.extend(structures)
+        print(f"Reference: {len(references_list)}, Generated: {len(generated_list)}, Structures: {len(structures_list)}")
+
+    generated_list = [convert_grey_to_white(image) for image in generated_list]
+
+    return references_list, generated_list, structures_list
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters())

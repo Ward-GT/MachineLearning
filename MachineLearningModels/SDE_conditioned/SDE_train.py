@@ -11,6 +11,7 @@ from SDE_SimpleUNet import SimpleUNet
 from SDE_UNet import UNet
 from SDE_utils import *
 from SDE_tools import DiffusionTools
+from SDE_datareduction import get_data
 from itertools import cycle
 from config import *
 
@@ -20,7 +21,7 @@ def train():
     set_seed()
     device = DEVICE
     nr_samples = NR_SAMPLES
-    train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data()
+    train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(smart_split=SMART_SPLIT)
     model = UNet(n_blocks=N_BLOCKS).to(device)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=WEIGHT_DECAY)
     mse = nn.MSELoss()
