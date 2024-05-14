@@ -11,6 +11,7 @@ from SDE_SimpleUNet import SimpleUNet
 from SDE_UNet import UNet
 from SDE_utils import *
 from SDE_tools import DiffusionTools
+from SDE_test import sample_model_output
 from SDE_datareduction import get_data
 from itertools import cycle
 from config import *
