@@ -110,6 +110,4 @@ def train():
         save_image_list(generated_list, SAMPLE_PATH)
         save_image_list(structures_list, STRUCTURE_PATH)
 
-
-
 train()

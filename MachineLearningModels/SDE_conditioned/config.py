@@ -6,9 +6,9 @@ import numpy as np
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-# BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
+BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
@@ -21,7 +21,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Training parameters
-TRAINING = True
+TRAINING = False
 SMART_SPLIT = True
 TEST_SPLIT = 0.7
 VALIDATION_SPLIT = 0.1
