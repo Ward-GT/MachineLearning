@@ -204,17 +204,17 @@ def get_test_data(test_path, batch_size=BATCH_SIZE):
 
     return test_dataloader
 
-path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\sampling"
-matrix = os.path.join(path, "matrices.npz")
-data = np.load(matrix)
-total_matrix = data['total_matrix']
-
-folder = os.path.join(path, "samplemax3")
-if not os.path.exists(folder):
-    os.makedirs(folder)
-
-_, dataset, _, _, _, _ = get_data(split=False)
-
-indices, similarities = optimize_flatten_similarity(total_matrix, 500)
-save_ordered_dataset(dataset, indices, folder)
+# path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\sampling"
+# matrix = os.path.join(path, "matrices.npz")
+# data = np.load(matrix)
+# total_matrix = data['total_matrix']
+#
+# folder = os.path.join(path, "samplemax3")
+# if not os.path.exists(folder):
+#     os.makedirs(folder)
+#
+# _, dataset, _, _, _, _ = get_data(split=False)
+#
+# indices, similarities = optimize_flatten_similarity(total_matrix, 500)
+# save_ordered_dataset(dataset, indices, folder)
 
