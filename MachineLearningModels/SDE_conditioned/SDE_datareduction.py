@@ -18,12 +18,11 @@ def SSIM_matrix(dataset1, dataset2):
     matrix = np.zeros((len(dataset1), len(dataset2)))
 
     for i, (input_image1, label_image1, _) in enumerate(dataset1):
+        print(f"Calculation step: {i}")
         input_image1 = tensor_to_PIL(input_image1)
-        print(np.array(input_image1).shape)
 
         for j, (input_image2, label_image2, _) in enumerate(dataset2):
             input_image2 = tensor_to_PIL((input_image2))
-            print(np.array(input_image2).shape)
             matrix[i,j] = ssim(np.array(input_image1), np.array(input_image2), channel_axis=0, multichannel=True)
 
     return normalize_softmax(matrix)
@@ -213,8 +212,11 @@ def get_test_data(test_path, batch_size=BATCH_SIZE):
 # if not os.path.exists(folder):
 #     os.makedirs(folder)
 #
-# _, dataset, _, _, _, _ = get_data(split=False)
+_, dataset, _, _, _, _ = get_data(split=False)
 #
 # indices, similarities = optimize_flatten_similarity(total_matrix, 500)
 # save_ordered_dataset(dataset, indices, folder)
 
+output_matrix = SSIM_matrix(dataset, dataset)
+
+np.savez(os.path.join(BASE_OUTPUT, SSIM_matrix.npz), output_matrix = output_matrix)
