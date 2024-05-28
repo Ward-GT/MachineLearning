@@ -12,7 +12,7 @@ from config import *
 
 def load_images(folder_path):
     images = []
-    for filename in os.listdir(folder_path):
+    for filename in sorted(os.listdir(folder_path)):
         img = Image.open(os.path.join(folder_path, filename))
         images.append(img)
     return images

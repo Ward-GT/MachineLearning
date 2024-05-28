@@ -94,7 +94,6 @@ def calculate_error_image(reference: Image, sample: Image):
 
     return error_image
 
-
 def comparison_plot(structure: Image, reference: Image, sample: Image, path: str = None):
     # Create a new figure
     fig, axs = plt.subplots(1, 3, figsize=(9, 3))
@@ -127,9 +126,9 @@ def comparison_plot(structure: Image, reference: Image, sample: Image, path: str
 # sampler = DiffusionTools(img_size=IMAGE_SIZE)
 # sample_save_metrics(model, sampler, test_path, n=300, batch_size=5)
 
-# structure_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.3_imgsize_128_epochs_500\images\Structures"
-# reference_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.3_imgsize_128_epochs_500\images\References"
-# sample_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.3_imgsize_128_epochs_500\images\Samples"
+# structure_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500\images\Structures"
+# reference_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500\images\References"
+# sample_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500\images\Samples"
 # structure_images = load_images(structure_path)
 # reference_images = load_images(reference_path)
 # sampled_images = load_images(sample_path)

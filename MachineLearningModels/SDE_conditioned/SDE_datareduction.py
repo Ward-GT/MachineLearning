@@ -203,7 +203,7 @@ def get_test_data(test_path, batch_size=BATCH_SIZE):
 
     return test_dataloader
 
-# path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\sampling"
+path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\sampling"
 # matrix = os.path.join(path, "matrices.npz")
 # data = np.load(matrix)
 # total_matrix = data['total_matrix']
@@ -219,4 +219,4 @@ _, dataset, _, _, _, _ = get_data(split=False)
 
 output_matrix = SSIM_matrix(dataset, dataset)
 
-np.savez(os.path.join(BASE_OUTPUT, SSIM_matrix.npz), output_matrix = output_matrix)
+np.savez(os.path.join(path, SSIM_matrix.npz), output_matrix = output_matrix)
