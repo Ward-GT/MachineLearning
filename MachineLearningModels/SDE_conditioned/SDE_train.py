@@ -11,7 +11,7 @@ from SDE_SimpleUNet import SimpleUNet
 from SDE_UNet import UNet
 from SDE_utils import *
 from SDE_tools import DiffusionTools
-from SDE_test import sample_model_output
+from SDE_test import sample_model_output, calculate_metrics
 from SDE_datareduction import get_data
 from itertools import cycle
 from config import *
@@ -29,6 +29,7 @@ def train():
     diffusion = DiffusionTools()
     train_losses = []
     val_losses = []
+    ssim_values = []
 
     logging.info(f"Starting training on {device}")
     start_time = time.time()
@@ -83,17 +84,20 @@ def train():
                 test_images = tensor_to_PIL(test_images)
                 test_structures = test_structures.to(device)
                 sampled_images, structures = diffusion.sample(model, n=nr_samples, structures=test_structures)
+                ssim, _, _, _, _ = calculate_metrics(sampled_images, test_images)
+                ssim_values.append(ssim)
                 save_images(reference_images=test_images, generated_images=sampled_images, structure_images=structures, path=os.path.join(IMAGE_PATH, f"{epoch}.jpg"))
 
             if epoch > 0.9*EPOCHS:
                 torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_{epoch}.pth"))
+
 
     end_time = time.time()
     logging.info(f"Training took {end_time - start_time} seconds")
 
     np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME},train_losses.npz"), losses = train_losses)
     np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME},val_losses.npz"), losses = val_losses)
-    torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_final.pth"))
+    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME},ssim_values.npz"), losses = ssim_values)
 
     plt.figure(figsize=(12, 6))
     plt.plot(train_losses[1:], label='Train Loss')
@@ -101,8 +105,16 @@ def train():
     plt.xlabel('Epoch')
     plt.ylabel('MSE')
     plt.title('Loss over Epochs')
-    plt.savefig(os.path.join(RESULT_PATH, "losses.jpg"))
+    plt.savefig(os.path.join(RESULT_PATH, "losses.png"))
     plt.show()
+
+    x_values = range(0, len(ssim_values) * 5, 5)
+    plt.figure(figsize=(12, 6))
+    plt.plot(x_values, ssim_values, label='SSIM')
+    plt.xlabel('Epoch')
+    plt.ylabel('SSIM')
+    plt.title('SSIM over Epochs')
+    plt.savefig(os.path.join(RESULT_PATH, "SSIM.png"))
 
     if GENERATE_IMAGES == True:
         references_list, generated_list, structures_list = sample_model_output(model=model, sampler=diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader)

@@ -48,10 +48,14 @@ def mse(imageA, imageB):
     # The 'mean' function calculates the average of the array elements.
     # The 'square' function calculates the squared value of each element.
     # np.subtract(imageA, imageB) computes the difference between the images.
-    err = np.sqrt((np.square(np.subtract(imageA, imageB)))/(255**2))
-    mean_err = np.mean(err)
-    max_err = np.max(err)
+    err = np.square(np.subtract(imageA, imageB))
+    mean_err = np.mean(err)/255**2
+    max_err = np.max(err)/255**2
     return mean_err, max_err
+
+def mae(imageA, imageB):
+    mae = np.mean(np.abs(np.subtract(imageA.astype(np.float32), imageB.astype(np.float32))))/255
+    return mae
 
 def calculate_metrics(image_set1, image_set2):
     if len(image_set1) != len(image_set2):
@@ -61,24 +65,26 @@ def calculate_metrics(image_set1, image_set2):
     psnr_values = []
     mse_mean_values = []
     mse_max_values = []
+    mae_values = []
 
     for i in range(len(image_set1)):
         ssim_values.append(ssim(np.array(image_set1[i]), np.array(image_set2[i]), channel_axis=-1, multichannel=True))
         psnr_values.append(psnr(np.array(image_set1[i]), np.array(image_set2[i]), data_range=np.array(image_set1[i]).max() - np.array(image_set1[i]).min()))
-        mse_mean, mse_max = mse(np.array(image_set1[i]).flatten(), np.array(image_set2[i]).flatten())
+        mae_values.append(mae(np.array(image_set1[i]), np.array(image_set2[i])))
+        mse_mean, mse_max = mse(np.array(image_set1[i]), np.array(image_set2[i]))
         mse_mean_values.append(mse_mean)
         mse_max_values.append(mse_max)
 
-    return ssim_values, psnr_values, mse_mean_values, mse_max_values
+    return ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values
 
 def sample_save_metrics(model, sampler, test_path: str, n: int = 200, batch_size: int = 5):
     parameter_count = count_parameters(model)
 
     references, samples, structure = sample_model_output(model, sampler, n=n, batch_size=batch_size, test_path=test_path)
 
-    ssim_values, psnr_values, mse_mean_values, mse_max_values = calculate_metrics(references, samples)
+    ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(references, samples)
 
-    print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}, Parameters: {parameter_count}")
+    print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}, Parameters: {parameter_count}")
 
     save_image_list(references, REFERENCE_PATH)
     save_image_list(samples, SAMPLE_PATH)
@@ -119,20 +125,21 @@ def comparison_plot(structure: Image, reference: Image, sample: Image, path: str
     plt.show()
 
 
-# model_path = r"E:\Ward Taborsky\results\UNet_ConditionedCombined_1res_01_128_500\models\UNet_ConditionedCombined_2res_01_128_500_final.pth"
-# test_path = r"E:\Ward Taborsky\results\UNet_ConditionedCombined_1res_01_128_500\test_indices.pth"
+# model_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500\models\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500_final.pth"
+# test_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500\test_indices.pth"
 # model = UNet(n_blocks=N_BLOCKS)
 # model.load_state_dict(torch.load(model_path))
 # sampler = DiffusionTools(img_size=IMAGE_SIZE)
-# sample_save_metrics(model, sampler, test_path, n=300, batch_size=5)
+# sample_save_metrics(model, sampler, test_path, n=4, batch_size=2)
 
-# structure_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500\images\Structures"
-# reference_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500\images\References"
-# sample_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500\images\Samples"
-# structure_images = load_images(structure_path)
-# reference_images = load_images(reference_path)
-# sampled_images = load_images(sample_path)
-# ssim_values, psnr_values, mse_mean_values, mse_max_values = calculate_metrics(reference_images, sampled_images)
-# print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
 
-# comparison_plot(structure_images[0], reference_images[0], sampled_images[0], r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\SDE_conditioned\results\comparison.eps")
+structure_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_800\images\Structures"
+reference_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_800\images\References"
+sample_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_800\images\Samples"
+structure_images = load_images(structure_path)
+reference_images = load_images(reference_path)
+sampled_images = load_images(sample_path)
+ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(reference_images, sampled_images)
+print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
+
+comparison_plot(structure_images[0], reference_images[0], sampled_images[0], r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\SDE_conditioned\results\comparison.eps")

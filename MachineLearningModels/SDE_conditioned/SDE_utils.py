@@ -19,7 +19,7 @@ def load_images(folder_path):
 
 def save_image_list(image_list, path):
     for i, image in enumerate(image_list):
-        image.save(os.path.join(path, f"{i}.jpg"))
+        image.save(os.path.join(path, f"{i}.png"))
 
 def save_images(reference_images=None, generated_images=None, structure_images=None, path=None, **kwargs):
     # Determine how many image sets are provided
@@ -90,6 +90,22 @@ def convert_grey_to_white(image: Image, threshold: int = 200):
     def change_color(pixel):
         # If all the channels of the pixel value are above the threshold, change it to white
         if np.all(pixel > threshold):
+            return (255, 255, 255)
+        else:
+            return pixel
+
+    # Apply the function to each pixel in the image
+    new_image_array = np.apply_along_axis(change_color, axis=-1, arr=image_array)
+    new_image = Image.fromarray(new_image_array.astype('uint8'), 'RGB')
+    return new_image
+
+def convert_black_to_white(image: Image):
+    image_array = np.array(image)
+
+    # Define a function to apply to each pixel
+    def change_color(pixel):
+        # If all the channels of the pixel value are above the threshold, change it to white
+        if np.all(pixel < 5):
             return (255, 255, 255)
         else:
             return pixel
