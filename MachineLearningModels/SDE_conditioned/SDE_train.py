@@ -19,6 +19,7 @@ from config import *
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")
 
 def train():
+    print(f"Name: {RUN_NAME}, Smart Split : {SMART_SPLIT}")
     set_seed()
     device = DEVICE
     nr_samples = NR_SAMPLES
@@ -85,13 +86,14 @@ def train():
                 test_structures = test_structures.to(device)
                 sampled_images, structures = diffusion.sample(model, n=nr_samples, structures=test_structures)
                 ssim, _, _, _, _ = calculate_metrics(sampled_images, test_images)
-                ssim_values.append(ssim)
+                ssim_values.append(np.mean(ssim))
                 save_images(reference_images=test_images, generated_images=sampled_images, structure_images=structures, path=os.path.join(IMAGE_PATH, f"{epoch}.jpg"))
 
             if epoch > 0.9*EPOCHS:
                 torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_{epoch}.pth"))
 
-
+    max_ssim = max(ssim_values)
+    print(f"Max SSIM: {max_ssim}, At place: {5*np.argmax(ssim_values)}")
     end_time = time.time()
     logging.info(f"Training took {end_time - start_time} seconds")
 
