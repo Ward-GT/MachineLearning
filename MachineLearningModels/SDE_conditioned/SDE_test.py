@@ -1,6 +1,8 @@
 import numpy as np
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
+from PIL import Image, ImageColor
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 from SDE_tools import DiffusionTools
 from SDE_SimpleUNet import SimpleUNet
@@ -100,46 +102,108 @@ def calculate_error_image(reference: Image, sample: Image):
 
     return error_image
 
-def comparison_plot(structure: Image, reference: Image, sample: Image, path: str = None):
-    # Create a new figure
-    fig, axs = plt.subplots(1, 3, figsize=(9, 3))
+def error_image(structure: Image, reference: Image, sample: Image):
+    """
+    Generates an error image highlighting differences between reference and sample images,
+    overlayed onto the structure image. Uses a continuous red-to-green color gradient
+    for error magnitudes.
 
-    # Get the image dimensions
-    height, width = reference.size
+    Args:
+        structure: Image representing the underlying structure.
+        reference: Reference image for comparison.
+        sample: Sample image to compare against the reference.
 
-    axs[0].imshow(structure, extent=[0, width, height, 0])
-    axs[0].set_title('Structure')
+    Returns:
+        Image with the error visualization.
+    """
 
-    # Plot the reference image
-    axs[1].imshow(reference, extent=[0, width, height, 0])
-    axs[1].set_title('Exact')
+    sample_data = sample.getdata()
+    reference_data = reference.getdata()
+    structure_data = structure.getdata()
+    mask_data = []
 
-    # Plot the sample image
-    axs[2].imshow(sample, extent=[0, width, height, 0])
-    axs[2].set_title('Prediction')
+    for pixel1, pixel2, pixel3 in zip(sample_data, reference_data, structure_data):
+        diffs = [abs(pixel1[i] - pixel2[i]) for i in range(len(pixel1))]
+        mae = sum(diffs) / (len(pixel1) * 255) * 100
+
+        # Calculate color based on continuous gradient
+        if mae > 6:  # Cap at 5% for red
+            mae = 6
+        hue = 120 - mae * 20  # 120 is green, 0 is red
+        color_hex = ImageColor.getrgb(f"hsl({hue}, 100%, 50%)")  # Full saturation, 50% lightness
+
+        if mae > 0.1:  # Only apply color to errors above 1%
+            mask_data.append(color_hex)
+        else:
+            mask_data.append(pixel3)  # Use structure color for low errors
+
+    mask = Image.new(sample.mode, sample.size)
+    mask.putdata(mask_data)
+    return mask
+
+def comparison_plot(structures: list, references: list, samples: list, path: str = None, cbar_width=0.02):
+    """
+    Creates a comparison plot with reference, sample, and error images, including a color bar for the error visualization.
+    """
+    fig, axs = plt.subplots(len(structures), 3, figsize=(9, 9))
+
+    # Set column titles
+    axs[0, 0].set_title('Exact')
+    axs[0, 1].set_title('Prediction')
+    axs[0, 2].set_title('Error')
+
+    # Create the colormap and normalization for the color bar
+    mae_values = np.linspace(0, 6, 256)  # MAE range from 1% to 5%
+    colors = []
+    for mae in mae_values:
+        hue = 120 - (mae) * 20  # 120 is green, 0 is red
+        color_rgb = ImageColor.getrgb(f"hsl({hue}, 100%, 50%)")
+        color_normalized = tuple(c / 255 for c in color_rgb)
+        colors.append(color_normalized)
+
+    cmap = mcolors.LinearSegmentedColormap.from_list('error_cmap', colors)
+    norm = mcolors.Normalize(vmin=0, vmax=6)  # Normalize to 1%-5% range
+
+    for i in range(len(structures)):
+        # Get the image dimensions
+        height, width = references[i].size
+
+        # Plot the reference image
+        axs[i, 0].imshow(references[i], extent=[0, width, height, 0])
+
+        # Plot the sample image
+        axs[i, 1].imshow(samples[i], extent=[0, width, height, 0])
+
+        # Calculate and plot the error image
+        error_img = error_image(structures[i], references[i], samples[i])
+        im = axs[i, 2].imshow(error_img, extent=[0, width, height, 0])
+
+    # Add the color bar at the end (after all error images are plotted)
+    cbar = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+                        ax=axs, orientation='vertical',
+                        fraction=cbar_width, pad=0.05, label='Absolute Error (%)')
 
     if path is not None:
         plt.savefig(path)
 
-    # Display the plot
     plt.show()
 
 
-# model_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500\models\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500_final.pth"
-# test_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500\test_indices.pth"
-# model = UNet(n_blocks=N_BLOCKS)
-# model.load_state_dict(torch.load(model_path))
-# sampler = DiffusionTools(img_size=IMAGE_SIZE)
-# sample_save_metrics(model, sampler, test_path, n=4, batch_size=2)
+model_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000\models\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000_final.pth"
+test_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000\test_indices.pth"
+model = UNet(n_blocks=N_BLOCKS)
+model.load_state_dict(torch.load(model_path))
+sampler = DiffusionTools(img_size=IMAGE_SIZE)
+sample_save_metrics(model, sampler, test_path, n=1, batch_size=1)
 
 
-structure_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_800\images\Structures"
-reference_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_800\images\References"
-sample_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_800\images\Samples"
-structure_images = load_images(structure_path)
-reference_images = load_images(reference_path)
-sampled_images = load_images(sample_path)
-ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(reference_images, sampled_images)
-print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
-
-comparison_plot(structure_images[0], reference_images[0], sampled_images[0], r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\SDE_conditioned\results\comparison.eps")
+# structure_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.7_imgsize_128_epochs_500\images\Structures"
+# reference_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.7_imgsize_128_epochs_500\images\References"
+# sample_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.7_imgsize_128_epochs_500\images\Samples"
+# structure_images = load_images(structure_path)
+# reference_images = load_images(reference_path)
+# sampled_images = load_images(sample_path)
+# ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(reference_images, sampled_images)
+# print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
+#
+# comparison_plot(structure_images[0], reference_images[0], sampled_images[0], r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\SDE_conditioned\results\comparison.eps")

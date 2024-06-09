@@ -20,25 +20,29 @@ STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
-# Training parameters
+# Settings
 TRAINING = False
 SMART_SPLIT = True
-TEST_SPLIT = 0.7
+REFERENCE_IMAGES = True
+GENERATE_IMAGES = True
+
+# Training parameters
+TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 500
-NOISE_STEPS = 1000
 BATCH_SIZE = 20
 IMAGE_SIZE = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
-REFERENCE_IMAGES = True
-NR_SAMPLES = 5
-GENERATE_IMAGES = True
 DEFAULT_SEED = 42
+
+# Sampling parameters
+NOISE_STEPS = 1000
+NR_SAMPLES = 5
 
 # UNet Parameters
 MODEL = "UNet"
-N_BLOCKS = 1
+N_BLOCKS = 2
 TIME_EMB_DIM = 128
 
 RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
