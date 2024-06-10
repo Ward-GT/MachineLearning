@@ -189,12 +189,12 @@ def comparison_plot(structures: list, references: list, samples: list, path: str
     plt.show()
 
 
-model_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000\models\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000_final.pth"
-test_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000\test_indices.pth"
-model = UNet(n_blocks=N_BLOCKS)
-model.load_state_dict(torch.load(model_path))
-sampler = DiffusionTools(img_size=IMAGE_SIZE)
-sample_save_metrics(model, sampler, test_path, n=1, batch_size=1)
+# model_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000\models\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000_final.pth"
+# test_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000\test_indices.pth"
+# model = UNet(n_blocks=N_BLOCKS)
+# model.load_state_dict(torch.load(model_path))
+# sampler = DiffusionTools(img_size=IMAGE_SIZE)
+# sample_save_metrics(model, sampler, test_path, n=1, batch_size=1)
 
 
 # structure_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.7_imgsize_128_epochs_500\images\Structures"
