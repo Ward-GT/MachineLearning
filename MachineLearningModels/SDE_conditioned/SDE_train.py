@@ -3,125 +3,134 @@ import torch
 import time
 import torch.nn as nn
 import numpy as np
-from matplotlib import pyplot as plt
 from torch import optim
 from tqdm import tqdm
 import logging
-from SDE_SimpleUNet import SimpleUNet
+from torch.utils.data import DataLoader
 from SDE_UNet import UNet
 from SDE_utils import *
 from SDE_tools import DiffusionTools
 from SDE_test import sample_model_output, calculate_metrics
 from SDE_datareduction import get_data
 from itertools import cycle
-from config import *
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")
 
-def train():
-    print(f"Name: {RUN_NAME}, Smart Split : {SMART_SPLIT}")
-    set_seed()
-    device = DEVICE
-    nr_samples = NR_SAMPLES
-    train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(smart_split=SMART_SPLIT)
-    model = UNet(n_blocks=N_BLOCKS).to(device)
-    optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=WEIGHT_DECAY)
-    mse = nn.MSELoss()
-    diffusion = DiffusionTools()
-    train_losses = []
-    val_losses = []
-    ssim_values = []
+class ModelTrainer:
+    def __init__(self,
+                 model: nn.Module,
+                 optimizer: optim,
+                 device: torch.device,
+                 nr_samples: int,
+                 epochs: int,
+                 image_path: str,
+                 reference_images: bool,
+                 train_dataloader: DataLoader,
+                 val_dataloader: DataLoader,
+                 test_dataloader: DataLoader,
+                 sampler: DiffusionTools):
+        super.__init__()
 
-    logging.info(f"Starting training on {device}")
-    start_time = time.time()
-    for epoch in range(EPOCHS):
+        self.model = model
+        self.train_dataloader = train_dataloader
+        self.val_dataloader = val_dataloader
+        self.test_dataloader = test_dataloader
+        self.optimizer = optimizer
+        self.sampler = sampler
+        self.device = device
+        self.mse = nn.MSELoss()
+        self.nr_samples = nr_samples
+        self.epochs = epochs
+        self.image_path = image_path
+        self.reference_images = reference_images
+
+        self.train_losses = []
+        self.val_losses = []
+        self.ssim_values = []
+        self.mae_values = []
+
+        self.best_val_loss = float('inf')
+        self.best_model_checkpoint = None
+
+    def train_epoch(self):
         loss_total = 0
-        logging.info(f"Starting epoch {epoch}:")
-        logging.info("Starting train loop")
-        model.train()
-        pbar = tqdm(train_dataloader)
+        self.model.train()
+        pbar = tqdm(self.train_dataloader)
+
         for i, (images, structures, _) in enumerate(pbar):
-            images, structures = images.to(device), structures.to(device)
-            t = diffusion.sample_timesteps(images.shape[0]).to(device)
-            x_t, noise = diffusion.noise_images(images, t)
+            images, structures = images.to(self.device), structures.to(self.device)
+            t = self.sampler.sample_timesteps(images.shape[0]).to(self.device)
+            x_t, noise = self.sampler.noise_images(images, t)
             x_t_struct = concatenate_images(x_t, structures)
-            predicted_noise = model(x_t_struct, t)
-            loss = mse(noise, predicted_noise)
+            predicted_noise = self.model(x_t_struct, t)
+            loss = self.mse(noise, predicted_noise)
 
-            optimizer.zero_grad()
-
+            self.optimizer.zero_grad()
             loss.backward()
-            optimizer.step()
+            self.optimizer.step()
 
-            pbar.set_postfix(MSE=loss.item())
             loss_total += loss.item()
+            pbar.set_postfix(MSE=loss.item())
 
-        average_loss = loss_total / len(train_dataloader)
-        train_losses.append(average_loss)
+            average_loss = loss_total / len(self.train_dataloader)
+            self.train_losses.append(average_loss)
 
+    def validation_epoch(self):
         loss_total = 0
-        logging.info("Starting validation loop")
-        model.eval()
+        self.model.eval()
+
         with torch.no_grad():
-            pbar = tqdm(val_dataloader)
+            pbar = tqdm(self.val_dataloader)
+
             for i, (images, structures, _) in enumerate(pbar):
-                images, structures = images.to(device), structures.to(device)
-                t = diffusion.sample_timesteps(images.shape[0]).to(device)
-                x_t, noise = diffusion.noise_images(images, t)
+                images, structures = images.to(self.device), structures.to(self.device)
+                t = self.sampler.sample_timesteps(images.shape[0]).to(self.device)
+                x_t, noise = self.sampler.noise_images(images, t)
                 x_t_struct = concatenate_images(x_t, structures)
-                predicted_noise = model(x_t_struct, t)
-                loss = mse(noise, predicted_noise)
+                predicted_noise = self.model(x_t_struct, t)
+                loss = self.mse(noise, predicted_noise)
 
                 pbar.set_postfix(MSE=loss.item())
                 loss_total += loss.item()
 
-        average_loss = loss_total / len(val_dataloader)
-        val_losses.append(average_loss)
+                average_loss = loss_total / len(self.val_dataloader)
+                self.val_losses.append(average_loss)
+                return average_loss
 
-        if (epoch+1) % 5 == 0:
-            if REFERENCE_IMAGES == True:
-                test_images, test_structures, _ = next(cycle(test_dataloader))
-                test_images = concat_to_batchsize(test_images, nr_samples)
-                test_images = tensor_to_PIL(test_images)
-                test_structures = test_structures.to(device)
-                sampled_images, structures = diffusion.sample(model, n=nr_samples, structures=test_structures)
-                ssim, _, _, _, _ = calculate_metrics(sampled_images, test_images)
-                ssim_values.append(np.mean(ssim))
-                save_images(reference_images=test_images, generated_images=sampled_images, structure_images=structures, path=os.path.join(IMAGE_PATH, f"{epoch}.jpg"))
+    def generate_reference_images(self, epoch):
+        test_images, test_structures, _ = next(cycle(self.test_dataloader))
+        test_images = concat_to_batchsize(test_images, self.nr_samples)
+        test_structures = test_structures.to(self.device)
+        sampled_images, structures = self.sampler.sample(self.model, n=self.nr_samples, structures=test_structures)
+        test_images = tensor_to_PIL(test_images)
+        sampled_images = tensor_to_PIL(sampled_images)
+        structures = tensor_to_PIL(structures)
+        ssim, _, _, _, mae = calculate_metrics(sampled_images, test_images)
+        self.ssim_values.append(np.mean(ssim))
+        self.mae_values.append(np.mean(mae))
+        save_images(reference_images=test_images, generated_images=sampled_images,
+                    structure_images=structures, path=os.path.join(self.image_path, f"{epoch}.jpg"))
+        return np.mean(ssim), np.mean(mae)
 
-            if epoch > 0.9*EPOCHS:
-                torch.save(model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_{epoch}.pth"))
+    def train(self):
+        logging.info(f"Starting training on {self.device}")
+        start_time = time.time()
+        for epoch in range(self.epochs):
+            logging.info(f"Starting epoch {epoch}:")
 
-    max_ssim = max(ssim_values)
-    print(f"Max SSIM: {max_ssim}, At place: {5*np.argmax(ssim_values)}")
-    end_time = time.time()
-    logging.info(f"Training took {end_time - start_time} seconds")
+            logging.info("Starting train loop")
+            self.train_epoch()
 
-    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME},train_losses.npz"), losses = train_losses)
-    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME},val_losses.npz"), losses = val_losses)
-    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME},ssim_values.npz"), losses = ssim_values)
+            logging.info("Starting validation loop")
+            val_loss = self.validation_epoch()
 
-    plt.figure(figsize=(12, 6))
-    plt.plot(train_losses[1:], label='Train Loss')
-    plt.plot(val_losses[1:], label='Validation Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('MSE')
-    plt.title('Loss over Epochs')
-    plt.savefig(os.path.join(RESULT_PATH, "losses.png"))
-    plt.show()
+            if val_loss < self.best_val_loss:
+                self.best_val_loss = val_loss
+                self.best_model_checkpoint = self.model.state_dict()
 
-    x_values = range(0, len(ssim_values) * 5, 5)
-    plt.figure(figsize=(12, 6))
-    plt.plot(x_values, ssim_values, label='SSIM')
-    plt.xlabel('Epoch')
-    plt.ylabel('SSIM')
-    plt.title('SSIM over Epochs')
-    plt.savefig(os.path.join(RESULT_PATH, "SSIM.png"))
+            if (epoch + 1) % 5 == 0:
+                if self.reference_images == True:
+                    ssim, mae = self.generate_reference_images(epoch)
 
-    if GENERATE_IMAGES == True:
-        references_list, generated_list, structures_list = sample_model_output(model=model, sampler=diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader)
-        save_image_list(references_list, REFERENCE_PATH)
-        save_image_list(generated_list, SAMPLE_PATH)
-        save_image_list(structures_list, STRUCTURE_PATH)
-
-train()
+        end_time = time.time()
+        logging.info(f"Training took {end_time - start_time} seconds")

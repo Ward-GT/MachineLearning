@@ -33,6 +33,8 @@ def sample_model_output(model: torch.nn.Module, sampler, n: int, batch_size: int
         references = references.to(device)
         generated, structures = sampler.sample(model, batch_size, structures)
         references = tensor_to_PIL(references)
+        generated = tensor_to_PIL(generated)
+        structures = tensor_to_PIL(structures)
 
         references_list.extend(references)
         generated_list.extend(generated)
@@ -59,7 +61,7 @@ def mae(imageA, imageB):
     mae = np.mean(np.abs(np.subtract(imageA.astype(np.float32), imageB.astype(np.float32))))/255
     return mae
 
-def calculate_metrics(image_set1, image_set2):
+def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Image]):
     if len(image_set1) != len(image_set2):
         raise ValueError("Number of images in image sets do not match")
 

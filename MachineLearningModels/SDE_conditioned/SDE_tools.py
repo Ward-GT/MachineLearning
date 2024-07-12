@@ -1,10 +1,11 @@
+import torch
 from tqdm import tqdm
 import logging
 from config import *
 from SDE_utils import *
 
 class DiffusionTools:
-    def __init__(self, noise_steps=NOISE_STEPS, beta_start=1e-4, beta_end=0.02, img_size=IMAGE_SIZE, device=DEVICE):
+    def __init__(self, noise_steps: int, img_size: int, device: torch.device, beta_start: float = 1e-4, beta_end: float = 0.02):
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
@@ -53,8 +54,6 @@ class DiffusionTools:
                 x = 1 / torch.sqrt(alpha) * (x- ((1 - alpha)/ (torch.sqrt(1-alpha_hat))) * predicted_noise) + torch.sqrt(beta) * noise
 
         model.train()
-        x = tensor_to_PIL(x)
-        structures = tensor_to_PIL(structures)
         return x, structures
 
 

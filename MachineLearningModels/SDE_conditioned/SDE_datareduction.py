@@ -154,7 +154,7 @@ def smart_data_split(dataset, train_size: int, val_size: int, test_size: int, op
 
     return train_dataset, val_dataset, test_dataset
 
-def get_data(batch_size: int = BATCH_SIZE, split: bool = True, smart_split: bool = False):
+def get_data(batch_size: int, split: bool = True, smart_split: bool = False):
     data_transform = transforms.Compose([
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
         transforms.Lambda(lambda t: t / 255.0),
