@@ -33,6 +33,7 @@ TRAINING = True
 SMART_SPLIT = False
 REFERENCE_IMAGES = True
 GENERATE_IMAGES = True
+THRESHOLD_TRAINING = True
 
 # Test settings
 TESTING = False
@@ -50,6 +51,7 @@ IMAGE_SIZE = 64
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
 DEFAULT_SEED = 42
+THRESHOLD = 0.01
 
 # Sampling parameters
 NOISE_STEPS = 1000
@@ -103,10 +105,12 @@ if TRAINING:
                            epochs=EPOCHS,
                            image_path=IMAGE_PATH,
                            reference_images=REFERENCE_IMAGES,
+                           threshold_training=THRESHOLD_TRAINING,
                            train_dataloader=train_dataloader,
                            val_dataloader=val_dataloader,
                            test_dataloader=test_dataloader,
-                           sampler=sampler)
+                           sampler=sampler,
+                           threshold=THRESHOLD)
 
     trainer.train()
 

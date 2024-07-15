@@ -23,10 +23,12 @@ class ModelTrainer:
                  epochs: int,
                  image_path: str,
                  reference_images: bool,
+                 threshold_training: bool,
                  train_dataloader: DataLoader,
                  val_dataloader: DataLoader,
                  test_dataloader: DataLoader,
-                 sampler: DiffusionTools):
+                 sampler: DiffusionTools,
+                 threshold: float):
         super().__init__()
 
         self.model = model
@@ -41,6 +43,8 @@ class ModelTrainer:
         self.epochs = epochs
         self.image_path = image_path
         self.reference_images = reference_images
+        self.threshold_training = threshold_training
+        self.threshold = threshold
 
         self.train_losses = []
         self.val_losses = []
@@ -114,22 +118,44 @@ class ModelTrainer:
         logging.info(f"Starting training on {self.device}")
         self.model.to(self.device)
         start_time = time.time()
-        for epoch in range(self.epochs):
-            logging.info(f"Starting epoch {epoch}:")
+        if self.threshold_training == False:
+            for epoch in range(self.epochs):
+                logging.info(f"Starting epoch {epoch}:")
 
-            logging.info("Starting train loop")
-            self.train_epoch()
+                logging.info("Starting train loop")
+                self.train_epoch()
 
-            logging.info("Starting validation loop")
-            val_loss = self.validation_epoch()
+                logging.info("Starting validation loop")
+                val_loss = self.validation_epoch()
 
-            if val_loss < self.best_val_loss:
-                self.best_val_loss = val_loss
-                self.best_model_checkpoint = self.model.state_dict()
+                if val_loss < self.best_val_loss:
+                    self.best_val_loss = val_loss
+                    self.best_model_checkpoint = self.model.state_dict()
 
-            if (epoch + 1) % 5 == 0:
-                if self.reference_images == True:
+                if (epoch + 1) % 5 == 0:
+                    if self.reference_images == True:
+                        ssim, mae = self.generate_reference_images(epoch)
+
+        elif self.threshold_training == True:
+            mae = float('inf')
+            epoch = 0
+
+            while mae > self.threshold:
+                logging.info(f"Starting epoch {epoch}:")
+
+                logging.info("Starting train loop")
+                self.train_epoch()
+
+                logging.info("Starting validation loop")
+                val_loss = self.validation_epoch()
+
+                if val_loss < self.best_val_loss:
+                    self.best_val_loss = val_loss
+                    self.best_model_checkpoint = self.model.state_dict()
+
+                if (epoch + 1) % 5 == 0:
                     ssim, mae = self.generate_reference_images(epoch)
+                epoch += 1
 
         end_time = time.time()
         logging.info(f"Training took {end_time - start_time} seconds")
