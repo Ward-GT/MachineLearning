@@ -82,7 +82,10 @@ def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Imag
 
     return ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values
 
-def sample_save_metrics(model, sampler, test_path: str, image_size: int, device: torch.device, image_dataset_path: str, structure_dataset_path: str, n: int = 200, batch_size: int = 5):
+def sample_save_metrics(model, sampler, test_path: str, image_size: int, device: torch.device,
+                        image_dataset_path: str, structure_dataset_path: str, reference_path: str, sample_path: str, structure_path: str,
+                        n: int = 200, batch_size: int = 5):
+
     parameter_count = count_parameters(model)
 
     references, samples, structure = sample_model_output(model=model, sampler=sampler, n=n, batch_size=batch_size, image_size=image_size, device=device,
@@ -92,9 +95,9 @@ def sample_save_metrics(model, sampler, test_path: str, image_size: int, device:
 
     print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}, Parameters: {parameter_count}")
 
-    save_image_list(references, REFERENCE_PATH)
-    save_image_list(samples, SAMPLE_PATH)
-    save_image_list(structure, STRUCTURE_PATH)
+    save_image_list(references, reference_path)
+    save_image_list(samples, sample_path)
+    save_image_list(structure, structure_path)
 
 def calculate_error_image(reference: Image, sample: Image):
     reference_array = np.array(reference)

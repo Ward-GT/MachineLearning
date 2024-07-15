@@ -179,6 +179,6 @@ if TESTING:
         model.to(DEVICE)
         sampler = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=DEVICE)
         sample_save_metrics(model=model, sampler=sampler, image_size=IMAGE_SIZE, device=DEVICE,
-                            image_dataset_path=IMAGE_DATASET_PATH, structure_dataset_path=STRUCTURE_DATASET_PATH, test_path=TEST_DATASET_PATH,
+                            image_dataset_path=IMAGE_DATASET_PATH, structure_dataset_path=STRUCTURE_DATASET_PATH, test_path=TEST_DATASET_PATH, reference_path=REFERENCE_PATH, sample_path=SAMPLE_PATH, structure_path=STRUCTURE_PATH,
                             n=NR_SAMPLES, batch_size=BATCH_SIZE)
 
