@@ -4,7 +4,7 @@ import numpy as np
 from torch import optim
 from matplotlib import pyplot as plt
 from SDE_train import ModelTrainer
-from SDE_UNet import UNet
+from MachineLearningModels.SDE_conditioned.models.SR3_UNet import UNet
 from SDE_datareduction import get_data
 from SDE_tools import DiffusionTools
 from SDE_test import sample_model_output, calculate_metrics, sample_save_metrics
@@ -52,6 +52,7 @@ INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
 DEFAULT_SEED = 42
 THRESHOLD = 0.01
+EMA_DECAY = 0.999
 
 # Sampling parameters
 NOISE_STEPS = 1000
@@ -61,6 +62,8 @@ NR_SAMPLES = 5
 MODEL = "UNet"
 N_BLOCKS = 1
 TIME_EMB_DIM = 128
+N_HEADS = 1
+DIM_HEAD = None
 
 RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
 
@@ -91,7 +94,7 @@ if TRAINING:
     if not os.path.exists(STRUCTURE_PATH):
         os.makedirs(STRUCTURE_PATH)
 
-    model = UNet(n_blocks=N_BLOCKS)
+    model = UNet(n_blocks=N_BLOCKS, n_heads=N_HEADS, dim_head=DIM_HEAD)
     model.to(DEVICE)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=WEIGHT_DECAY)
     sampler = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=DEVICE)
@@ -110,11 +113,13 @@ if TRAINING:
                            val_dataloader=val_dataloader,
                            test_dataloader=test_dataloader,
                            sampler=sampler,
-                           threshold=THRESHOLD)
+                           threshold=THRESHOLD,
+                           ema_decay=EMA_DECAY)
 
     trainer.train()
 
-    torch.save(trainer.best_model_checkpoint, os.path.join(MODEL_PATH, f"{RUN_NAME}_model.pth"))
+    torch.save(trainer.best_model_checkpoint, os.path.join(MODEL_PATH, f"{RUN_NAME}_best_model.pth"))
+    torch.save(trainer.ema_model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_ema_model.pth"))
 
     max_ssim = max(trainer.ssim_values)
     print(f"Max SSIM: {max_ssim}, At place: {5 * np.argmax(trainer.ssim_values)}")

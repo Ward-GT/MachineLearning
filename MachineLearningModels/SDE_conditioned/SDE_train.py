@@ -1,3 +1,4 @@
+import copy
 import os
 import torch
 import time
@@ -28,7 +29,8 @@ class ModelTrainer:
                  val_dataloader: DataLoader,
                  test_dataloader: DataLoader,
                  sampler: DiffusionTools,
-                 threshold: float):
+                 threshold: float,
+                 ema_decay: float):
         super().__init__()
 
         self.model = model
@@ -45,6 +47,7 @@ class ModelTrainer:
         self.reference_images = reference_images
         self.threshold_training = threshold_training
         self.threshold = threshold
+        self.ema_decay = ema_decay
 
         self.train_losses = []
         self.val_losses = []
@@ -53,6 +56,10 @@ class ModelTrainer:
 
         self.best_val_loss = float('inf')
         self.best_model_checkpoint = None
+
+        self.ema_model = copy.deepcopy(model)
+        for param in self.ema_model.parameters():
+            param.detach()
 
     def train_epoch(self):
         loss_total = 0
@@ -103,7 +110,7 @@ class ModelTrainer:
         test_images, test_structures, _ = next(cycle(self.test_dataloader))
         test_images = concat_to_batchsize(test_images, self.nr_samples)
         test_structures = test_structures.to(self.device)
-        sampled_images, structures = self.sampler.sample(self.model, n=self.nr_samples, structures=test_structures)
+        sampled_images, structures = self.sampler.sample(self.ema_model, n=self.nr_samples, structures=test_structures)
         test_images = tensor_to_PIL(test_images)
         sampled_images = tensor_to_PIL(sampled_images)
         structures = tensor_to_PIL(structures)
@@ -113,6 +120,11 @@ class ModelTrainer:
         save_images(reference_images=test_images, generated_images=sampled_images,
                     structure_images=structures, path=os.path.join(self.image_path, f"{epoch}.jpg"))
         return np.mean(ssim), np.mean(mae)
+
+    def update_ema(self):
+        with torch.no_grad():
+            for ema_param, param in zip(self.ema_model.parameters(), self.model.parameters()):
+                ema_param.data.mul_(self.ema_decay).add_(param.data, alpha=1 - self.ema_decay)
 
     def train(self):
         logging.info(f"Starting training on {self.device}")
@@ -127,6 +139,8 @@ class ModelTrainer:
 
                 logging.info("Starting validation loop")
                 val_loss = self.validation_epoch()
+
+                self.update_ema()
 
                 if val_loss < self.best_val_loss:
                     self.best_val_loss = val_loss
@@ -148,6 +162,8 @@ class ModelTrainer:
 
                 logging.info("Starting validation loop")
                 val_loss = self.validation_epoch()
+
+                self.update_ema()
 
                 if val_loss < self.best_val_loss:
                     self.best_val_loss = val_loss
