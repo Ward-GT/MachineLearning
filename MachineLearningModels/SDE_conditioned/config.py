@@ -14,7 +14,7 @@ from SDE_utils import save_image_list, set_seed, load_images
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-BASE_INPUT = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data"
+BASE_INPUT = r"C:\Users\20202137\Documents\Python\MachineLearning\data"
 # BASE_INPUT = r"E:\Ward Taborsky"
 # BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
@@ -29,8 +29,8 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Training settings
-TRAINING = False
-SMART_SPLIT = True
+TRAINING = True
+SMART_SPLIT = False
 REFERENCE_IMAGES = True
 GENERATE_IMAGES = True
 
@@ -42,11 +42,11 @@ TEST_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Jaar 4\BEP\Results\Resul
 MODEL_NAME = r"UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000_final.pth"
 
 # Training parameters
-TEST_SPLIT = 0.1
+TEST_SPLIT = 0.5
 VALIDATION_SPLIT = 0.1
 EPOCHS = 500
 BATCH_SIZE = 20
-IMAGE_SIZE = 128
+IMAGE_SIZE = 64
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
 DEFAULT_SEED = 42
@@ -57,7 +57,7 @@ NR_SAMPLES = 5
 
 # UNet Parameters
 MODEL = "UNet"
-N_BLOCKS = 2
+N_BLOCKS = 1
 TIME_EMB_DIM = 128
 
 RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
@@ -90,6 +90,7 @@ if TRAINING:
         os.makedirs(STRUCTURE_PATH)
 
     model = UNet(n_blocks=N_BLOCKS)
+    model.to(DEVICE)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=WEIGHT_DECAY)
     sampler = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=DEVICE)
     train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(batch_size=BATCH_SIZE, test_split=TEST_SPLIT, validation_split=VALIDATION_SPLIT, image_size=IMAGE_SIZE,
@@ -124,6 +125,7 @@ if TRAINING:
     plt.figure(figsize=(12, 6))
     plt.plot(trainer.train_losses[1:], label='Train Loss')
     plt.plot(trainer.val_losses[1:], label='Validation Loss')
+    plt.legend()
     plt.xlabel('Epoch')
     plt.ylabel('MSE')
     plt.title('Loss over Epochs')
@@ -137,6 +139,14 @@ if TRAINING:
     plt.ylabel('SSIM')
     plt.title('SSIM over Epochs')
     plt.savefig(os.path.join(RESULT_PATH, "SSIM.png"))
+
+    x_values = range(0, len(trainer.mae_values) * 5, 5)
+    plt.figure(figsize=(12, 6))
+    plt.plot(x_values, trainer.mae_values, label='MAE')
+    plt.xlabel('Epoch')
+    plt.ylabel('MAE')
+    plt.title('MAE over Epochs')
+    plt.savefig(os.path.join(RESULT_PATH, "MAE.png"))
 
     if GENERATE_IMAGES == True:
         model.load_state_dict(trainer.best_model_checkpoint)
@@ -163,8 +173,10 @@ if TESTING:
         print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
 
     if SAMPLE_METRICS == True:
+        set_seed(seed=DEFAULT_SEED)
         model = UNet(n_blocks=N_BLOCKS)
         model.load_state_dict(torch.load(MODEL_PATH))
+        model.to(DEVICE)
         sampler = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=DEVICE)
         sample_save_metrics(model=model, sampler=sampler, image_size=IMAGE_SIZE, device=DEVICE,
                             image_dataset_path=IMAGE_DATASET_PATH, structure_dataset_path=STRUCTURE_DATASET_PATH, test_path=TEST_DATASET_PATH,

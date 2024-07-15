@@ -170,7 +170,6 @@ def get_data(batch_size: int, image_size: int, test_split: float, validation_spl
         val_size = int(validation_split * len(dataset))
         test_size = int(test_split * len(dataset))
 
-        set_seed()
         if smart_split == True:
             train_dataset, val_dataset, test_dataset = smart_data_split(dataset, train_size, val_size, test_size)
         else:
@@ -202,7 +201,6 @@ def get_test_data(test_path: str, image_size: int, batch_size: int, image_datase
     print(f"Loaded {len(test_indices)} test indices")
     test_subset = Subset(dataset, test_indices)
     print(f"Made subset with {len(test_subset)} images")
-    set_seed()
     test_dataloader = DataLoader(test_subset, batch_size=batch_size)
 
     return test_dataloader

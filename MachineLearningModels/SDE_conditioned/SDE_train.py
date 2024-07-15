@@ -27,7 +27,7 @@ class ModelTrainer:
                  val_dataloader: DataLoader,
                  test_dataloader: DataLoader,
                  sampler: DiffusionTools):
-        super.__init__()
+        super().__init__()
 
         self.model = model
         self.train_dataloader = train_dataloader
@@ -70,8 +70,8 @@ class ModelTrainer:
             loss_total += loss.item()
             pbar.set_postfix(MSE=loss.item())
 
-            average_loss = loss_total / len(self.train_dataloader)
-            self.train_losses.append(average_loss)
+        average_loss = loss_total / len(self.train_dataloader)
+        self.train_losses.append(average_loss)
 
     def validation_epoch(self):
         loss_total = 0
@@ -91,9 +91,9 @@ class ModelTrainer:
                 pbar.set_postfix(MSE=loss.item())
                 loss_total += loss.item()
 
-                average_loss = loss_total / len(self.val_dataloader)
-                self.val_losses.append(average_loss)
-                return average_loss
+            average_loss = loss_total / len(self.val_dataloader)
+            self.val_losses.append(average_loss)
+            return average_loss
 
     def generate_reference_images(self, epoch):
         test_images, test_structures, _ = next(cycle(self.test_dataloader))
@@ -112,6 +112,7 @@ class ModelTrainer:
 
     def train(self):
         logging.info(f"Starting training on {self.device}")
+        self.model.to(self.device)
         start_time = time.time()
         for epoch in range(self.epochs):
             logging.info(f"Starting epoch {epoch}:")

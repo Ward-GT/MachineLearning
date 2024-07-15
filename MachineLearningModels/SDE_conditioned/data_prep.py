@@ -116,10 +116,3 @@ def sample_files(input_folder1, input_folder2, output_folder1, output_folder2, o
     for index in indices:
         shutil.copy(os.path.join(input_folder1, files[index]), output_folder1)
         shutil.copy(os.path.join(input_folder2, files[index]), output_folder2)
-
-input_folder1 = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined\Output"
-input_folder2 = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined\Structure"
-output_folder1 = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined_small\Output"
-output_folder2 = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\data\figure_B_combined_small\Structure"
-
-sample_files(input_folder1, input_folder2, output_folder1, output_folder2, 50)
