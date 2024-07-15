@@ -3,7 +3,6 @@ from torchvision.io import read_image
 import os
 import re
 import torch
-from config import *
 
 def extract_dimensions_from_filename(filename: str):
     # Define the pattern to match dimensions and their numerical values

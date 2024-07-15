@@ -7,7 +7,6 @@ from torchvision import transforms
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-from config import *
 
 def load_images(folder_path: str):
     images = []

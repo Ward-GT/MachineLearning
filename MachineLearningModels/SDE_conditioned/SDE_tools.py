@@ -1,7 +1,6 @@
 import torch
 from tqdm import tqdm
 import logging
-from config import *
 from SDE_utils import *
 
 class DiffusionTools:
