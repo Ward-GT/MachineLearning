@@ -7,11 +7,9 @@ from torch import optim
 from tqdm import tqdm
 import logging
 from torch.utils.data import DataLoader
-from SDE_UNet import UNet
 from SDE_utils import *
 from SDE_tools import DiffusionTools
 from SDE_test import sample_model_output, calculate_metrics
-from SDE_datareduction import get_data
 from itertools import cycle
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")

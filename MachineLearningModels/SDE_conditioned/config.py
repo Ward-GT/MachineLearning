@@ -7,8 +7,8 @@ from SDE_train import ModelTrainer
 from SDE_UNet import UNet
 from SDE_datareduction import get_data
 from SDE_tools import DiffusionTools
-from SDE_test import sample_model_output
-from SDE_utils import save_image_list
+from SDE_test import sample_model_output, calculate_metrics, sample_save_metrics
+from SDE_utils import save_image_list, set_seed, load_images
 
 # Base Paths
 BASE_OUTPUT = "results"
@@ -25,14 +25,21 @@ DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
-# Settings
+# Training settings
 TRAINING = False
 SMART_SPLIT = True
 REFERENCE_IMAGES = True
 GENERATE_IMAGES = True
+
+# Test settings
+TESTING = False
+CALCULATE_METRICS = False
+SAMPLE_METRICS = False
+TEST_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Jaar 4\BEP\Results\Results SDE_conditioned\UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000"
+MODEL_NAME = r"UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000_final.pth"
 
 # Training parameters
 TEST_SPLIT = 0.1
@@ -54,18 +61,19 @@ N_BLOCKS = 2
 TIME_EMB_DIM = 128
 
 RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
-# RUN_NAME = "UNet_ConditionedCombined_1res_01_256_500"
-
-# Output paths
-RESULT_PATH = os.path.join(BASE_OUTPUT, RUN_NAME)
-MODEL_PATH = os.path.join(RESULT_PATH, "models")
-IMAGE_PATH = os.path.join(RESULT_PATH, "images")
-SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")
-REFERENCE_PATH = os.path.join(IMAGE_PATH, "References")
-STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
 
 if TRAINING:
+    # Output paths
+    RESULT_PATH = os.path.join(BASE_OUTPUT, RUN_NAME)
+    MODEL_PATH = os.path.join(RESULT_PATH, "models")
+    IMAGE_PATH = os.path.join(RESULT_PATH, "images")
+    SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")
+    REFERENCE_PATH = os.path.join(IMAGE_PATH, "References")
+    STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
+
+    set_seed(seed=DEFAULT_SEED)
     print(f"Name: {RUN_NAME}, Smart Split : {SMART_SPLIT}")
+
     if not os.path.exists(MODEL_PATH):
         os.makedirs(MODEL_PATH)
 
@@ -82,9 +90,11 @@ if TRAINING:
         os.makedirs(STRUCTURE_PATH)
 
     model = UNet(n_blocks=N_BLOCKS)
-    optimizer = optim.AdamW(model.parameters(), lr = INIT_LR, weight_decay=WEIGHT_DECAY)
-    sampler = DiffusionTools(noise_steps=NOISE_STEPS, img_size = IMAGE_SIZE, device = DEVICE)
-    train_dataloader, val_dataloader, test_dataloader = get_data(batch_size=BATCH_SIZE, smart_split=SMART_SPLIT)
+    optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=WEIGHT_DECAY)
+    sampler = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=DEVICE)
+    train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(batch_size=BATCH_SIZE, test_split=TEST_SPLIT, validation_split=VALIDATION_SPLIT, image_size=IMAGE_SIZE,
+                                                                          image_dataset_path=IMAGE_DATASET_PATH, structure_dataset_path=STRUCTURE_DATASET_PATH, result_path=RESULT_PATH,
+                                                                          smart_split=SMART_SPLIT)
     trainer = ModelTrainer(model=model,
                            optimizer=optimizer,
                            device=DEVICE,
@@ -130,9 +140,33 @@ if TRAINING:
 
     if GENERATE_IMAGES == True:
         model.load_state_dict(trainer.best_model_checkpoint)
-        references_list, generated_list, structures_list = sample_model_output(model=model, sampler=sampler,
-                                                                               n=len(test_dataloader) * BATCH_SIZE,
+        references_list, generated_list, structures_list = sample_model_output(model=model, sampler=sampler, device=DEVICE,
+                                                                               n=len(test_dataloader) * BATCH_SIZE, batch_size=BATCH_SIZE,
                                                                                test_dataloader=test_dataloader)
         save_image_list(references_list, REFERENCE_PATH)
         save_image_list(generated_list, SAMPLE_PATH)
         save_image_list(structures_list, STRUCTURE_PATH)
+
+if TESTING:
+    MODEL_PATH = os.path.join(os.path.join(TEST_PATH, "models"), MODEL_NAME)
+    IMAGE_PATH = os.path.join(TEST_PATH, "images")
+    SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")
+    REFERENCE_PATH = os.path.join(IMAGE_PATH, "References")
+    STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
+    TEST_DATASET_PATH = os.path.join(TEST_PATH, "test_indices.pth")
+
+    if CALCULATE_METRICS == True:
+        structure_images = load_images(STRUCTURE_PATH)
+        reference_images = load_images(REFERENCE_PATH)
+        sampled_images = load_images(SAMPLE_PATH)
+        ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(reference_images, sampled_images)
+        print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
+
+    if SAMPLE_METRICS == True:
+        model = UNet(n_blocks=N_BLOCKS)
+        model.load_state_dict(torch.load(MODEL_PATH))
+        sampler = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=DEVICE)
+        sample_save_metrics(model=model, sampler=sampler, image_size=IMAGE_SIZE, device=DEVICE,
+                            image_dataset_path=IMAGE_DATASET_PATH, structure_dataset_path=STRUCTURE_DATASET_PATH, test_path=TEST_DATASET_PATH,
+                            n=NR_SAMPLES, batch_size=BATCH_SIZE)
+

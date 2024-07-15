@@ -5,7 +5,7 @@ import re
 import torch
 from config import *
 
-def extract_dimensions_from_filename(filename):
+def extract_dimensions_from_filename(filename: str):
     # Define the pattern to match dimensions and their numerical values
     pattern = r'(hw1|hw2|dww_ii_x|dww_oo_x|dww_x|lcore_x1_IW|dcs|hw|dw)_([0-9.]+)'
     filename = os.path.splitext(filename)[0]
@@ -17,7 +17,7 @@ def extract_dimensions_from_filename(filename):
 
     return dimensions
 
-def extract_dimensions(input_dir, file_name):
+def extract_dimensions(input_dir: str, file_name: str):
     # List all files in the input directory
     files = os.listdir(input_dir)
 
@@ -39,7 +39,7 @@ def extract_dimensions(input_dir, file_name):
     return dimensions_dict
 
 class LabeledDataset(Dataset):
-    def __init__(self, input_dir, label_dir, transform=None):
+    def __init__(self, input_dir: str, label_dir: str, transform=None):
         """
         Args:
             input_dir (string): Directory with all the input images.

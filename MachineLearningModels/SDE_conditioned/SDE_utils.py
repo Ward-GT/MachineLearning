@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from config import *
 
-def load_images(folder_path):
+def load_images(folder_path: str):
     images = []
     for filename in sorted(os.listdir(folder_path), key=lambda x: int(re.search(r'\d+', x).group())):
         print(filename)
@@ -17,11 +17,11 @@ def load_images(folder_path):
         images.append(img)
     return images
 
-def save_image_list(image_list, path):
+def save_image_list(image_list: list[Image], path: str):
     for i, image in enumerate(image_list):
         image.save(os.path.join(path, f"{i}.png"))
 
-def save_images(reference_images=None, generated_images=None, structure_images=None, path=None, **kwargs):
+def save_images(reference_images: list[Image]=None, generated_images: list[Image]=None, structure_images: list[Image]=None, path: str=None, **kwargs):
     # Determine how many image sets are provided
     image_sets_with_titles = {
         'Reference': reference_images,
@@ -54,7 +54,7 @@ def save_images(reference_images=None, generated_images=None, structure_images=N
 def concatenate_images(images: torch.Tensor, structures: torch.Tensor):
     return torch.cat((images, structures), dim=1)
 
-def split_images(concatenated_images):
+def split_images(concatenated_images: torch.Tensor):
     return concatenated_images[:, :3], concatenated_images[:, 3:]
 
 def concat_to_batchsize(images: torch.Tensor, n: int):
@@ -115,7 +115,7 @@ def convert_black_to_white(image: Image):
     new_image = Image.fromarray(new_image_array.astype('uint8'), 'RGB')
     return new_image
 
-def set_seed(seed: int = DEFAULT_SEED, fully_deterministic: bool = False):
+def set_seed(seed: int, fully_deterministic: bool = False):
     """
     Set seed for reproducible behavior.
 

@@ -1,22 +1,23 @@
 import numpy as np
+import torch
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from PIL import Image, ImageColor
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
-from SDE_tools import DiffusionTools
-from SDE_SimpleUNet import SimpleUNet
-from SDE_UNet import UNet
+from torch.utils.data import DataLoader
 from SDE_utils import *
 from SDE_datareduction import get_data, get_test_data
 
-def sample_model_output(model: torch.nn.Module, sampler, n: int, batch_size: int = BATCH_SIZE, device=DEVICE, test_path: str = None, test_dataloader: torch.utils.data.DataLoader = None):
+def sample_model_output(model: torch.nn.Module, sampler, n: int, batch_size: int, image_size: int, device: torch.device,
+                        image_dataset_path: str, structure_dataset_path: str, test_path: str = None, test_dataloader: DataLoader = None):
+
     if test_dataloader is not None and test_path is None:
         print("Using test dataloader")
         dataloader = test_dataloader
     elif test_path is not None and test_dataloader is None:
         print("Using test data")
-        dataloader = get_test_data(test_path, batch_size=batch_size)
+        dataloader = get_test_data(test_path=test_path, image_size=image_size, batch_size=batch_size, image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path)
     else:
         _, dataloader = get_data(batch_size)
 
@@ -81,10 +82,11 @@ def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Imag
 
     return ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values
 
-def sample_save_metrics(model, sampler, test_path: str, n: int = 200, batch_size: int = 5):
+def sample_save_metrics(model, sampler, test_path: str, image_size: int, device: torch.device, image_dataset_path: str, structure_dataset_path: str, n: int = 200, batch_size: int = 5):
     parameter_count = count_parameters(model)
 
-    references, samples, structure = sample_model_output(model, sampler, n=n, batch_size=batch_size, test_path=test_path)
+    references, samples, structure = sample_model_output(model=model, sampler=sampler, n=n, batch_size=batch_size, image_size=image_size, device=device,
+                                                         image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path, test_path=test_path)
 
     ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(references, samples)
 
@@ -189,23 +191,3 @@ def comparison_plot(structures: list, references: list, samples: list, path: str
         plt.savefig(path)
 
     plt.show()
-
-
-# model_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000\models\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000_final.pth"
-# test_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_2_smartsplit_True_split_0.1_imgsize_128_epochs_1000\test_indices.pth"
-# model = UNet(n_blocks=N_BLOCKS)
-# model.load_state_dict(torch.load(model_path))
-# sampler = DiffusionTools(img_size=IMAGE_SIZE)
-# sample_save_metrics(model, sampler, test_path, n=1, batch_size=1)
-
-
-# structure_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.7_imgsize_128_epochs_500\images\Structures"
-# reference_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.7_imgsize_128_epochs_500\images\References"
-# sample_path = r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\results\UNet_nblocks_1_smartsplit_True_split_0.7_imgsize_128_epochs_500\images\Samples"
-# structure_images = load_images(structure_path)
-# reference_images = load_images(reference_path)
-# sampled_images = load_images(sample_path)
-# ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(reference_images, sampled_images)
-# print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
-#
-# comparison_plot(structure_images[0], reference_images[0], sampled_images[0], r"C:\Users\20202137\OneDrive - TU Eindhoven\Programming\Python\MachineLearning\MachineLearningModels\SDE_conditioned\results\comparison.eps")
