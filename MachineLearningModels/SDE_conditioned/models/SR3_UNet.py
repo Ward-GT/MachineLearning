@@ -144,15 +144,17 @@ class UpSample(nn.Module):
         return self.up(x)
 
 class UNet(nn.Module):
-    def __init__(self,
-                 input_channels: int = 6,
-                 output_channels: int = 3,
-                 n_channels: int = 64,
-                 ch_mults: List[int] = (1, 2, 2, 4),
-                 is_attn: List[bool] = (False, False, True, True),
-                 n_blocks: int = 1,
-                 n_heads: int = 1,
-                 dim_head: int = None):
+    def __init__(
+            self,
+            input_channels: int,
+            output_channels: int,
+            n_channels: int,
+            ch_mults: List[int],
+            is_attn: List[bool],
+            n_blocks: int,
+            n_heads: int,
+            dim_head: int
+    ):
         super().__init__()
 
         self.image_proj = nn.Conv2d(input_channels, n_channels, kernel_size=(3, 3), padding=(1, 1))

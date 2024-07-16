@@ -31,18 +31,19 @@ STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
-# Training settings
-TRAINING = True
-SMART_SPLIT = False
-GENERATE_IMAGES = True
-THRESHOLD_TRAINING = True
-
 # Test settings
 TESTING = False
 CALCULATE_METRICS = False
 SAMPLE_METRICS = False
 TEST_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Jaar 4\BEP\Results\Results SDE_conditioned\UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000"
 MODEL_NAME = r"UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000_final.pth"
+
+# Training settings
+TRAINING = True
+SMART_SPLIT = False
+GENERATE_IMAGES = True
+THRESHOLD_TRAINING = True
+LEARN_SIGMA = False
 
 # Training parameters
 TEST_SPLIT = 0.5
@@ -62,30 +63,33 @@ NR_SAMPLES = 5
 # UNet Parameters
 MODEL = "UNet"
 N_BLOCKS = 1
-TIME_EMB_DIM = 128
 N_HEADS = 4
 DIM_HEAD = 64
+ATTENTION_RESOLUTIONS = "16,8"
+N_CHANNELS = 64
 
 parameters = {
-    "DEVICE": DEVICE,
-    "SMART_SPLIT": SMART_SPLIT,
-    "THRESHOLD_TRAINING": THRESHOLD_TRAINING,
-    "TEST_SPLIT": TEST_SPLIT,
-    "VALIDATION_SPLIT": VALIDATION_SPLIT,
-    "EPOCHS": EPOCHS,
-    "BATCH_SIZE": BATCH_SIZE,
-    "IMAGE_SIZE": IMAGE_SIZE,
-    "INIT_LR": INIT_LR,
-    "WEIGHT_DECAY": WEIGHT_DECAY,
-    "THRESHOLD": THRESHOLD,
-    "EMA_DECAY": EMA_DECAY,
-    "NOISE_STEPS": NOISE_STEPS,
-    "NR_SAMPLES": NR_SAMPLES,
-    "MODEL": MODEL,
-    "N_BLOCKS": N_BLOCKS,
-    "TIME_EMB_DIM": TIME_EMB_DIM,
-    "N_HEADS": N_HEADS,
-    "DIM_HEAD": DIM_HEAD
+    "device": DEVICE,
+    "smart_split": SMART_SPLIT,
+    "threshold_training": THRESHOLD_TRAINING,
+    "test_split": TEST_SPLIT,
+    "validation_split": VALIDATION_SPLIT,
+    "epochs": EPOCHS,
+    "batch_size": BATCH_SIZE,
+    "image_size": IMAGE_SIZE,
+    "init_lr": INIT_LR,
+    "weight_decay": WEIGHT_DECAY,
+    "threshold": THRESHOLD,
+    "ema_decay": EMA_DECAY,
+    "noise_steps": NOISE_STEPS,
+    "nr_samples": NR_SAMPLES,
+    "model": MODEL,
+    "n_blocks": N_BLOCKS,
+    "n_heads": N_HEADS,
+    "dim_head": DIM_HEAD,
+    "learn_sigma": LEARN_SIGMA,
+    "attention_resolutions": ATTENTION_RESOLUTIONS,
+    "n_channels": N_CHANNELS
 }
 
 RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"

@@ -155,11 +155,11 @@ def smart_data_split(dataset, train_size: int, val_size: int, test_size: int, op
     return train_dataset, val_dataset, test_dataset
 
 def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: str, split: bool = True, **kwargs):
-    image_size = kwargs.get("IMAGE_SIZE")
-    test_split = kwargs.get("TEST_SPLIT")
-    validation_split = kwargs.get("VALIDATION_SPLIT")
-    smart_split = kwargs.get("SMART_SPLIT")
-    batch_size = kwargs.get("BATCH_SIZE")
+    image_size = kwargs.get("image_size")
+    test_split = kwargs.get("test_split")
+    validation_split = kwargs.get("validation_split")
+    smart_split = kwargs.get("smart_split")
+    batch_size = kwargs.get("batch_size")
 
     data_transform = transforms.Compose([
         transforms.Resize((image_size, image_size)),

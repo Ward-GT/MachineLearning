@@ -10,18 +10,20 @@ from SDE_utils import *
 from SDE_datareduction import get_data, get_test_data
 from SDE_tools import DiffusionTools
 
-def sample_model_output(model: torch.nn.Module,
-                        sampler: DiffusionTools,
-                        n: int,
-                        image_dataset_path: str,
-                        structure_dataset_path: str,
-                        test_path: str = None,
-                        test_dataloader: DataLoader = None,
-                        **kwargs):
+def sample_model_output(
+        model: torch.nn.Module,
+        sampler: DiffusionTools,
+        n: int,
+        image_dataset_path: str,
+        structure_dataset_path: str,
+        test_path: str = None,
+        test_dataloader: DataLoader = None,
+        **kwargs
+):
 
-    device = kwargs.get("DEVICE")
-    image_size = kwargs.get("IMAGE_SIZE")
-    batch_size = kwargs.get("BATCH_SIZE")
+    device = kwargs.get("device")
+    image_size = kwargs.get("image_size")
+    batch_size = kwargs.get("batch_size")
 
     if test_dataloader is not None and test_path is None:
         print("Using test dataloader")
@@ -94,16 +96,18 @@ def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Imag
 
     return ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values
 
-def sample_save_metrics(model: torch.nn.Module,
-                        sampler: DiffusionTools,
-                        test_path: str,
-                        image_dataset_path: str,
-                        structure_dataset_path: str,
-                        reference_path: str,
-                        sample_path: str,
-                        structure_path: str,
-                        n: int = 200,
-                        **kwargs):
+def sample_save_metrics(
+        model: torch.nn.Module,
+        sampler: DiffusionTools,
+        test_path: str,
+        image_dataset_path: str,
+        structure_dataset_path: str,
+        reference_path: str,
+        sample_path: str,
+        structure_path: str,
+        n: int = 200,
+        **kwargs
+):
 
     parameter_count = count_parameters(model)
 

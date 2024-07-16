@@ -16,15 +16,17 @@ from itertools import cycle
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")
 
 class ModelTrainer:
-    def __init__(self,
-                 model: nn.Module,
-                 optimizer: optim,
-                 image_path: str,
-                 train_dataloader: DataLoader,
-                 val_dataloader: DataLoader,
-                 test_dataloader: DataLoader,
-                 sampler: DiffusionTools,
-                 **kwargs):
+    def __init__(
+            self,
+            model: nn.Module,
+            optimizer: optim,
+            image_path: str,
+            train_dataloader: DataLoader,
+            val_dataloader: DataLoader,
+            test_dataloader: DataLoader,
+            sampler: DiffusionTools,
+            **kwargs
+    ):
         super().__init__()
 
         self.model = model
@@ -33,14 +35,14 @@ class ModelTrainer:
         self.test_dataloader = test_dataloader
         self.optimizer = optimizer
         self.sampler = sampler
-        self.device = kwargs.get("DEVICE")
+        self.device = kwargs.get("device")
         self.mse = nn.MSELoss()
-        self.nr_samples = kwargs.get("NR_SAMPLES")
-        self.epochs = kwargs.get("EPOCHS")
+        self.nr_samples = kwargs.get("nr_samples")
+        self.epochs = kwargs.get("epochs")
         self.image_path = image_path
-        self.threshold_training = kwargs.get("THRESHOLD_TRAINING")
-        self.threshold = kwargs.get("THRESHOLD")
-        self.ema_decay = kwargs.get("EMA_DECAY")
+        self.threshold_training = kwargs.get("threshold_training")
+        self.threshold = kwargs.get("threshold")
+        self.ema_decay = kwargs.get("ema_decay")
 
         self.train_losses = []
         self.val_losses = []
