@@ -1,14 +1,17 @@
 import torch
 import os
 import numpy as np
+import pandas as pd
 from torch import optim
 from matplotlib import pyplot as plt
 from SDE_train import ModelTrainer
-from MachineLearningModels.SDE_conditioned.models.SR3_UNet import UNet
+from models.SR3_UNet import UNet
 from SDE_datareduction import get_data
 from SDE_tools import DiffusionTools
 from SDE_test import sample_model_output, calculate_metrics, sample_save_metrics
 from SDE_utils import save_image_list, set_seed, load_images
+
+DEFAULT_SEED = 42
 
 # Base Paths
 BASE_OUTPUT = "results"
@@ -31,7 +34,6 @@ PIN_MEMORY = True if DEVICE == "cuda" else False
 # Training settings
 TRAINING = True
 SMART_SPLIT = False
-REFERENCE_IMAGES = True
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = True
 
@@ -50,7 +52,6 @@ BATCH_SIZE = 20
 IMAGE_SIZE = 64
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
-DEFAULT_SEED = 42
 THRESHOLD = 0.01
 EMA_DECAY = 0.999
 
@@ -65,6 +66,28 @@ TIME_EMB_DIM = 128
 N_HEADS = 1
 DIM_HEAD = None
 
+parameters = {
+    "DEVICE": DEVICE,
+    "SMART_SPLIT": SMART_SPLIT,
+    "THRESHOLD_TRAINING": THRESHOLD_TRAINING,
+    "TEST_SPLIT": TEST_SPLIT,
+    "VALIDATION_SPLIT": VALIDATION_SPLIT,
+    "EPOCHS": EPOCHS,
+    "BATCH_SIZE": BATCH_SIZE,
+    "IMAGE_SIZE": IMAGE_SIZE,
+    "INIT_LR": INIT_LR,
+    "WEIGHT_DECAY": WEIGHT_DECAY,
+    "THRESHOLD": THRESHOLD,
+    "EMA_DECAY": EMA_DECAY,
+    "NOISE_STEPS": NOISE_STEPS,
+    "NR_SAMPLES": NR_SAMPLES,
+    "MODEL": MODEL,
+    "N_BLOCKS": N_BLOCKS,
+    "TIME_EMB_DIM": TIME_EMB_DIM,
+    "N_HEADS": N_HEADS,
+    "DIM_HEAD": DIM_HEAD
+}
+
 RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
 
 if TRAINING:
@@ -75,6 +98,10 @@ if TRAINING:
     SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")
     REFERENCE_PATH = os.path.join(IMAGE_PATH, "References")
     STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
+
+    df = pd.DataFrame(list(parameters.items()), columns=['Parameter', 'Value'])
+
+    df.to_excel(os.path.join(RESULT_PATH, 'parameters.xlsx'), index=False)
 
     set_seed(seed=DEFAULT_SEED)
     print(f"Name: {RUN_NAME}, Smart Split : {SMART_SPLIT}")
@@ -98,23 +125,15 @@ if TRAINING:
     model.to(DEVICE)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=WEIGHT_DECAY)
     sampler = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=DEVICE)
-    train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(batch_size=BATCH_SIZE, test_split=TEST_SPLIT, validation_split=VALIDATION_SPLIT, image_size=IMAGE_SIZE,
-                                                                          image_dataset_path=IMAGE_DATASET_PATH, structure_dataset_path=STRUCTURE_DATASET_PATH, result_path=RESULT_PATH,
-                                                                          smart_split=SMART_SPLIT)
+    train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(image_dataset_path=IMAGE_DATASET_PATH, structure_dataset_path=STRUCTURE_DATASET_PATH, result_path=RESULT_PATH, **parameters)
     trainer = ModelTrainer(model=model,
                            optimizer=optimizer,
-                           device=DEVICE,
-                           nr_samples=NR_SAMPLES,
-                           epochs=EPOCHS,
                            image_path=IMAGE_PATH,
-                           reference_images=REFERENCE_IMAGES,
-                           threshold_training=THRESHOLD_TRAINING,
                            train_dataloader=train_dataloader,
                            val_dataloader=val_dataloader,
                            test_dataloader=test_dataloader,
                            sampler=sampler,
-                           threshold=THRESHOLD,
-                           ema_decay=EMA_DECAY)
+                           **parameters)
 
     trainer.train()
 
@@ -159,9 +178,7 @@ if TRAINING:
 
     if GENERATE_IMAGES == True:
         model.load_state_dict(trainer.best_model_checkpoint)
-        references_list, generated_list, structures_list = sample_model_output(model=model, sampler=sampler, device=DEVICE,
-                                                                               n=len(test_dataloader) * BATCH_SIZE, batch_size=BATCH_SIZE,
-                                                                               test_dataloader=test_dataloader)
+        references_list, generated_list, structures_list = sample_model_output(model=model, sampler=sampler, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader, **parameters)
         save_image_list(references_list, REFERENCE_PATH)
         save_image_list(generated_list, SAMPLE_PATH)
         save_image_list(structures_list, STRUCTURE_PATH)
@@ -187,7 +204,14 @@ if TESTING:
         model.load_state_dict(torch.load(MODEL_PATH))
         model.to(DEVICE)
         sampler = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=DEVICE)
-        sample_save_metrics(model=model, sampler=sampler, image_size=IMAGE_SIZE, device=DEVICE,
-                            image_dataset_path=IMAGE_DATASET_PATH, structure_dataset_path=STRUCTURE_DATASET_PATH, test_path=TEST_DATASET_PATH, reference_path=REFERENCE_PATH, sample_path=SAMPLE_PATH, structure_path=STRUCTURE_PATH,
-                            n=NR_SAMPLES, batch_size=BATCH_SIZE)
+        sample_save_metrics(model=model,
+                            sampler=sampler,
+                            image_dataset_path=IMAGE_DATASET_PATH,
+                            structure_dataset_path=STRUCTURE_DATASET_PATH,
+                            test_path=TEST_DATASET_PATH,
+                            reference_path=REFERENCE_PATH,
+                            sample_path=SAMPLE_PATH,
+                            structure_path=STRUCTURE_PATH,
+                            n=NR_SAMPLES,
+                            **parameters)
 

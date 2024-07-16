@@ -8,9 +8,20 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from SDE_utils import *
 from SDE_datareduction import get_data, get_test_data
+from SDE_tools import DiffusionTools
 
-def sample_model_output(model: torch.nn.Module, sampler, n: int, batch_size: int, image_size: int, device: torch.device,
-                        image_dataset_path: str, structure_dataset_path: str, test_path: str = None, test_dataloader: DataLoader = None):
+def sample_model_output(model: torch.nn.Module,
+                        sampler: DiffusionTools,
+                        n: int,
+                        image_dataset_path: str,
+                        structure_dataset_path: str,
+                        test_path: str = None,
+                        test_dataloader: DataLoader = None,
+                        **kwargs):
+
+    device = kwargs.get("DEVICE")
+    image_size = kwargs.get("IMAGE_SIZE")
+    batch_size = kwargs.get("BATCH_SIZE")
 
     if test_dataloader is not None and test_path is None:
         print("Using test dataloader")
@@ -63,6 +74,7 @@ def mae(imageA, imageB):
     return mae
 
 def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Image]):
+
     if len(image_set1) != len(image_set2):
         raise ValueError("Number of images in image sets do not match")
 
@@ -82,14 +94,20 @@ def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Imag
 
     return ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values
 
-def sample_save_metrics(model, sampler, test_path: str, image_size: int, device: torch.device,
-                        image_dataset_path: str, structure_dataset_path: str, reference_path: str, sample_path: str, structure_path: str,
-                        n: int = 200, batch_size: int = 5):
+def sample_save_metrics(model: torch.nn.Module,
+                        sampler: DiffusionTools,
+                        test_path: str,
+                        image_dataset_path: str,
+                        structure_dataset_path: str,
+                        reference_path: str,
+                        sample_path: str,
+                        structure_path: str,
+                        n: int = 200,
+                        **kwargs):
 
     parameter_count = count_parameters(model)
 
-    references, samples, structure = sample_model_output(model=model, sampler=sampler, n=n, batch_size=batch_size, image_size=image_size, device=device,
-                                                         image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path, test_path=test_path)
+    references, samples, structure = sample_model_output(model=model, sampler=sampler, n=n, image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path, test_path=test_path, **kwargs)
 
     ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(references, samples)
 

@@ -19,18 +19,12 @@ class ModelTrainer:
     def __init__(self,
                  model: nn.Module,
                  optimizer: optim,
-                 device: torch.device,
-                 nr_samples: int,
-                 epochs: int,
                  image_path: str,
-                 reference_images: bool,
-                 threshold_training: bool,
                  train_dataloader: DataLoader,
                  val_dataloader: DataLoader,
                  test_dataloader: DataLoader,
                  sampler: DiffusionTools,
-                 threshold: float,
-                 ema_decay: float):
+                 **kwargs):
         super().__init__()
 
         self.model = model
@@ -39,15 +33,14 @@ class ModelTrainer:
         self.test_dataloader = test_dataloader
         self.optimizer = optimizer
         self.sampler = sampler
-        self.device = device
+        self.device = kwargs.get("DEVICE")
         self.mse = nn.MSELoss()
-        self.nr_samples = nr_samples
-        self.epochs = epochs
+        self.nr_samples = kwargs.get("NR_SAMPLES")
+        self.epochs = kwargs.get("EPOCHS")
         self.image_path = image_path
-        self.reference_images = reference_images
-        self.threshold_training = threshold_training
-        self.threshold = threshold
-        self.ema_decay = ema_decay
+        self.threshold_training = kwargs.get("THRESHOLD_TRAINING")
+        self.threshold = kwargs.get("THRESHOLD")
+        self.ema_decay = kwargs.get("EMA_DECAY")
 
         self.train_losses = []
         self.val_losses = []
@@ -58,6 +51,7 @@ class ModelTrainer:
         self.best_model_checkpoint = None
 
         self.ema_model = copy.deepcopy(model)
+        self.ema_model.to(self.device)
         for param in self.ema_model.parameters():
             param.detach()
 
@@ -77,6 +71,8 @@ class ModelTrainer:
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
+
+            self.update_ema()
 
             loss_total += loss.item()
             pbar.set_postfix(MSE=loss.item())
@@ -107,6 +103,7 @@ class ModelTrainer:
             return average_loss
 
     def generate_reference_images(self, epoch):
+        self.ema_model.eval()
         test_images, test_structures, _ = next(cycle(self.test_dataloader))
         test_images = concat_to_batchsize(test_images, self.nr_samples)
         test_structures = test_structures.to(self.device)
@@ -140,15 +137,12 @@ class ModelTrainer:
                 logging.info("Starting validation loop")
                 val_loss = self.validation_epoch()
 
-                self.update_ema()
-
                 if val_loss < self.best_val_loss:
                     self.best_val_loss = val_loss
                     self.best_model_checkpoint = self.model.state_dict()
 
                 if (epoch + 1) % 5 == 0:
-                    if self.reference_images == True:
-                        ssim, mae = self.generate_reference_images(epoch)
+                    ssim, mae = self.generate_reference_images(epoch)
 
         elif self.threshold_training == True:
             mae = float('inf')
@@ -162,8 +156,6 @@ class ModelTrainer:
 
                 logging.info("Starting validation loop")
                 val_loss = self.validation_epoch()
-
-                self.update_ema()
 
                 if val_loss < self.best_val_loss:
                     self.best_val_loss = val_loss
