@@ -64,8 +64,6 @@ class ModelTrainer:
             images, structures = images.to(self.device), structures.to(self.device)
             t = self.sampler.sample_timesteps(images.shape[0]).to(self.device)
             x_t, noise = self.sampler.noise_images(images, t)
-            print(x_t.shape)
-            print(structures.shape)
             x_t_struct = concatenate_images(x_t, structures)
             predicted_noise = self.model(x_t_struct, t)
             loss = self.mse(noise, predicted_noise)
