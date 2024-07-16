@@ -48,7 +48,7 @@ MODEL_NAME = r"UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000
 TEST_SPLIT = 0.5
 VALIDATION_SPLIT = 0.1
 EPOCHS = 500
-BATCH_SIZE = 20
+BATCH_SIZE = 5
 IMAGE_SIZE = 64
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
@@ -56,15 +56,15 @@ THRESHOLD = 0.01
 EMA_DECAY = 0.999
 
 # Sampling parameters
-NOISE_STEPS = 1000
+NOISE_STEPS = 250
 NR_SAMPLES = 5
 
 # UNet Parameters
 MODEL = "UNet"
 N_BLOCKS = 1
 TIME_EMB_DIM = 128
-N_HEADS = 1
-DIM_HEAD = None
+N_HEADS = 4
+DIM_HEAD = 64
 
 parameters = {
     "DEVICE": DEVICE,
@@ -99,10 +99,6 @@ if TRAINING:
     REFERENCE_PATH = os.path.join(IMAGE_PATH, "References")
     STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
 
-    df = pd.DataFrame(list(parameters.items()), columns=['Parameter', 'Value'])
-
-    df.to_excel(os.path.join(RESULT_PATH, 'parameters.xlsx'), index=False)
-
     set_seed(seed=DEFAULT_SEED)
     print(f"Name: {RUN_NAME}, Smart Split : {SMART_SPLIT}")
 
@@ -120,6 +116,10 @@ if TRAINING:
 
     if not os.path.exists(STRUCTURE_PATH):
         os.makedirs(STRUCTURE_PATH)
+
+    df = pd.DataFrame(list(parameters.items()), columns=['Parameter', 'Value'])
+
+    df.to_excel(os.path.join(RESULT_PATH, 'parameters.xlsx'), index=False)
 
     model = UNet(n_blocks=N_BLOCKS, n_heads=N_HEADS, dim_head=DIM_HEAD)
     model.to(DEVICE)

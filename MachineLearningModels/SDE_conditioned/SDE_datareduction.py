@@ -159,7 +159,7 @@ def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: 
     test_split = kwargs.get("TEST_SPLIT")
     validation_split = kwargs.get("VALIDATION_SPLIT")
     smart_split = kwargs.get("SMART_SPLIT")
-    batch_size = kwargs.get("batch_size")
+    batch_size = kwargs.get("BATCH_SIZE")
 
     data_transform = transforms.Compose([
         transforms.Resize((image_size, image_size)),
