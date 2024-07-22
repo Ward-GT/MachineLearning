@@ -220,7 +220,7 @@ class GaussianDiffusion:
                 out = self.p_sample(model=model, x=x, y=y, t=t, clip_denoised=clip_denoised)
                 x = out["sample"]
 
-        return x
+        return x, y
 
     def loss_vb(self, model, x_start, x_t, t, y=None, clip_denoised=True):
         """

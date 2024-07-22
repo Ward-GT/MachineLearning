@@ -50,13 +50,13 @@ class SimpleUNet(nn.Module):
     """
     A simplified variant of the Unet architecture.
     """
-    def __init__(self):
+    def __init__(self, image_channels=6, out_dim=3):
         super().__init__()
-        image_channels = 6
+        image_channels = image_channels
         down_channels = (64, 128, 256, 512, 1024)
         up_channels = (1024, 512, 256, 128, 64)
-        out_dim = 3
-        time_emb_dim = TIME_EMB_DIM
+        out_dim = out_dim
+        time_emb_dim = 128
 
         # Time embedding
         self.time_mlp = nn.Sequential(

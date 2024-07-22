@@ -35,7 +35,7 @@ TESTING = False
 CALCULATE_METRICS = False
 SAMPLE_METRICS = False
 TEST_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Jaar 4\BEP\Results\Results SDE_conditioned\UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000"
-MODEL_NAME = r"UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000_final.pth"
+MODEL_PATH = r"UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000_final.pth"
 
 # Training settings
 TRAINING = True
@@ -60,7 +60,8 @@ NOISE_STEPS = 250
 NR_SAMPLES = 5
 
 # UNet Parameters
-MODEL = "UNet"
+MODEL_NAME = "UNet"
+# MODEL_NAME = "SimpleUNet"
 N_BLOCKS = 1
 N_HEADS = 4
 DIM_HEAD = 64
@@ -68,6 +69,7 @@ ATTENTION_RESOLUTIONS = "16,8"
 N_CHANNELS = 64
 
 parameters = {
+    "model_name": MODEL_NAME,
     "device": DEVICE,
     "smart_split": SMART_SPLIT,
     "threshold_training": THRESHOLD_TRAINING,
@@ -90,7 +92,7 @@ parameters = {
     "n_channels": N_CHANNELS
 }
 
-RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
+RUN_NAME = f"{MODEL_NAME}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
 
 if TRAINING:
     # Output paths
@@ -184,7 +186,7 @@ if TRAINING:
         save_image_list(structures_list, STRUCTURE_PATH)
 
 if TESTING:
-    MODEL_PATH = os.path.join(os.path.join(TEST_PATH, "models"), MODEL_NAME)
+    MODEL_PATH = os.path.join(os.path.join(TEST_PATH, "models"), MODEL_PATH)
     IMAGE_PATH = os.path.join(TEST_PATH, "images")
     SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")
     REFERENCE_PATH = os.path.join(IMAGE_PATH, "References")

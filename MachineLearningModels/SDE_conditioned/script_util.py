@@ -1,9 +1,11 @@
 import math
 from models.SR3_UNet import UNet
+from models.SDE_SimpleUNet import SimpleUNet
 from SDE_tools import GaussianDiffusion
 
 def create_model_diffusion(**kwargs):
     model = create_model(
+        model_name=kwargs.get("model_name"),
         image_size=kwargs.get("image_size"),
         learn_sigma=kwargs.get("learn_sigma"),
         n_blocks=kwargs.get("n_blocks"),
@@ -24,6 +26,7 @@ def create_model_diffusion(**kwargs):
     return model, diffusion
 
 def create_model(
+        model_name,
         image_size,
         learn_sigma,
         n_blocks,
@@ -33,35 +36,42 @@ def create_model(
         attention_resolutions,
         device
 ):
-    if image_size == 256:
-        channel_mult = [1, 1, 2, 2, 4, 4]
-    elif image_size == 128:
-        channel_mult = [1, 1, 2, 3, 4]
-    elif image_size == 64:
-        channel_mult = (1, 2, 3, 4)
-    else:
-        raise ValueError(f"Unsupported image size: {image_size}")
+    if model_name == "SimpleUNet":
+        return SimpleUNet(
+            image_channels=6,
+            out_dim=(3 if not learn_sigma else 6)
+        ).to(device)
 
-    attention_ds = []
+    elif model_name == "UNet":
+        if image_size == 256:
+            channel_mult = [1, 1, 2, 2, 4, 4]
+        elif image_size == 128:
+            channel_mult = [1, 1, 2, 3, 4]
+        elif image_size == 64:
+            channel_mult = (1, 2, 3, 4)
+        else:
+            raise ValueError(f"Unsupported image size: {image_size}")
 
-    for res in attention_resolutions.split(","):
-        attention_ds.append(image_size // int(res))
+        attention_ds = []
 
-    is_attn = [False for _ in range(len(channel_mult))]
+        for res in attention_resolutions.split(","):
+            attention_ds.append(image_size // int(res))
 
-    for res in attention_ds:
-        is_attn[int(math.log2(res))] = True
+        is_attn = [False for _ in range(len(channel_mult))]
 
-    return UNet(
-        input_channels=6,
-        output_channels=(3 if not learn_sigma else 6),
-        n_channels=n_channels,
-        ch_mults=channel_mult,
-        is_attn=is_attn,
-        n_blocks=n_blocks,
-        n_heads=n_heads,
-        dim_head=dim_head
-    ).to(device)
+        for res in attention_ds:
+            is_attn[int(math.log2(res))] = True
+
+        return UNet(
+            input_channels=6,
+            output_channels=(3 if not learn_sigma else 6),
+            n_channels=n_channels,
+            ch_mults=channel_mult,
+            is_attn=is_attn,
+            n_blocks=n_blocks,
+            n_heads=n_heads,
+            dim_head=dim_head
+        ).to(device)
 
 def create_diffusion(
         noise_steps,
