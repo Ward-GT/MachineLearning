@@ -9,8 +9,8 @@ from tqdm import tqdm
 import logging
 from torch.utils.data import DataLoader
 from SDE_utils import *
-from SDE_tools import DiffusionTools
-from SDE_test import sample_model_output, calculate_metrics
+from SDE_tools import GaussianDiffusion
+from SDE_test import calculate_metrics
 from itertools import cycle
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level= logging.INFO, datefmt= "%I:%M:%S")
@@ -24,7 +24,7 @@ class ModelTrainer:
             train_dataloader: DataLoader,
             val_dataloader: DataLoader,
             test_dataloader: DataLoader,
-            sampler: DiffusionTools,
+            diffusion: GaussianDiffusion,
             **kwargs
     ):
         super().__init__()
@@ -34,7 +34,7 @@ class ModelTrainer:
         self.val_dataloader = val_dataloader
         self.test_dataloader = test_dataloader
         self.optimizer = optimizer
-        self.sampler = sampler
+        self.diffusion = diffusion
         self.device = kwargs.get("device")
         self.mse = nn.MSELoss()
         self.nr_samples = kwargs.get("nr_samples")
@@ -64,12 +64,11 @@ class ModelTrainer:
 
         for i, (images, structures, _) in enumerate(pbar):
             images, structures = images.to(self.device), structures.to(self.device)
-            t = self.sampler.sample_timesteps(images.shape[0]).to(self.device)
-            x_t, noise = self.sampler.noise_images(images, t)
-            x_t_struct = concatenate_images(x_t, structures)
-            predicted_noise = self.model(x_t_struct, t)
-            loss = self.mse(noise, predicted_noise)
-
+            t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
+            losses = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
+            loss = losses["loss"].mean()
+            print(f"Loss: {loss}")
+            print(f"Terms: {losses}")
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -91,11 +90,9 @@ class ModelTrainer:
 
             for i, (images, structures, _) in enumerate(pbar):
                 images, structures = images.to(self.device), structures.to(self.device)
-                t = self.sampler.sample_timesteps(images.shape[0]).to(self.device)
-                x_t, noise = self.sampler.noise_images(images, t)
-                x_t_struct = concatenate_images(x_t, structures)
-                predicted_noise = self.model(x_t_struct, t)
-                loss = self.mse(noise, predicted_noise)
+                t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
+                terms = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
+                loss = terms["loss"]
 
                 pbar.set_postfix(MSE=loss.item())
                 loss_total += loss.item()
@@ -109,7 +106,7 @@ class ModelTrainer:
         test_images, test_structures, _ = next(cycle(self.test_dataloader))
         test_images = concat_to_batchsize(test_images, self.nr_samples)
         test_structures = test_structures.to(self.device)
-        sampled_images, structures = self.sampler.sample(self.ema_model, n=self.nr_samples, structures=test_structures)
+        sampled_images, structures = self.diffusion.p_sample_loop(self.ema_model, n=self.nr_samples, y=test_structures)
         test_images = tensor_to_PIL(test_images)
         sampled_images = tensor_to_PIL(sampled_images)
         structures = tensor_to_PIL(structures)

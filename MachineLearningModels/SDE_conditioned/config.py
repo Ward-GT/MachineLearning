@@ -5,11 +5,10 @@ import pandas as pd
 from torch import optim
 from matplotlib import pyplot as plt
 from SDE_train import ModelTrainer
-from models.SR3_UNet import UNet
 from SDE_datareduction import get_data
-from SDE_tools import DiffusionTools
 from SDE_test import sample_model_output, calculate_metrics, sample_save_metrics
 from SDE_utils import save_image_list, set_seed, load_images
+from script_util import create_model_diffusion
 
 DEFAULT_SEED = 42
 
@@ -43,7 +42,7 @@ TRAINING = True
 SMART_SPLIT = False
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = True
-LEARN_SIGMA = False
+LEARN_SIGMA = True
 
 # Training parameters
 TEST_SPLIT = 0.5
@@ -83,7 +82,6 @@ parameters = {
     "ema_decay": EMA_DECAY,
     "noise_steps": NOISE_STEPS,
     "nr_samples": NR_SAMPLES,
-    "model": MODEL,
     "n_blocks": N_BLOCKS,
     "n_heads": N_HEADS,
     "dim_head": DIM_HEAD,
@@ -92,7 +90,7 @@ parameters = {
     "n_channels": N_CHANNELS
 }
 
-RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
+RUN_NAME = f"{MODEL}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
 
 if TRAINING:
     # Output paths
@@ -125,10 +123,8 @@ if TRAINING:
 
     df.to_excel(os.path.join(RESULT_PATH, 'parameters.xlsx'), index=False)
 
-    model = UNet(n_blocks=N_BLOCKS, n_heads=N_HEADS, dim_head=DIM_HEAD)
-    model.to(DEVICE)
+    model, diffusion = create_model_diffusion(**parameters)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=WEIGHT_DECAY)
-    sampler = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=DEVICE)
     train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(image_dataset_path=IMAGE_DATASET_PATH, structure_dataset_path=STRUCTURE_DATASET_PATH, result_path=RESULT_PATH, **parameters)
     trainer = ModelTrainer(model=model,
                            optimizer=optimizer,
@@ -136,7 +132,7 @@ if TRAINING:
                            train_dataloader=train_dataloader,
                            val_dataloader=val_dataloader,
                            test_dataloader=test_dataloader,
-                           sampler=sampler,
+                           diffusion=diffusion,
                            **parameters)
 
     trainer.train()
@@ -182,7 +178,7 @@ if TRAINING:
 
     if GENERATE_IMAGES == True:
         model.load_state_dict(trainer.best_model_checkpoint)
-        references_list, generated_list, structures_list = sample_model_output(model=model, sampler=sampler, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader, **parameters)
+        references_list, generated_list, structures_list = sample_model_output(model=model, sampler=diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader, **parameters)
         save_image_list(references_list, REFERENCE_PATH)
         save_image_list(generated_list, SAMPLE_PATH)
         save_image_list(structures_list, STRUCTURE_PATH)
@@ -204,10 +200,8 @@ if TESTING:
 
     if SAMPLE_METRICS == True:
         set_seed(seed=DEFAULT_SEED)
-        model = UNet(n_blocks=N_BLOCKS)
+        model, sampler = create_model_diffusion(**parameters)
         model.load_state_dict(torch.load(MODEL_PATH))
-        model.to(DEVICE)
-        sampler = DiffusionTools(noise_steps=NOISE_STEPS, img_size=IMAGE_SIZE, device=DEVICE)
         sample_save_metrics(model=model,
                             sampler=sampler,
                             image_dataset_path=IMAGE_DATASET_PATH,

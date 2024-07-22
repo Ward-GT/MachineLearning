@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from SDE_utils import *
 from SDE_datareduction import get_data, get_test_data
-from SDE_tools import DiffusionTools
+from SDE_tools import GaussianDiffusion
 
 def sample_model_output(
         model: torch.nn.Module,
-        sampler: DiffusionTools,
+        sampler: GaussianDiffusion,
         n: int,
         image_dataset_path: str,
         structure_dataset_path: str,
@@ -45,7 +45,7 @@ def sample_model_output(
         references, structures, _ = next(iterator)
         structures = structures.to(device)
         references = references.to(device)
-        generated, structures = sampler.sample(model, batch_size, structures)
+        generated, structures = sampler.p_sample_loop(model=model, n=batch_size, y=structures)
         references = tensor_to_PIL(references)
         generated = tensor_to_PIL(generated)
         structures = tensor_to_PIL(structures)
@@ -98,7 +98,7 @@ def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Imag
 
 def sample_save_metrics(
         model: torch.nn.Module,
-        sampler: DiffusionTools,
+        sampler: GaussianDiffusion,
         test_path: str,
         image_dataset_path: str,
         structure_dataset_path: str,

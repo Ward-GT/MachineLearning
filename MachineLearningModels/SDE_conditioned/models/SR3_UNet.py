@@ -144,6 +144,7 @@ class UpSample(nn.Module):
         return self.up(x)
 
 class UNet(nn.Module):
+    #TODO Find out how to extract vectors v for variance estimation from the model
     def __init__(
             self,
             input_channels: int,
@@ -198,7 +199,8 @@ class UNet(nn.Module):
         self.act = Swish()
         self.out = nn.Conv2d(in_channels, output_channels, kernel_size=(3, 3), padding=(1, 1))
 
-    def forward(self, x: torch.Tensor, t: torch.Tensor):
+    def forward(self, x_t: torch.Tensor, y: torch.Tensor, t: torch.Tensor):
+        x = torch.cat((x_t, y), dim=1)
         t = self.time_emb(t)
         x = self.image_proj(x)
         h = [x]

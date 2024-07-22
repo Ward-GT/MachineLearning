@@ -147,5 +147,11 @@ def set_seed(seed: int, fully_deterministic: bool = False):
     torch.cuda.manual_seed_all(seed)
     print("Seed set!")
 
+def mean_flat(tensor):
+    """
+    Take the mean over all non-batch dimensions.
+    """
+    return tensor.mean(dim=list(range(1, len(tensor.shape))))
+
 
 
