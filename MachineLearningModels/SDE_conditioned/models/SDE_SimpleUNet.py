@@ -2,7 +2,6 @@ import torch
 import math
 import torch.nn as nn
 import torch.nn.functional as F
-from config import *
 
 class Block(nn.Module):
     def __init__(self, in_ch, out_ch, time_emb_dim, up=False):
