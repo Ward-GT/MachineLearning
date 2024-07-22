@@ -75,7 +75,8 @@ class SimpleUNet(nn.Module):
         # Edit: Corrected a bug found by Jakub C (see YouTube comment)
         self.output = nn.Conv2d(up_channels[-1], out_dim, 1)
 
-    def forward(self, x, timestep):
+    def forward(self, x, y, timestep):
+        x = torch.cat((x, y), dim=1)
         # Embedd time
         t = self.time_mlp(timestep)
         # Initial conv
