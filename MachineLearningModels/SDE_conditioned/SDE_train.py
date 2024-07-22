@@ -67,8 +67,6 @@ class ModelTrainer:
             t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
             losses = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
             loss = losses["loss"].mean()
-            print(f"Loss: {loss}")
-            print(f"Terms: {losses}")
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -91,8 +89,8 @@ class ModelTrainer:
             for i, (images, structures, _) in enumerate(pbar):
                 images, structures = images.to(self.device), structures.to(self.device)
                 t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
-                terms = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
-                loss = terms["loss"]
+                losses = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
+                loss = losses["loss"].mean()
 
                 pbar.set_postfix(MSE=loss.item())
                 loss_total += loss.item()
