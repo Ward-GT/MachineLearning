@@ -40,17 +40,17 @@ MODEL_PATH = r"UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000
 # Training settings
 TRAINING = True
 SMART_SPLIT = False
-GENERATE_IMAGES = True
-THRESHOLD_TRAINING = True
+GENERATE_IMAGES = False
+THRESHOLD_TRAINING = False
 LEARN_SIGMA = True
 
 # Training parameters
-TEST_SPLIT = 0.5
+TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 500
 BATCH_SIZE = 5
 IMAGE_SIZE = 64
-INIT_LR = 0.00002
+INIT_LR = 0.0001
 WEIGHT_DECAY = 0.001
 THRESHOLD = 0.01
 EMA_DECAY = 0.999
@@ -60,8 +60,8 @@ NOISE_STEPS = 250
 NR_SAMPLES = 5
 
 # UNet Parameters
-MODEL_NAME = "UNet"
-# MODEL_NAME = "SimpleUNet"
+# MODEL_NAME = "UNet"
+MODEL_NAME = "SimpleUNet"
 N_BLOCKS = 1
 N_HEADS = 4
 DIM_HEAD = 64
@@ -92,7 +92,7 @@ parameters = {
     "n_channels": N_CHANNELS
 }
 
-RUN_NAME = f"{MODEL_NAME}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
+RUN_NAME = f"{MODEL_NAME}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_learnsigma_{LEARN_SIGMA}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
 
 if TRAINING:
     # Output paths

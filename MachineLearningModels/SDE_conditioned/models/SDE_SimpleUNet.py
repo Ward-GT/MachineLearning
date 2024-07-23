@@ -18,7 +18,7 @@ class Block(nn.Module):
         self.bnorm2 = nn.BatchNorm2d(out_ch)
         self.relu = nn.ReLU()
 
-    def forward(self, x, t, ):
+    def forward(self, x, t):
         # First Conv
         h = self.bnorm1(self.relu(self.conv1(x)))
         # Time embedding
@@ -45,6 +45,7 @@ class SinusoidalPositionEmbeddings(nn.Module):
         embeddings = time[:, None] * embeddings[None, :]
         embeddings = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
         return embeddings
+
 class SimpleUNet(nn.Module):
     """
     A simplified variant of the Unet architecture.
