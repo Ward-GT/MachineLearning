@@ -12,6 +12,7 @@ from SDE_tools import GaussianDiffusion
 
 def sample_model_output(
         model: torch.nn.Module,
+        device: torch.device,
         sampler: GaussianDiffusion,
         n: int,
         image_dataset_path: str,
@@ -20,8 +21,6 @@ def sample_model_output(
         test_dataloader: DataLoader = None,
         **kwargs
 ):
-
-    device = model.device
     image_size = kwargs.get("image_size")
     batch_size = kwargs.get("batch_size")
 
@@ -96,6 +95,7 @@ def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Imag
 
 def sample_save_metrics(
         model: torch.nn.Module,
+        device: torch.device,
         sampler: GaussianDiffusion,
         test_path: str,
         image_dataset_path: str,
@@ -109,7 +109,7 @@ def sample_save_metrics(
 
     parameter_count = count_parameters(model)
 
-    references, samples, structure = sample_model_output(model=model, sampler=sampler, n=n, image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path, test_path=test_path, **kwargs)
+    references, samples, structure = sample_model_output(model=model, device=device, sampler=sampler, n=n, image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path, test_path=test_path, **kwargs)
 
     ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(references, samples)
 

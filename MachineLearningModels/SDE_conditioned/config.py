@@ -16,9 +16,9 @@ DEFAULT_SEED = 42
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-BASE_INPUT = r"C:\Users\20202137\Documents\Python\MachineLearning\data"
+# BASE_INPUT = r"C:\Users\20202137\Documents\Python\MachineLearning\data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
@@ -31,14 +31,14 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
-TESTING = False
+TESTING = True
 CALCULATE_METRICS = False
-SAMPLE_METRICS = False
-TEST_PATH = r"C:\Users\20202137\Documents\Python\MachineLearning\MachineLearningModels\SDE_conditioned\results\UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.3_imgsize_128_epochs_500"
-MODEL_PATH = "UNet_nblocks_2_noisesteps_250_smartsplit_False_split_0.1_imgsize_128_epochs_1000_ema_model"
+SAMPLE_METRICS = True
+TEST_PATH = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.1_imgsize_128_epochs_1000"
+MODEL_PATH = "UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.1_imgsize_128_epochs_1000_ema_model.pth"
 
 # Training settings
-TRAINING = True
+TRAINING = False
 SMART_SPLIT = False
 GENERATE_IMAGES = False
 THRESHOLD_TRAINING = False
@@ -179,7 +179,7 @@ if TRAINING:
 
     if GENERATE_IMAGES == True:
         model.load_state_dict(trainer.best_model_checkpoint)
-        references_list, generated_list, structures_list = sample_model_output(model=model, sampler=diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader, **parameters)
+        references_list, generated_list, structures_list = sample_model_output(model=model, device=DEVICE, sampler=diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader, **parameters)
         save_image_list(references_list, REFERENCE_PATH)
         save_image_list(generated_list, SAMPLE_PATH)
         save_image_list(structures_list, STRUCTURE_PATH)
@@ -209,6 +209,7 @@ if TESTING:
         model, sampler = create_model_diffusion(DEVICE, **parameters)
         model.load_state_dict(torch.load(MODEL_PATH))
         sample_save_metrics(model=model,
+                            device=DEVICE,
                             sampler=sampler,
                             image_dataset_path=IMAGE_DATASET_PATH,
                             structure_dataset_path=STRUCTURE_DATASET_PATH,
@@ -218,4 +219,3 @@ if TESTING:
                             structure_path=STRUCTURE_PATH,
                             n=NR_SAMPLES,
                             **parameters)
-
