@@ -68,33 +68,33 @@ DIM_HEAD = 64
 ATTENTION_RESOLUTIONS = "16,8"
 N_CHANNELS = 64
 
-parameters = {
-    "model_name": MODEL_NAME,
-    "device": DEVICE,
-    "smart_split": SMART_SPLIT,
-    "threshold_training": THRESHOLD_TRAINING,
-    "test_split": TEST_SPLIT,
-    "validation_split": VALIDATION_SPLIT,
-    "epochs": EPOCHS,
-    "batch_size": BATCH_SIZE,
-    "image_size": IMAGE_SIZE,
-    "init_lr": INIT_LR,
-    "weight_decay": WEIGHT_DECAY,
-    "threshold": THRESHOLD,
-    "ema_decay": EMA_DECAY,
-    "noise_steps": NOISE_STEPS,
-    "nr_samples": NR_SAMPLES,
-    "n_blocks": N_BLOCKS,
-    "n_heads": N_HEADS,
-    "dim_head": DIM_HEAD,
-    "learn_sigma": LEARN_SIGMA,
-    "attention_resolutions": ATTENTION_RESOLUTIONS,
-    "n_channels": N_CHANNELS
-}
-
 RUN_NAME = f"{MODEL_NAME}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_learnsigma_{LEARN_SIGMA}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
 
 if TRAINING:
+    parameters = {
+        "model_name": MODEL_NAME,
+        "device": DEVICE,
+        "smart_split": SMART_SPLIT,
+        "threshold_training": THRESHOLD_TRAINING,
+        "test_split": TEST_SPLIT,
+        "validation_split": VALIDATION_SPLIT,
+        "epochs": EPOCHS,
+        "batch_size": BATCH_SIZE,
+        "image_size": IMAGE_SIZE,
+        "init_lr": INIT_LR,
+        "weight_decay": WEIGHT_DECAY,
+        "threshold": THRESHOLD,
+        "ema_decay": EMA_DECAY,
+        "noise_steps": NOISE_STEPS,
+        "nr_samples": NR_SAMPLES,
+        "n_blocks": N_BLOCKS,
+        "n_heads": N_HEADS,
+        "dim_head": DIM_HEAD,
+        "learn_sigma": LEARN_SIGMA,
+        "attention_resolutions": ATTENTION_RESOLUTIONS,
+        "n_channels": N_CHANNELS
+    }
+
     # Output paths
     RESULT_PATH = os.path.join(BASE_OUTPUT, RUN_NAME)
     MODEL_PATH = os.path.join(RESULT_PATH, "models")
@@ -186,12 +186,17 @@ if TRAINING:
         save_image_list(structures_list, STRUCTURE_PATH)
 
 if TESTING:
+
+    PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.xlsx')
     MODEL_PATH = os.path.join(os.path.join(TEST_PATH, "models"), MODEL_PATH)
     IMAGE_PATH = os.path.join(TEST_PATH, "images")
     SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")
     REFERENCE_PATH = os.path.join(IMAGE_PATH, "References")
     STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
     TEST_DATASET_PATH = os.path.join(TEST_PATH, "test_indices.pth")
+
+    df = pd.read_excel(PARAMETER_PATH)
+    parameters = df.to_dict()
 
     if CALCULATE_METRICS == True:
         structure_images = load_images(STRUCTURE_PATH)

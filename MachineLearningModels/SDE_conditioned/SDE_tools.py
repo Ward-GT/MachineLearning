@@ -35,7 +35,10 @@ class GaussianDiffusion:
         self.posterior_mean_coef_xt = np.sqrt(self.alphas)*(1-self.alphas_cumprod_prev)/(1-self.alphas_cumprod)
 
     def prepare_noise_schedule(self):
-        return np.linspace(self.beta_start, self.beta_end, self.noise_steps)
+        scale = 1000 / self.noise_steps
+        beta_start = scale * self.beta_start
+        beta_end = scale * self.beta_end
+        return np.linspace(beta_start, beta_end, self.noise_steps)
 
     def sample_timesteps(self, n):
         return torch.randint(low=1, high=self.noise_steps, size=(n,))

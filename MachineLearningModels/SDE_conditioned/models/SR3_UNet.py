@@ -144,7 +144,6 @@ class UpSample(nn.Module):
         return self.up(x)
 
 class UNet(nn.Module):
-    #TODO Find out how to extract vectors v for variance estimation from the model
     def __init__(
             self,
             input_channels: int,
