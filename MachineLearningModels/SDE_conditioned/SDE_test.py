@@ -21,7 +21,7 @@ def sample_model_output(
         **kwargs
 ):
 
-    device = kwargs.get("device")
+    device = model.device
     image_size = kwargs.get("image_size")
     batch_size = kwargs.get("batch_size")
 
@@ -33,8 +33,6 @@ def sample_model_output(
         dataloader = get_test_data(test_path=test_path, image_size=image_size, batch_size=batch_size, image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path)
     else:
         _, dataloader = get_data(batch_size)
-
-    model = model.to(device)
 
     references_list = []
     generated_list = []

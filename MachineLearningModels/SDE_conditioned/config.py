@@ -1,7 +1,7 @@
 import torch
 import os
+import json
 import numpy as np
-import pandas as pd
 from torch import optim
 from matplotlib import pyplot as plt
 from SDE_train import ModelTrainer
@@ -34,8 +34,8 @@ PIN_MEMORY = True if DEVICE == "cuda" else False
 TESTING = False
 CALCULATE_METRICS = False
 SAMPLE_METRICS = False
-TEST_PATH = r"C:\Users\20202137\OneDrive - TU Eindhoven\Jaar 4\BEP\Results\Results SDE_conditioned\UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000"
-MODEL_PATH = r"UNet_nblocks_2_smartsplit_False_split_0.5_imgsize_128_epochs_1000_final.pth"
+TEST_PATH = r"C:\Users\20202137\Documents\Python\MachineLearning\MachineLearningModels\SDE_conditioned\results\UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.3_imgsize_128_epochs_500"
+MODEL_PATH = "UNet_nblocks_2_noisesteps_250_smartsplit_False_split_0.1_imgsize_128_epochs_1000_ema_model"
 
 # Training settings
 TRAINING = True
@@ -47,7 +47,7 @@ LEARN_SIGMA = True
 # Training parameters
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
-EPOCHS = 500
+EPOCHS = 1000
 BATCH_SIZE = 32
 IMAGE_SIZE = 128
 INIT_LR = 0.0001
@@ -56,13 +56,13 @@ THRESHOLD = 0.01
 EMA_DECAY = 0.9999
 
 # Sampling parameters
-NOISE_STEPS = 250
+NOISE_STEPS = 500
 NR_SAMPLES = 5
 
 # UNet Parameters
 # MODEL_NAME = "UNet"
 MODEL_NAME = "UNet"
-N_BLOCKS = 1
+N_BLOCKS = 2
 N_HEADS = 4
 DIM_HEAD = 64
 ATTENTION_RESOLUTIONS = "16,8"
@@ -73,7 +73,6 @@ RUN_NAME = f"{MODEL_NAME}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_learnsigma
 if TRAINING:
     parameters = {
         "model_name": MODEL_NAME,
-        "device": DEVICE,
         "smart_split": SMART_SPLIT,
         "threshold_training": THRESHOLD_TRAINING,
         "test_split": TEST_SPLIT,
@@ -121,14 +120,14 @@ if TRAINING:
     if not os.path.exists(STRUCTURE_PATH):
         os.makedirs(STRUCTURE_PATH)
 
-    df = pd.DataFrame(list(parameters.items()), columns=['Parameter', 'Value'])
+    with open(os.path.join(RESULT_PATH, 'parameters.json'), "w") as f:
+        json.dump(parameters, f, indent=4)
 
-    df.to_excel(os.path.join(RESULT_PATH, 'parameters.xlsx'), index=False)
-
-    model, diffusion = create_model_diffusion(**parameters)
+    model, diffusion = create_model_diffusion(DEVICE, **parameters)
     optimizer = optim.AdamW(model.parameters(), lr=INIT_LR, weight_decay=WEIGHT_DECAY)
     train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(image_dataset_path=IMAGE_DATASET_PATH, structure_dataset_path=STRUCTURE_DATASET_PATH, result_path=RESULT_PATH, **parameters)
     trainer = ModelTrainer(model=model,
+                           device=DEVICE,
                            optimizer=optimizer,
                            image_path=IMAGE_PATH,
                            train_dataloader=train_dataloader,
@@ -187,7 +186,7 @@ if TRAINING:
 
 if TESTING:
 
-    PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.xlsx')
+    PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.json')
     MODEL_PATH = os.path.join(os.path.join(TEST_PATH, "models"), MODEL_PATH)
     IMAGE_PATH = os.path.join(TEST_PATH, "images")
     SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")
@@ -195,8 +194,8 @@ if TESTING:
     STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
     TEST_DATASET_PATH = os.path.join(TEST_PATH, "test_indices.pth")
 
-    df = pd.read_excel(PARAMETER_PATH)
-    parameters = df.to_dict()
+    with open(PARAMETER_PATH, "r") as f:
+        parameters = json.load(f)
 
     if CALCULATE_METRICS == True:
         structure_images = load_images(STRUCTURE_PATH)
@@ -207,7 +206,7 @@ if TESTING:
 
     if SAMPLE_METRICS == True:
         set_seed(seed=DEFAULT_SEED)
-        model, sampler = create_model_diffusion(**parameters)
+        model, sampler = create_model_diffusion(DEVICE, **parameters)
         model.load_state_dict(torch.load(MODEL_PATH))
         sample_save_metrics(model=model,
                             sampler=sampler,

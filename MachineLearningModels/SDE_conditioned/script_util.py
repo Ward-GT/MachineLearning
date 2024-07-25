@@ -3,7 +3,7 @@ from models.SR3_UNet import UNet
 from models.SDE_SimpleUNet import SimpleUNet
 from SDE_tools import GaussianDiffusion
 
-def create_model_diffusion(**kwargs):
+def create_model_diffusion(device, **kwargs):
     model = create_model(
         model_name=kwargs.get("model_name"),
         image_size=kwargs.get("image_size"),
@@ -13,13 +13,13 @@ def create_model_diffusion(**kwargs):
         dim_head=kwargs.get("dim_head"),
         n_channels=kwargs.get("n_channels"),
         attention_resolutions=kwargs.get("attention_resolutions"),
-        device=kwargs.get("device")
+        device=device
     )
 
     diffusion = create_diffusion(
         noise_steps=kwargs.get("noise_steps"),
         image_size=kwargs.get("image_size"),
-        device=kwargs.get("device"),
+        device=device,
         learn_sigma=kwargs.get("learn_sigma")
     )
 

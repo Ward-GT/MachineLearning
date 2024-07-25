@@ -19,6 +19,7 @@ class ModelTrainer:
     def __init__(
             self,
             model: nn.Module,
+            device: torch.device,
             optimizer: optim,
             image_path: str,
             train_dataloader: DataLoader,
@@ -35,7 +36,7 @@ class ModelTrainer:
         self.test_dataloader = test_dataloader
         self.optimizer = optimizer
         self.diffusion = diffusion
-        self.device = kwargs.get("device")
+        self.device = device
         self.mse = nn.MSELoss()
         self.nr_samples = kwargs.get("nr_samples")
         self.epochs = kwargs.get("epochs")
