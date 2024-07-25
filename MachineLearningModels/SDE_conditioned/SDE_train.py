@@ -117,6 +117,7 @@ class ModelTrainer:
         return np.mean(ssim), np.mean(mae)
 
     def update_ema(self):
+        self.ema_model.train()
         with torch.no_grad():
             for ema_param, param in zip(self.ema_model.parameters(), self.model.parameters()):
                 ema_param.data.mul_(self.ema_decay).add_(param.data, alpha=1 - self.ema_decay)

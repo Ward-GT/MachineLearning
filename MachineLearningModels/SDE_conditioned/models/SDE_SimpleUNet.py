@@ -3,6 +3,10 @@ import math
 import torch.nn as nn
 import torch.nn.functional as F
 
+class Swish(nn.Module):
+    def forward(self, x):
+        return x * torch.sigmoid(x)
+
 class Block(nn.Module):
     def __init__(self, in_ch, out_ch, time_emb_dim, up=False):
         super().__init__()
@@ -32,38 +36,39 @@ class Block(nn.Module):
         # Down or Upsample
         return self.transform(h)
 
-class SinusoidalPositionEmbeddings(nn.Module):
-    def __init__(self, dim):
+class TimeEmbedding(nn.Module):
+    def __init__(self, time_channels: int):
         super().__init__()
-        self.dim = dim
 
-    def forward(self, time):
-        device = time.device
-        half_dim = self.dim // 2
-        embeddings = math.log(10000) / (half_dim - 1)
-        embeddings = torch.exp(torch.arange(half_dim, device=device) * -embeddings)
-        embeddings = time[:, None] * embeddings[None, :]
-        embeddings = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
-        return embeddings
+        self.time_channels = time_channels
+        self.lin1 = nn.Linear(self.time_channels // 4, self.time_channels)
+        self.act = Swish()
+        self.lin2 = nn.Linear(self.time_channels, self.time_channels)
+
+    def forward(self, t: torch.Tensor):
+        half_dim = self.time_channels // 8
+        emb = math.log(10000) / (half_dim - 1)
+        emb = torch.exp(torch.arange(half_dim, device=t.device) * -emb)
+        emb = t[:, None] * emb[None, :]
+        emb = torch.cat((emb.sin(), emb.cos()), dim=-1)
+
+        emb = self.act(self.lin1(emb))
+        emb = self.lin2(emb)
+        return emb
 
 class SimpleUNet(nn.Module):
     """
     A simplified variant of the Unet architecture.
     """
-    def __init__(self, image_channels=6, out_dim=3):
+    def __init__(self, n_channels, image_channels=6, out_dim=3):
         super().__init__()
         image_channels = image_channels
         down_channels = (64, 128, 256, 512, 1024)
         up_channels = (1024, 512, 256, 128, 64)
         out_dim = out_dim
-        time_emb_dim = 128
+        time_emb_dim = n_channels*4
 
-        # Time embedding
-        self.time_mlp = nn.Sequential(
-            SinusoidalPositionEmbeddings(time_emb_dim),
-            nn.Linear(time_emb_dim, time_emb_dim),
-            nn.ReLU()
-        )
+        self.time_emb = TimeEmbedding(time_emb_dim)
 
         # Initial projection
         self.conv0 = nn.Conv2d(image_channels, down_channels[0], 3, padding=1)
@@ -76,10 +81,10 @@ class SimpleUNet(nn.Module):
         # Edit: Corrected a bug found by Jakub C (see YouTube comment)
         self.output = nn.Conv2d(up_channels[-1], out_dim, 1)
 
-    def forward(self, x, y, timestep):
-        x = torch.cat((x, y), dim=1)
+    def forward(self, x_t, y, t):
+        x = torch.cat((x_t, y), dim=1)
         # Embedd time
-        t = self.time_mlp(timestep)
+        t = self.time_emb(t)
         # Initial conv
         x = self.conv0(x)
         # Unet

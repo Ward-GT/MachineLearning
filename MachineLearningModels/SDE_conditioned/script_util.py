@@ -38,6 +38,7 @@ def create_model(
 ):
     if model_name == "SimpleUNet":
         return SimpleUNet(
+            n_channels=n_channels,
             image_channels=6,
             out_dim=(3 if not learn_sigma else 6)
         ).to(device)

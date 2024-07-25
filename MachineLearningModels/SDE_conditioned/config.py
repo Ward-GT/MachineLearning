@@ -16,13 +16,14 @@ DEFAULT_SEED = 42
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-# BASE_INPUT = r"C:\Users\20202137\Documents\Python\MachineLearning\data"
+BASE_INPUT = r"C:\Users\20202137\Documents\Python\MachineLearning\data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
+DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
-DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined_small")
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
@@ -31,37 +32,37 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
-TESTING = True
+TESTING = False
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
 TEST_PATH = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.1_imgsize_128_epochs_1000"
 MODEL_PATH = "UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.1_imgsize_128_epochs_1000_ema_model.pth"
 
 # Training settings
-TRAINING = False
+TRAINING = True
 SMART_SPLIT = False
 GENERATE_IMAGES = False
 THRESHOLD_TRAINING = False
-LEARN_SIGMA = True
+LEARN_SIGMA = False
 
 # Training parameters
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 32
-IMAGE_SIZE = 128
+BATCH_SIZE = 5
+IMAGE_SIZE = 64
 INIT_LR = 0.0001
 WEIGHT_DECAY = 0.001
 THRESHOLD = 0.01
 EMA_DECAY = 0.9999
 
 # Sampling parameters
-NOISE_STEPS = 500
+NOISE_STEPS = 250
 NR_SAMPLES = 5
 
 # UNet Parameters
 # MODEL_NAME = "UNet"
-MODEL_NAME = "UNet"
+MODEL_NAME = "SimpleUNet"
 N_BLOCKS = 2
 N_HEADS = 4
 DIM_HEAD = 64
