@@ -101,7 +101,6 @@ class ModelTrainer:
             return average_loss
 
     def generate_reference_images(self, epoch):
-        self.ema_model.eval()
         test_images, test_structures, _ = next(cycle(self.test_dataloader))
         test_images = concat_to_batchsize(test_images, self.nr_samples)
         test_structures = test_structures.to(self.device)
