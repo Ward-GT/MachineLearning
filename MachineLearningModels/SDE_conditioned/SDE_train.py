@@ -70,6 +70,7 @@ class ModelTrainer:
             loss = losses["loss"].mean()
             self.optimizer.zero_grad()
             loss.backward()
+            nn.utils.clip_grad_norm(self.model.parameters(), 1)
             self.optimizer.step()
 
             self.update_ema()

@@ -186,7 +186,6 @@ if TRAINING:
         save_image_list(structures_list, STRUCTURE_PATH)
 
 if TESTING:
-
     PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.json')
     MODEL_PATH = os.path.join(os.path.join(TEST_PATH, "models"), MODEL_PATH)
     IMAGE_PATH = os.path.join(TEST_PATH, "images")
