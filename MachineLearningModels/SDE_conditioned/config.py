@@ -44,6 +44,7 @@ SMART_SPLIT = False
 GENERATE_IMAGES = False
 THRESHOLD_TRAINING = False
 LEARN_SIGMA = False
+CLIP_GRAD = True
 
 # Training parameters
 TEST_SPLIT = 0.1
@@ -92,7 +93,8 @@ if TRAINING:
         "dim_head": DIM_HEAD,
         "learn_sigma": LEARN_SIGMA,
         "attention_resolutions": ATTENTION_RESOLUTIONS,
-        "n_channels": N_CHANNELS
+        "n_channels": N_CHANNELS,
+        "clip_grad": CLIP_GRAD
     }
 
     # Output paths

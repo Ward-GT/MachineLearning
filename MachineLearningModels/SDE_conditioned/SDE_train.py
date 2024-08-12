@@ -44,6 +44,7 @@ class ModelTrainer:
         self.threshold_training = kwargs.get("threshold_training")
         self.threshold = kwargs.get("threshold")
         self.ema_decay = kwargs.get("ema_decay")
+        self.clip_grad = kwargs.get("clip_grad")
 
         self.train_losses = []
         self.val_losses = []
@@ -70,7 +71,8 @@ class ModelTrainer:
             loss = losses["loss"].mean()
             self.optimizer.zero_grad()
             loss.backward()
-            nn.utils.clip_grad_norm(self.model.parameters(), 1)
+            if self.clip_grad:
+                nn.utils.clip_grad_norm(self.model.parameters(), 1)
             self.optimizer.step()
 
             self.update_ema()
