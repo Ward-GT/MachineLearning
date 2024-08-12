@@ -149,10 +149,10 @@ if TRAINING:
     min_mae = min(trainer.mae_values)
     print(f"Min MAE: {min_mae}, At place: {5 * np.argmin(trainer.mae_values)}")
 
-    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME},train_losses.npz"), losses=trainer.train_losses)
-    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME},val_losses.npz"), losses=trainer.val_losses)
-    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME},ssim_values.npz"), losses=trainer.ssim_values)
-    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME},mae_values.npz"), losses=trainer.mae_values)
+    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME}_train_losses.npz"), losses=trainer.train_losses)
+    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME}_val_losses.npz"), losses=trainer.val_losses)
+    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME}_ssim_values.npz"), losses=trainer.ssim_values)
+    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME}_mae_values.npz"), losses=trainer.mae_values)
 
     plt.figure(figsize=(12, 6))
     plt.plot(trainer.train_losses[1:], label='Train Loss')
