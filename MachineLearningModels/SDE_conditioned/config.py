@@ -16,7 +16,7 @@ DEFAULT_SEED = 42
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-BASE_INPUT = r"C:\Users\20202137\Documents\Python\MachineLearning\data"
+BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
 # BASE_INPUT = r"E:\Ward Taborsky"
 # BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
@@ -36,7 +36,8 @@ TESTING = False
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
 TEST_PATH = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.1_imgsize_128_epochs_1000"
-MODEL_PATH = "UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.1_imgsize_128_epochs_1000_ema_model.pth"
+SAMPLE_MODEL = "UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.1_imgsize_128_epochs_1000_ema_model.pth"
+NR_SAMPLES = 250
 
 # Training settings
 TRAINING = True
@@ -59,7 +60,7 @@ EMA_DECAY = 0.9999
 
 # Sampling parameters
 NOISE_STEPS = 250
-NR_SAMPLES = 5
+EMA = False
 
 # UNet Parameters
 # MODEL_NAME = "UNet"
@@ -69,8 +70,6 @@ N_HEADS = 4
 DIM_HEAD = 64
 ATTENTION_RESOLUTIONS = "16,8"
 N_CHANNELS = 64
-
-RUN_NAME = f"{MODEL_NAME}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_learnsigma_{LEARN_SIGMA}_smartsplit_{SMART_SPLIT}_split_{TEST_SPLIT}_imgsize_{IMAGE_SIZE}_epochs_{EPOCHS}"
 
 if TRAINING:
     parameters = {
@@ -87,7 +86,6 @@ if TRAINING:
         "threshold": THRESHOLD,
         "ema_decay": EMA_DECAY,
         "noise_steps": NOISE_STEPS,
-        "nr_samples": NR_SAMPLES,
         "n_blocks": N_BLOCKS,
         "n_heads": N_HEADS,
         "dim_head": DIM_HEAD,
@@ -96,6 +94,12 @@ if TRAINING:
         "n_channels": N_CHANNELS,
         "clip_grad": CLIP_GRAD
     }
+
+    run_inst = 0
+    RUN_NAME = f"{MODEL_NAME}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_smartsplit_{SMART_SPLIT}_{run_inst}"
+    while os.path.exists(os.path.join(BASE_OUTPUT, RUN_NAME)):
+        run_inst += 1
+        RUN_NAME = f"{MODEL_NAME}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_smartsplit_{SMART_SPLIT}_{run_inst}"
 
     # Output paths
     RESULT_PATH = os.path.join(BASE_OUTPUT, RUN_NAME)
@@ -106,7 +110,7 @@ if TRAINING:
     STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
 
     set_seed(seed=DEFAULT_SEED)
-    print(f"Name: {RUN_NAME}, Smart Split : {SMART_SPLIT}")
+    print(f"Name: {RUN_NAME}")
 
     if not os.path.exists(MODEL_PATH):
         os.makedirs(MODEL_PATH)
@@ -137,22 +141,23 @@ if TRAINING:
                            val_dataloader=val_dataloader,
                            test_dataloader=test_dataloader,
                            diffusion=diffusion,
+                           ema=EMA,
                            **parameters)
 
     trainer.train()
 
-    torch.save(trainer.best_model_checkpoint, os.path.join(MODEL_PATH, f"{RUN_NAME}_best_model.pth"))
-    torch.save(trainer.ema_model.state_dict(), os.path.join(MODEL_PATH, f"{RUN_NAME}_ema_model.pth"))
+    torch.save(trainer.best_model_checkpoint, os.path.join(MODEL_PATH, "best_model.pth"))
+    torch.save(trainer.ema_model.state_dict(), os.path.join(MODEL_PATH, "ema_model.pth"))
 
     max_ssim = max(trainer.ssim_values)
     print(f"Max SSIM: {max_ssim}, At place: {5 * np.argmax(trainer.ssim_values)}")
     min_mae = min(trainer.mae_values)
     print(f"Min MAE: {min_mae}, At place: {5 * np.argmin(trainer.mae_values)}")
 
-    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME}_train_losses.npz"), losses=trainer.train_losses)
-    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME}_val_losses.npz"), losses=trainer.val_losses)
-    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME}_ssim_values.npz"), losses=trainer.ssim_values)
-    np.savez(os.path.join(RESULT_PATH, f"{RUN_NAME}_mae_values.npz"), losses=trainer.mae_values)
+    np.savez(os.path.join(RESULT_PATH, "train_losses.npz"), losses=trainer.train_losses)
+    np.savez(os.path.join(RESULT_PATH, "val_losses.npz"), losses=trainer.val_losses)
+    np.savez(os.path.join(RESULT_PATH, "ssim_values.npz"), losses=trainer.ssim_values)
+    np.savez(os.path.join(RESULT_PATH, "mae_values.npz"), losses=trainer.mae_values)
 
     plt.figure(figsize=(12, 6))
     plt.plot(trainer.train_losses[1:], label='Train Loss')
@@ -180,8 +185,14 @@ if TRAINING:
     plt.title('MAE over Epochs')
     plt.savefig(os.path.join(RESULT_PATH, "MAE.png"))
 
+    #TODO make sampling possible with ema images
+
     if GENERATE_IMAGES == True:
-        model.load_state_dict(trainer.best_model_checkpoint)
+        if EMA == True:
+            model = trainer.ema_model
+        else:
+            model.load_state_dict(trainer.best_model_checkpoint)
+
         references_list, generated_list, structures_list = sample_model_output(model=model, device=DEVICE, sampler=diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader, **parameters)
         save_image_list(references_list, REFERENCE_PATH)
         save_image_list(generated_list, SAMPLE_PATH)
@@ -189,7 +200,7 @@ if TRAINING:
 
 if TESTING:
     PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.json')
-    MODEL_PATH = os.path.join(os.path.join(TEST_PATH, "models"), MODEL_PATH)
+    MODEL_PATH = os.path.join(os.path.join(TEST_PATH, "models"), SAMPLE_MODEL)
     IMAGE_PATH = os.path.join(TEST_PATH, "images")
     SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")
     REFERENCE_PATH = os.path.join(IMAGE_PATH, "References")
@@ -206,7 +217,9 @@ if TESTING:
         ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(reference_images, sampled_images)
         print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
 
+    #TODO solve issues with sampling amount
     if SAMPLE_METRICS == True:
+        print(f"Sampling model: {MODEL_PATH}")
         set_seed(seed=DEFAULT_SEED)
         model, sampler = create_model_diffusion(DEVICE, **parameters)
         model.load_state_dict(torch.load(MODEL_PATH))

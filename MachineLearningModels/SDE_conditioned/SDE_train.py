@@ -26,6 +26,7 @@ class ModelTrainer:
             val_dataloader: DataLoader,
             test_dataloader: DataLoader,
             diffusion: GaussianDiffusion,
+            ema: bool = True,
             **kwargs
     ):
         super().__init__()
@@ -38,7 +39,8 @@ class ModelTrainer:
         self.diffusion = diffusion
         self.device = device
         self.mse = nn.MSELoss()
-        self.nr_samples = kwargs.get("nr_samples")
+        self.nr_samples = 5
+        self.ema = ema
         self.epochs = kwargs.get("epochs")
         self.image_path = image_path
         self.threshold_training = kwargs.get("threshold_training")
@@ -72,7 +74,7 @@ class ModelTrainer:
             self.optimizer.zero_grad()
             loss.backward()
             if self.clip_grad:
-                nn.utils.clip_grad_norm(self.model.parameters(), 1)
+                nn.utils.clip_grad_norm_(self.model.parameters(), 1)
             self.optimizer.step()
 
             self.update_ema()
@@ -107,7 +109,10 @@ class ModelTrainer:
         test_images, test_structures, _ = next(cycle(self.test_dataloader))
         test_images = concat_to_batchsize(test_images, self.nr_samples)
         test_structures = test_structures.to(self.device)
-        sampled_images, structures = self.diffusion.p_sample_loop(self.ema_model, n=self.nr_samples, y=test_structures)
+        if self.ema == True:
+            sampled_images, structures = self.diffusion.p_sample_loop(self.ema_model, n=self.nr_samples, y=test_structures)
+        else:
+            sampled_images, structures = self.diffusion.p_sample_loop(self.model, n=self.nr_samples, y=test_structures)
         test_images = tensor_to_PIL(test_images)
         sampled_images = tensor_to_PIL(sampled_images)
         structures = tensor_to_PIL(structures)

@@ -14,25 +14,10 @@ def sample_model_output(
         model: torch.nn.Module,
         device: torch.device,
         sampler: GaussianDiffusion,
+        dataloader: DataLoader,
         n: int,
-        image_dataset_path: str,
-        structure_dataset_path: str,
-        test_path: str = None,
-        test_dataloader: DataLoader = None,
-        **kwargs
+        batch_size: int,
 ):
-    image_size = kwargs.get("image_size")
-    batch_size = kwargs.get("batch_size")
-
-    if test_dataloader is not None and test_path is None:
-        print("Using test dataloader")
-        dataloader = test_dataloader
-    elif test_path is not None and test_dataloader is None:
-        print("Using test data")
-        dataloader = get_test_data(test_path=test_path, image_size=image_size, batch_size=batch_size, image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path)
-    else:
-        _, dataloader = get_data(batch_size)
-
     references_list = []
     generated_list = []
     structures_list = []
@@ -68,6 +53,7 @@ def mse(imageA, imageB):
     max_err = np.max(err)/255**2
     return mean_err, max_err
 
+#TODO calculate on effective area
 def mae(imageA, imageB):
     mae = np.mean(np.abs(np.subtract(imageA.astype(np.float32), imageB.astype(np.float32))))/255
     return mae
@@ -97,19 +83,32 @@ def sample_save_metrics(
         model: torch.nn.Module,
         device: torch.device,
         sampler: GaussianDiffusion,
-        test_path: str,
         image_dataset_path: str,
         structure_dataset_path: str,
         reference_path: str,
         sample_path: str,
         structure_path: str,
+        test_path: str = None,
+        test_dataloader: DataLoader = None,
         n: int = 200,
         **kwargs
 ):
+    image_size = kwargs.get("image_size")
+    batch_size = kwargs.get("batch_size")
+
+    if test_dataloader is not None and test_path is None:
+        print("Using test dataloader")
+        dataloader = test_dataloader
+    elif test_path is not None and test_dataloader is None:
+        print("Using test data")
+        dataloader = get_test_data(test_path=test_path, image_size=image_size, batch_size=batch_size,
+                                   image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path)
+    else:
+        _, dataloader = get_data(batch_size)
 
     parameter_count = count_parameters(model)
 
-    references, samples, structure = sample_model_output(model=model, device=device, sampler=sampler, n=n, image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path, test_path=test_path, **kwargs)
+    references, samples, structure = sample_model_output(model=model, device=device, sampler=sampler, n=n, dataloader=dataloader, batch_size=batch_size)
 
     ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(references, samples)
 
