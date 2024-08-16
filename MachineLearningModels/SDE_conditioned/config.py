@@ -21,9 +21,9 @@ BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
 # BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
-DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
-# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
+DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined_small")
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
@@ -32,15 +32,15 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
-TESTING = False
-CALCULATE_METRICS = False
-SAMPLE_METRICS = True
-TEST_PATH = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.1_imgsize_128_epochs_1000"
+TESTING = True
+CALCULATE_METRICS = True
+SAMPLE_METRICS = False
+TEST_PATH = r"C:\Users\tabor\Documents\TU Eindhoven\Jaar 4\BEP\Results\Results SDE_conditioned\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500"
 SAMPLE_MODEL = "UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.1_imgsize_128_epochs_1000_ema_model.pth"
 NR_SAMPLES = 250
 
 # Training settings
-TRAINING = True
+TRAINING = False
 SMART_SPLIT = False
 GENERATE_IMAGES = False
 THRESHOLD_TRAINING = False
@@ -51,7 +51,7 @@ CLIP_GRAD = True
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 5
+BATCH_SIZE = 10
 IMAGE_SIZE = 64
 INIT_LR = 0.0001
 WEIGHT_DECAY = 0.001
@@ -60,7 +60,7 @@ EMA_DECAY = 0.9999
 
 # Sampling parameters
 NOISE_STEPS = 250
-EMA = False
+EMA = True
 
 # UNet Parameters
 # MODEL_NAME = "UNet"
@@ -185,8 +185,6 @@ if TRAINING:
     plt.title('MAE over Epochs')
     plt.savefig(os.path.join(RESULT_PATH, "MAE.png"))
 
-    #TODO make sampling possible with ema images
-
     if GENERATE_IMAGES == True:
         if EMA == True:
             model = trainer.ema_model
@@ -207,18 +205,17 @@ if TESTING:
     STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
     TEST_DATASET_PATH = os.path.join(TEST_PATH, "test_indices.pth")
 
-    with open(PARAMETER_PATH, "r") as f:
-        parameters = json.load(f)
-
     if CALCULATE_METRICS == True:
         structure_images = load_images(STRUCTURE_PATH)
         reference_images = load_images(REFERENCE_PATH)
         sampled_images = load_images(SAMPLE_PATH)
-        ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(reference_images, sampled_images)
+        ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(reference_images[0:1], sampled_images[0:1])
         print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
 
-    #TODO solve issues with sampling amount
     if SAMPLE_METRICS == True:
+        with open(PARAMETER_PATH, "r") as f:
+            parameters = json.load(f)
+
         print(f"Sampling model: {MODEL_PATH}")
         set_seed(seed=DEFAULT_SEED)
         model, sampler = create_model_diffusion(DEVICE, **parameters)

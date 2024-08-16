@@ -53,7 +53,30 @@ def mse(imageA, imageB):
     max_err = np.max(err)/255**2
     return mean_err, max_err
 
-#TODO calculate on effective area
+def mae_effective_area(imageA, imageB, threshold=254):
+    """
+    Calculates the Mean Absolute Error (MAE) between two images,
+    considering only the effective area (excluding white parts).
+
+    Args:
+        imageA: First image (numpy array).
+        imageB: Second image (numpy array).
+        threshold: Threshold to determine white pixels (default: 250).
+
+    Returns:
+        MAE value on the effective area.
+    """
+
+    # Create a mask to identify the effective area (non-white pixels)
+    mask = (imageA[:, :, 0] < threshold) & (imageA[:, :, 1] < threshold) & (imageA[:, :, 2] < threshold) | \
+           (imageB[:, :, 0] < threshold) & (imageB[:, :, 1] < threshold) & (imageB[:, :, 2] < threshold)
+
+    # Apply the mask to both images (for MAE calculation)
+    effective_imageA = imageA[mask]
+    effective_imageB = imageB[mask]
+
+    return mae(effective_imageA, effective_imageB)
+
 def mae(imageA, imageB):
     mae = np.mean(np.abs(np.subtract(imageA.astype(np.float32), imageB.astype(np.float32))))/255
     return mae
@@ -72,7 +95,7 @@ def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Imag
     for i in range(len(image_set1)):
         ssim_values.append(ssim(np.array(image_set1[i]), np.array(image_set2[i]), channel_axis=-1, multichannel=True))
         psnr_values.append(psnr(np.array(image_set1[i]), np.array(image_set2[i]), data_range=np.array(image_set1[i]).max() - np.array(image_set1[i]).min()))
-        mae_values.append(mae(np.array(image_set1[i]), np.array(image_set2[i])))
+        mae_values.append(mae_effective_area(np.array(image_set1[i]), np.array(image_set2[i])))
         mse_mean, mse_max = mse(np.array(image_set1[i]), np.array(image_set2[i]))
         mse_mean_values.append(mse_mean)
         mse_max_values.append(mse_max)
