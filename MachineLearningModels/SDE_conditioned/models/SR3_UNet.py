@@ -57,7 +57,7 @@ class AttentionBlock(nn.Module):
         super().__init__()
 
         if dim_head is None:
-            dim_head = n_channels
+            dim_head = n_channels // n_heads
 
         self.norm = nn.GroupNorm(n_groups, n_channels)
         self.projection = nn.Linear(n_channels, n_heads * dim_head * 3)
@@ -74,11 +74,18 @@ class AttentionBlock(nn.Module):
         qkv = self.projection(x).reshape(batch_size, height*width, self.n_heads, self.dim_head*3)
         q, k, v = torch.chunk(qkv, 3, dim=-1)
 
+        # Reshape for multi-head attention using einsum
+        q = q.permute(0, 2, 1, 3)  # (batch_size, n_heads, height*width, dim_head)
+        k = k.permute(0, 2, 1, 3)
+        v = v.permute(0, 2, 1, 3)
+
         attn = torch.einsum('bihd,bjhd->bijh', q, k) * self.scale
-        attn = attn.softmax(dim=2)
+        attn = attn.softmax(dim=-1)
 
         res = torch.einsum('bijh,bjhd->bihd', attn, v)
-        res = res.reshape(batch_size, -1, self.n_heads*self.dim_head)
+
+        res = res.permute(0, 2, 1, 3).reshape(batch_size, height * width, -1)
+
         res = self.output(res)
         res += x
         return res.permute(0, 2, 1).reshape(batch_size, n_channels, height, width)

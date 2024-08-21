@@ -32,7 +32,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
-TESTING = True
+TESTING = False
 CALCULATE_METRICS = True
 SAMPLE_METRICS = False
 TEST_PATH = r"C:\Users\tabor\Documents\TU Eindhoven\Jaar 4\BEP\Results\Results SDE_conditioned\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500"
@@ -40,7 +40,7 @@ SAMPLE_MODEL = "UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_s
 NR_SAMPLES = 250
 
 # Training settings
-TRAINING = False
+TRAINING = True
 SMART_SPLIT = False
 GENERATE_IMAGES = False
 THRESHOLD_TRAINING = False
@@ -60,7 +60,7 @@ EMA_DECAY = 0.9999
 
 # Sampling parameters
 NOISE_STEPS = 250
-EMA = True
+EMA = False
 
 # UNet Parameters
 # MODEL_NAME = "UNet"
