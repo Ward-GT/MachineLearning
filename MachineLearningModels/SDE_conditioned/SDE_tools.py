@@ -109,7 +109,6 @@ class GaussianDiffusion:
             if self.prior_mean == None or self.prior_variance == None:
                 raise ValueError("Priors not initialized")
             else:
-                print("Using Conditioned Prior")
                 mean = self.prior_to_batchsize(self.prior_mean, x_start.shape[0])
                 variance = self.prior_to_batchsize(self.prior_variance, x_start.shape[0])
                 assert mean.shape == variance.shape == x_start.shape
@@ -346,11 +345,8 @@ class GaussianDiffusion:
             terms["vb"] *= self.noise_steps / 1000.0
 
         assert model_output.shape == noise.shape == x_start.shape
-        if self.conditioned_prior == True:
-            inv_var = torch.reciprocal(self.prior_to_batchsize(self.prior_variance, x_start.shape[0]))
-            terms["mse"] = mean_flat(((noise - model_output) * inv_var) ** 2)
-        else:
-            terms["mse"] = mean_flat((noise - model_output) ** 2)
+
+        terms["mse"] = mean_flat((noise - model_output) ** 2)
 
         if self.learn_sigma == True:
             terms["loss"] = terms["mse"] + terms["vb"]
