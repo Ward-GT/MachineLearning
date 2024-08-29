@@ -265,7 +265,7 @@ class GaussianDiffusion:
         with torch.no_grad():
             if self.conditioned_prior == True:
                 variance = self.prior_to_batchsize(self.prior_variance, n)
-                x = (torch.randn((n, 3, self.image_size, self.image_size)) * torch.sqrt(variance)).to(self.device)
+                x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device) * torch.sqrt(variance)
             else:
                 x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device)
             y.to(self.device)
