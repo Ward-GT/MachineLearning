@@ -154,7 +154,7 @@ def smart_data_split(dataset, train_size: int, val_size: int, test_size: int, op
 
     return train_dataset, val_dataset, test_dataset
 
-def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: str, split: bool = True, **kwargs):
+def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: str = None, split: bool = True, **kwargs):
     image_size = kwargs.get("image_size")
     test_split = kwargs.get("test_split")
     validation_split = kwargs.get("validation_split")
@@ -183,9 +183,10 @@ def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: 
         val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
         test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-        torch.save(train_dataset.indices, os.path.join(result_path, "train_indices.pth"))
-        torch.save(val_dataset.indices, os.path.join(result_path, "val_indices.pth"))
-        torch.save(test_dataset.indices, os.path.join(result_path, "test_indices.pth"))
+        if result_path is not None:
+            torch.save(train_dataset.indices, os.path.join(result_path, "train_indices.pth"))
+            torch.save(val_dataset.indices, os.path.join(result_path, "val_indices.pth"))
+            torch.save(test_dataset.indices, os.path.join(result_path, "test_indices.pth"))
 
         return train_dataloader, val_dataloader, test_dataloader, train_dataset, val_dataset, test_dataset
     else:

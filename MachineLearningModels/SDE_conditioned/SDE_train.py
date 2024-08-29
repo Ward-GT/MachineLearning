@@ -8,6 +8,8 @@ from torch import optim
 from tqdm import tqdm
 import logging
 from torch.utils.data import DataLoader
+
+from MachineLearningModels.SDE_conditioned.config import train_dataloader
 from SDE_utils import *
 from SDE_tools import GaussianDiffusion
 from SDE_test import calculate_metrics
@@ -132,6 +134,8 @@ class ModelTrainer:
     def train(self):
         logging.info(f"Starting training on {self.device}")
         self.model.to(self.device)
+        if self.diffusion.conditioned_prior == True:
+            self.diffusion.init_prior_mean_variance(self.train_dataloader)
         start_time = time.time()
         if self.threshold_training == False:
             for epoch in range(self.epochs):

@@ -6,13 +6,17 @@ from SDE_utils import *
 from losses import normal_kl, discretized_gaussian_log_likelihood
 
 class GaussianDiffusion:
-    def __init__(self, noise_steps: int, image_size: int, device: torch.device, learn_sigma: bool, beta_start: float = 1e-4, beta_end: float = 0.02):
+    def __init__(self, noise_steps: int, image_size: int, device: torch.device, learn_sigma: bool, conditioned_prior: bool, beta_start: float = 1e-4, beta_end: float = 0.02):
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
         self.image_size = image_size
         self.device = device
         self.learn_sigma = learn_sigma
+        self.conditioned_prior = conditioned_prior
+
+        self.prior_mean = None
+        self.prior_variance = None
 
         self.betas = self.prepare_noise_schedule().astype(np.float64)
         self.alphas = 1.0 - self.betas
@@ -40,8 +44,35 @@ class GaussianDiffusion:
         beta_end = scale * self.beta_end
         return np.linspace(beta_start, beta_end, self.noise_steps, dtype=np.float64)
 
+    def init_prior_mean_variance(self, dataloader):
+        all_images = []
+        for i, (images, _, _) in enumerate(dataloader):
+            all_images.append(images)
+
+        all_images = torch.cat(all_images, dim=0)
+        mean = torch.mean(all_images, dim=0)
+        variance = torch.var(all_images, dim=0)
+
+        self.prior_mean = mean
+        self.prior_variance = variance
+        print("Priors Initialized")
+
     def sample_timesteps(self, n):
         return torch.randint(low=1, high=self.noise_steps, size=(n,))
+
+    def get_specific_timesteps(self, timesteps, n):
+        """
+        Get a tensor of specific timesteps.
+
+        Args:
+            timesteps: List of timesteps to be converted to tensor.
+            n: Batch size.
+
+        Returns:
+            Tensor of shape (n, len(timesteps)) on the correct device.
+        """
+        timesteps_tensor = torch.tensor(timesteps, dtype=torch.long).to(self.device)
+        return timesteps_tensor.unsqueeze(0).expand(n, -1)
 
     def q_mean_variance(self, x_start, t):
         """
@@ -74,11 +105,25 @@ class GaussianDiffusion:
             The noisified image and the noise that was added to the image
         """
 
-        noise = torch.randn_like(x_start)
-        return (
-            self.extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start +
-            self.extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise, noise
-        )
+        if self.conditioned_prior == True:
+            if self.prior_mean == None or self.prior_variance == None:
+                raise ValueError("Priors not initialized")
+            else:
+                print("Using Conditioned Prior")
+                mean = self.prior_to_batchsize(self.prior_mean, x_start.shape[0])
+                variance = self.prior_to_batchsize(self.prior_variance, x_start.shape[0])
+                assert mean.shape == variance.shape == x_start.shape
+                noise = torch.randn_like(x_start) * torch.sqrt(variance)
+                return (
+                    self.extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * (x_start - mean) +
+                    self.extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise, noise
+                )
+        else:
+            noise = torch.randn_like(x_start)
+            return (
+                self.extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start +
+                self.extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise, noise
+            )
 
     def q_posterior_mean_variance(self, x_start, x_t, t):
         """
@@ -189,7 +234,11 @@ class GaussianDiffusion:
         """
 
         out = self.p_mean_variance(model, x, y, t, clip_denoised=clip_denoised)
-        noise = torch.randn_like(x)
+        if self.conditioned_prior == True:
+            variance = self.prior_to_batchsize(self.prior_variance, x.shape[0])
+            noise = torch.randn_like(x) * torch.sqrt(variance)
+        else:
+            noise = torch.rand_like(x)
         nonzero_mask = (t != 0).float().view(-1, *([1] * (len(x.shape) - 1))) # no noise when t == 0
         sample = out["mean"] + nonzero_mask * torch.exp(0.5 * out["log_variance"]) * noise
         return {"sample": sample, "pred_xstart": out["pred_xstart"]}
@@ -215,13 +264,21 @@ class GaussianDiffusion:
 
         model.eval()
         with torch.no_grad():
-            x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device)
+            if self.conditioned_prior == True:
+                variance = self.prior_to_batchsize(self.prior_variance, n)
+                x = (torch.randn((n, 3, self.image_size, self.image_size)) * torch.sqrt(variance)).to(self.device)
+            else:
+                x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device)
             y.to(self.device)
 
             for i in tqdm(reversed(range(1, self.noise_steps)), position=0):
                 t = (torch.ones(n) * i).long().to(self.device)
                 out = self.p_sample(model=model, x=x, y=y, t=t, clip_denoised=clip_denoised)
                 x = out["sample"]
+
+        if self.conditioned_prior == True:
+            mean = self.prior_to_batchsize(self.prior_mean, n)
+            x += mean
 
         return x, y
 
@@ -289,7 +346,11 @@ class GaussianDiffusion:
             terms["vb"] *= self.noise_steps / 1000.0
 
         assert model_output.shape == noise.shape == x_start.shape
-        terms["mse"] = mean_flat((noise - model_output) ** 2)
+        if self.conditioned_prior == True:
+            inv_var = torch.reciprocal(self.prior_to_batchsize(self.prior_variance, x_start.shape[0]))
+            terms["mse"] = mean_flat(((noise - model_output) * inv_var) ** 2)
+        else:
+            terms["mse"] = mean_flat((noise - model_output) ** 2)
 
         if self.learn_sigma == True:
             terms["loss"] = terms["mse"] + terms["vb"]
@@ -304,5 +365,5 @@ class GaussianDiffusion:
             res = res[..., None]
         return res.expand(broadcast_shape)
 
-
-
+    def prior_to_batchsize(self, prior, batchsize):
+        return prior.unsqueeze(0).expand(batchsize, *prior.shape).to(self.device)

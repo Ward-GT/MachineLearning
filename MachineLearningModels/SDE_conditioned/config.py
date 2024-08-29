@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from SDE_train import ModelTrainer
 from SDE_datareduction import get_data
 from SDE_test import sample_model_output, calculate_metrics, sample_save_metrics
-from SDE_utils import save_image_list, set_seed, load_images
+from SDE_utils import save_image_list, set_seed, load_images, tensor_to_PIL
 from script_util import create_model_diffusion
 
 DEFAULT_SEED = 42
@@ -40,19 +40,20 @@ SAMPLE_MODEL = "UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_s
 NR_SAMPLES = 250
 
 # Training settings
-TRAINING = True
+TRAINING = False
 SMART_SPLIT = False
 GENERATE_IMAGES = False
 THRESHOLD_TRAINING = False
-LEARN_SIGMA = False
+LEARN_SIGMA = True
 CLIP_GRAD = True
+CONDITIONED_PRIOR = True
 
 # Training parameters
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 10
-IMAGE_SIZE = 64
+BATCH_SIZE = 1
+IMAGE_SIZE = 128
 INIT_LR = 0.0001
 WEIGHT_DECAY = 0.001
 THRESHOLD = 0.01
@@ -60,14 +61,14 @@ EMA_DECAY = 0.9999
 
 # Sampling parameters
 NOISE_STEPS = 250
-EMA = False
+EMA = True
 
 # UNet Parameters
-# MODEL_NAME = "UNet"
-MODEL_NAME = "SimpleUNet"
-N_BLOCKS = 2
+MODEL_NAME = "UNet"
+# MODEL_NAME = "SimpleUNet"
+N_BLOCKS = 1
 N_HEADS = 4
-DIM_HEAD = 64
+DIM_HEAD = None
 ATTENTION_RESOLUTIONS = "16,8"
 N_CHANNELS = 64
 
@@ -92,7 +93,8 @@ if TRAINING:
         "learn_sigma": LEARN_SIGMA,
         "attention_resolutions": ATTENTION_RESOLUTIONS,
         "n_channels": N_CHANNELS,
-        "clip_grad": CLIP_GRAD
+        "clip_grad": CLIP_GRAD,
+        "conditioned_prior": CONDITIONED_PRIOR
     }
 
     run_inst = 0
@@ -149,6 +151,10 @@ if TRAINING:
     torch.save(trainer.best_model_checkpoint, os.path.join(MODEL_PATH, "best_model.pth"))
     torch.save(trainer.ema_model.state_dict(), os.path.join(MODEL_PATH, "ema_model.pth"))
 
+    if CONDITIONED_PRIOR == True:
+        torch.save(trainer.diffusion.prior_mean, os.path.join(RESULT_PATH, "prior_mean.pth"))
+        torch.save(trainer.diffusion.prior_variance, os.path.join(RESULT_PATH, "prior_variance.pth"))
+
     max_ssim = max(trainer.ssim_values)
     print(f"Max SSIM: {max_ssim}, At place: {5 * np.argmax(trainer.ssim_values)}")
     min_mae = min(trainer.mae_values)
@@ -190,11 +196,7 @@ if TRAINING:
             model = trainer.ema_model
         else:
             model.load_state_dict(trainer.best_model_checkpoint)
-
-        references_list, generated_list, structures_list = sample_model_output(model=model, device=DEVICE, sampler=diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader, **parameters)
-        save_image_list(references_list, REFERENCE_PATH)
-        save_image_list(generated_list, SAMPLE_PATH)
-        save_image_list(structures_list, STRUCTURE_PATH)
+        references_list, generated_list, structures_list = sample_save_metrics(model=model, device=DEVICE, sampler=trainer.diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader, **parameters)
 
 if TESTING:
     PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.json')
@@ -225,9 +227,6 @@ if TESTING:
                             sampler=sampler,
                             image_dataset_path=IMAGE_DATASET_PATH,
                             structure_dataset_path=STRUCTURE_DATASET_PATH,
-                            test_path=TEST_DATASET_PATH,
-                            reference_path=REFERENCE_PATH,
-                            sample_path=SAMPLE_PATH,
-                            structure_path=STRUCTURE_PATH,
+                            test_path=TEST_PATH,
                             n=NR_SAMPLES,
                             **parameters)

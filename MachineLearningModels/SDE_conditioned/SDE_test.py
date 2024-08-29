@@ -106,16 +106,21 @@ def sample_save_metrics(
         model: torch.nn.Module,
         device: torch.device,
         sampler: GaussianDiffusion,
-        image_dataset_path: str,
-        structure_dataset_path: str,
-        reference_path: str,
-        sample_path: str,
-        structure_path: str,
+        image_dataset_path = None,
+        structure_dataset_path = None,
         test_path: str = None,
         test_dataloader: DataLoader = None,
         n: int = 200,
         **kwargs
 ):
+    image_path = os.path.join(test_path, "images")
+    sample_path = os.path.join(image_path, "Samples")
+    reference_path = os.path.join(image_path, "References")
+    structure_path = os.path.join(image_path, "Structures")
+    test_dataset_path = os.path.join(test_path, "test_indices.pth")
+    prior_mean_path = os.path.join(test_path, "prior_mean.pth")
+    prior_variance_path = os.path.join(test_path, "prior_variance.pth")
+
     image_size = kwargs.get("image_size")
     batch_size = kwargs.get("batch_size")
 
@@ -124,7 +129,11 @@ def sample_save_metrics(
         dataloader = test_dataloader
     elif test_path is not None and test_dataloader is None:
         print("Using test data")
-        dataloader = get_test_data(test_path=test_path, image_size=image_size, batch_size=batch_size,
+        if sampler.conditioned_prior == True:
+            sampler.prior_mean = torch.load(prior_mean_path)
+            sampler.prior_variance = torch.load(prior_variance_path)
+
+        dataloader = get_test_data(test_path=test_dataset_path, image_size=image_size, batch_size=batch_size,
                                    image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path)
     else:
         _, dataloader = get_data(batch_size)

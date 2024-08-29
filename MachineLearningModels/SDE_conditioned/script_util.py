@@ -20,7 +20,8 @@ def create_model_diffusion(device, **kwargs):
         noise_steps=kwargs.get("noise_steps"),
         image_size=kwargs.get("image_size"),
         device=device,
-        learn_sigma=kwargs.get("learn_sigma")
+        learn_sigma=kwargs.get("learn_sigma"),
+        conditioned_prior=kwargs.get("conditioned_prior")
     )
 
     return model, diffusion
@@ -78,12 +79,14 @@ def create_diffusion(
         noise_steps,
         image_size,
         device,
-        learn_sigma
+        learn_sigma,
+        conditioned_prior
 ):
     return GaussianDiffusion(
         noise_steps=noise_steps,
         image_size=image_size,
         device=device,
-        learn_sigma=learn_sigma
+        learn_sigma=learn_sigma,
+        conditioned_prior=conditioned_prior
     )
 
