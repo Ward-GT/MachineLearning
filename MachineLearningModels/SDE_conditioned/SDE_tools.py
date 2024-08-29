@@ -345,8 +345,13 @@ class GaussianDiffusion:
             terms["vb"] *= self.noise_steps / 1000.0
 
         assert model_output.shape == noise.shape == x_start.shape
-
-        terms["mse"] = mean_flat((noise - model_output) ** 2)
+        epsilon = 0.0001
+        if self.conditioned_prior == True:
+            variance = self.prior_to_batchsize(self.prior_variance, x_start.shape[0])
+            variance = variance + epsilon
+            terms["mse"] = mean_flat(((noise - model_output) * variance ) ** 2)
+        else:
+            terms["mse"] = mean_flat((noise - model_output) ** 2)
 
         if self.learn_sigma == True:
             terms["loss"] = terms["mse"] + terms["vb"]
