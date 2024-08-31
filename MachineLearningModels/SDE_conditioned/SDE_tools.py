@@ -6,7 +6,7 @@ from SDE_utils import *
 from losses import normal_kl, discretized_gaussian_log_likelihood
 
 class GaussianDiffusion:
-    def __init__(self, noise_steps: int, image_size: int, device: torch.device, learn_sigma: bool, conditioned_prior: bool, beta_start: float = 1e-4, beta_end: float = 0.02):
+    def __init__(self, noise_steps: int, image_size: int, device: torch.device, learn_sigma: bool, conditioned_prior: bool = False, beta_start: float = 1e-4, beta_end: float = 0.02):
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
@@ -112,7 +112,8 @@ class GaussianDiffusion:
                 mean = self.prior_to_batchsize(self.prior_mean, x_start.shape[0])
                 variance = self.prior_to_batchsize(self.prior_variance, x_start.shape[0])
                 assert mean.shape == variance.shape == x_start.shape
-                noise = torch.randn_like(x_start) * torch.sqrt(variance)
+                # noise = torch.randn_like(x_start) * torch.sqrt(variance)
+                noise = torch.randn_like(x_start)
                 return (
                     self.extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * (x_start - mean) +
                     self.extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise, noise
@@ -234,10 +235,11 @@ class GaussianDiffusion:
 
         out = self.p_mean_variance(model, x, y, t, clip_denoised=clip_denoised)
         if self.conditioned_prior == True:
-            variance = self.prior_to_batchsize(self.prior_variance, x.shape[0])
-            noise = torch.randn_like(x) * torch.sqrt(variance)
+            # variance = self.prior_to_batchsize(self.prior_variance, x.shape[0])
+            # noise = torch.randn_like(x) * torch.sqrt(variance)
+            noise = torch.randn_like(x)
         else:
-            noise = torch.rand_like(x)
+            noise = torch.randn_like(x)
         nonzero_mask = (t != 0).float().view(-1, *([1] * (len(x.shape) - 1))) # no noise when t == 0
         sample = out["mean"] + nonzero_mask * torch.exp(0.5 * out["log_variance"]) * noise
         return {"sample": sample, "pred_xstart": out["pred_xstart"]}
@@ -264,8 +266,9 @@ class GaussianDiffusion:
         model.eval()
         with torch.no_grad():
             if self.conditioned_prior == True:
-                variance = self.prior_to_batchsize(self.prior_variance, n)
-                x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device) * torch.sqrt(variance)
+                # variance = self.prior_to_batchsize(self.prior_variance, n)
+                # x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device) * torch.sqrt(variance)
+                x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device)
             else:
                 x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device)
             y.to(self.device)

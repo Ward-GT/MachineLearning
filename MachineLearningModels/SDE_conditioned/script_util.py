@@ -87,6 +87,6 @@ def create_diffusion(
         image_size=image_size,
         device=device,
         learn_sigma=learn_sigma,
-        conditioned_prior=conditioned_prior
+        conditioned_prior=(True if conditioned_prior else False)
     )
 
