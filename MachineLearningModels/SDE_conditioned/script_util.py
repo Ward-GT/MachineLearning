@@ -1,5 +1,6 @@
 import math
 from models.SR3_UNet import UNet
+from models.SDE_UNet import MiddleUNet
 from models.SDE_SimpleUNet import SimpleUNet
 from SDE_tools import GaussianDiffusion
 
@@ -48,7 +49,7 @@ def create_model(
         if image_size == 256:
             channel_mult = [1, 1, 2, 2, 4, 4]
         elif image_size == 128:
-            channel_mult = [1, 1, 2, 3, 4]
+            channel_mult = [1, 2, 2, 3, 4]
         elif image_size == 64:
             channel_mult = (1, 2, 3, 4)
         else:
@@ -74,6 +75,17 @@ def create_model(
             n_heads=n_heads,
             dim_head=dim_head
         ).to(device)
+
+    elif model_name == "MiddleUNet":
+        return MiddleUNet(
+            input_channels=6,
+            output_channels=(3 if not learn_sigma else 6),
+            n_channels = n_channels,
+            n_blocks = n_blocks
+        ).to(device)
+
+    else:
+        raise ValueError("Model Type not supported")
 
 def create_diffusion(
         noise_steps,

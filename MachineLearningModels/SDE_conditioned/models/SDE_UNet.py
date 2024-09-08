@@ -143,7 +143,7 @@ class UpSample(nn.Module):
         _ = t
         return self.up(x)
 
-class UNet(nn.Module):
+class MiddleUNet(nn.Module):
     def __init__(self, input_channels: int = 6, output_channels: int = 3, n_channels: int = 64, ch_mults: List[int] = (1, 2, 2, 4), is_attn: List[bool] = (False, False, True, True), n_blocks: int = 1):
         super().__init__()
 
@@ -188,7 +188,8 @@ class UNet(nn.Module):
         self.act = Swish()
         self.out = nn.Conv2d(in_channels, output_channels, kernel_size=(3, 3), padding=(1, 1))
 
-    def forward(self, x: torch.Tensor, t: torch.Tensor):
+    def forward(self, x_t: torch.Tensor, y: torch.Tensor, t: torch.Tensor):
+        x = torch.cat((x_t, y), dim=1)
         t = self.time_emb(t)
         x = self.image_proj(x)
         h = [x]
