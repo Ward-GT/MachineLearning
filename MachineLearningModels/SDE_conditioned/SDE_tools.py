@@ -112,8 +112,8 @@ class GaussianDiffusion:
                 mean = self.prior_to_batchsize(self.prior_mean, x_start.shape[0])
                 variance = self.prior_to_batchsize(self.prior_variance, x_start.shape[0])
                 assert mean.shape == variance.shape == x_start.shape
-                # noise = torch.randn_like(x_start) * torch.sqrt(variance)
-                noise = torch.randn_like(x_start)
+                noise = torch.randn_like(x_start) * torch.sqrt(variance)
+                # noise = torch.randn_like(x_start)
                 return (
                     self.extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * (x_start - mean) +
                     self.extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise, noise

@@ -247,3 +247,32 @@ def comparison_plot(structures: list, references: list, samples: list, path: str
         plt.savefig(path)
 
     plt.show()
+
+def forward_process_image(sampler, dataloader, noise_steps, device):
+    if sampler.conditioned_prior == True:
+        sampler.init_prior_mean_variance(dataloader)
+    nr_images = 5
+    images, _, _ = next(iter(dataloader))
+    images = images.to(device)
+    images_list = []
+
+    for t in range(0, noise_steps, noise_steps // nr_images):
+        t = sampler.get_specific_timesteps(t, images.shape[0])
+        noised_images, _ = sampler.noise_images(images, t)
+        if sampler.conditioned_prior == True:
+            mean = sampler.prior_to_batchsize(sampler.prior_mean, images.shape[0])
+            noised_images = noised_images + mean
+        noised_images = tensor_to_PIL(noised_images)
+        images_list.append(noised_images[0])
+
+        # Calculate the figure size
+        fig_width = nr_images * images_list[0].size[0] / 100  # Convert pixels to inches
+        fig_height = images_list[0].size[1] / 100  # Convert pixels to inches
+
+    fig, axs = plt.subplots(1, nr_images)
+
+    for i, img in enumerate(images_list):
+        axs[i].imshow(img)
+        axs[i].axis('off')  # Hide axes for better visualization
+
+    plt.show()
