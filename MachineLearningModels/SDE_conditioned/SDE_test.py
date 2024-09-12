@@ -109,34 +109,36 @@ def sample_save_metrics(
         image_dataset_path = None,
         structure_dataset_path = None,
         test_path: str = None,
+        result_path: str = None,
         test_dataloader: DataLoader = None,
         n: int = 200,
         **kwargs
 ):
-    image_path = os.path.join(test_path, "images")
-    sample_path = os.path.join(image_path, "Samples")
-    reference_path = os.path.join(image_path, "References")
-    structure_path = os.path.join(image_path, "Structures")
-    test_dataset_path = os.path.join(test_path, "test_indices.pth")
-    prior_mean_path = os.path.join(test_path, "prior_mean.pth")
-    prior_variance_path = os.path.join(test_path, "prior_variance.pth")
 
     image_size = kwargs.get("image_size")
     batch_size = kwargs.get("batch_size")
 
     if test_dataloader is not None and test_path is None:
         print("Using test dataloader")
+        image_path = os.path.join(result_path, "images")
         dataloader = test_dataloader
     elif test_path is not None and test_dataloader is None:
         print("Using test data")
+        image_path = os.path.join(test_path, "images")
+        test_dataset_path = os.path.join(test_path, "test_indices.pth")
+        prior_mean_path = os.path.join(test_path, "prior_mean.pth")
+        prior_variance_path = os.path.join(test_path, "prior_variance.pth")
+
         if sampler.conditioned_prior == True:
             sampler.prior_mean = torch.load(prior_mean_path)
             sampler.prior_variance = torch.load(prior_variance_path)
 
         dataloader = get_test_data(test_path=test_dataset_path, image_size=image_size, batch_size=batch_size,
                                    image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path)
-    else:
-        _, dataloader = get_data(batch_size)
+
+    sample_path = os.path.join(image_path, "Samples")
+    reference_path = os.path.join(image_path, "References")
+    structure_path = os.path.join(image_path, "Structures")
 
     parameter_count = count_parameters(model)
 

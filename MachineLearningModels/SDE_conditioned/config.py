@@ -33,10 +33,10 @@ PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
 TESTING = False
-CALCULATE_METRICS = True
-SAMPLE_METRICS = False
-TEST_PATH = r"C:\Users\tabor\Documents\TU Eindhoven\Jaar 4\BEP\Results\Results SDE_conditioned\UNet_nblocks_1_smartsplit_True_split_0.1_imgsize_128_epochs_500"
-SAMPLE_MODEL = "UNet_nblocks_1_noisesteps_250_learnsigma_True_smartsplit_False_split_0.1_imgsize_128_epochs_1000_ema_model.pth"
+CALCULATE_METRICS = False
+SAMPLE_METRICS = True
+TEST_PATH = r"/vast.mnt/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/MiddleUNet_nblocks_2_noisesteps_1000_smartsplit_False_0/"
+SAMPLE_MODEL = "ema_model.pth"
 NR_SAMPLES = 250
 
 # Training settings
@@ -52,7 +52,7 @@ CONDITIONED_PRIOR = False
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 32
+BATCH_SIZE = 20
 IMAGE_SIZE = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
@@ -197,7 +197,7 @@ if TRAINING:
             model = trainer.ema_model
         else:
             model.load_state_dict(trainer.best_model_checkpoint)
-        references_list, generated_list, structures_list = sample_save_metrics(model=model, device=DEVICE, sampler=trainer.diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader, **parameters)
+        references_list, generated_list, structures_list = sample_save_metrics(model=model, device=DEVICE, sampler=trainer.diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader, result_path=RESULT_PATH, **parameters)
 
 if TESTING:
     PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.json')
