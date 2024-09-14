@@ -156,7 +156,7 @@ class GaussianDiffusion:
 
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
-    def p_mean_variance(self, model, x_t, y, t, clip_denoised = True):
+    def p_mean_variance(self, model, x_t, y, t, clip_denoised = False):
         """
         Calculate the predicted mean and variance p(x_{t-1} | x_t) --> eq (3)
         Args:
@@ -241,7 +241,7 @@ class GaussianDiffusion:
         else:
             noise = torch.randn_like(x)
         nonzero_mask = (t != 0).float().view(-1, *([1] * (len(x.shape) - 1))) # no noise when t == 0
-        sample = out["mean"] + nonzero_mask * torch.exp(0.5 * out["log_variance"]) * noise
+        sample = out["pred_xstart"] + nonzero_mask * torch.exp(0.5 * out["log_variance"]) * noise
         return {"sample": sample, "pred_xstart": out["pred_xstart"]}
 
     def p_sample_loop(self, model, n, y, clip_denoised=True):
