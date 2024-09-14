@@ -32,15 +32,15 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
-TESTING = False
+TESTING = True
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
-TEST_PATH = r"/vast.mnt/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/MiddleUNet_nblocks_2_noisesteps_1000_smartsplit_False_0/"
+TEST_PATH = r"/vast.mnt/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/MiddleUNet_nblocks_2_noisesteps_1000_smartsplit_False_1/"
 SAMPLE_MODEL = "ema_model.pth"
 NR_SAMPLES = 250
 
 # Training settings
-TRAINING = True
+TRAINING = False
 SMART_SPLIT = False
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
