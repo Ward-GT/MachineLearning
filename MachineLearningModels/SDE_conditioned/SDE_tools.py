@@ -2,6 +2,7 @@ import torch
 import numpy as np
 from tqdm import tqdm
 import logging
+import torch.nn as nn
 from SDE_utils import *
 from losses import normal_kl, discretized_gaussian_log_likelihood
 
@@ -250,45 +251,73 @@ class GaussianDiffusion:
         sample = out["mean"] + nonzero_mask * torch.exp(0.5 * out["log_variance"]) * noise
         return {"sample": sample, "pred_xstart": out["pred_xstart"]}
 
-    def p_sample_loop(self, model, n, y, clip_denoised=True):
-        """
-        Generate samples from the model
-        Args:
-            model:
-            n:
-            y:
-            clip_denoised:
-
-        Returns:
-
-        """
-
+    def p_sample_loop(self, model, n, y):
         logging.info(f"Sampling {n} images")
         if y.shape[0] != n:
             y = concat_to_batchsize(y, n)
 
-        assert y.shape[0] == n
-
         model.eval()
         with torch.no_grad():
-            if self.conditioned_prior == True:
-                # variance = self.prior_to_batchsize(self.prior_variance, n)
-                # x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device) * torch.sqrt(variance)
-                x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device)
-            else:
-                x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device)
+            x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device)
             y.to(self.device)
 
             for i in tqdm(reversed(range(1, self.noise_steps)), position=0):
                 t = (torch.ones(n) * i).long().to(self.device)
-                out = self.p_sample(model=model, x=x, y=y, t=t, clip_denoised=clip_denoised)
-                x = out["sample"]
+                predicted_noise = model(x, y, t)
+                alpha = self.extract_into_tensor(self.alphas, t, x.shape)
+                alpha_hat = self.extract_into_tensor(self.alphas_cumprod, t, x.shape)
+                beta = self.extract_into_tensor(self.betas, t, x.shape)
 
-        if self.conditioned_prior == True:
-            mean = self.prior_to_batchsize(self.prior_mean, n)
-            x += mean
+                if i > 1:
+                    noise = torch.randn_like(x)
+                else:
+                    noise = torch.zeros_like(x)
+                x = 1 / torch.sqrt(alpha) * (
+                            x - ((1 - alpha) / (torch.sqrt(1 - alpha_hat))) * predicted_noise) + torch.sqrt(
+                    beta) * noise
 
+        model.train()
         return x, y
+
+    # def p_sample_loop(self, model, n, y, clip_denoised=True):
+    #     """
+    #     Generate samples from the model
+    #     Args:
+    #         model:
+    #         n:
+    #         y:
+    #         clip_denoised:
+    #
+    #     Returns:
+    #
+    #     """
+    #
+    #     logging.info(f"Sampling {n} images")
+    #     if y.shape[0] != n:
+    #         y = concat_to_batchsize(y, n)
+    #
+    #     assert y.shape[0] == n
+    #
+    #     model.eval()
+    #     with torch.no_grad():
+    #         if self.conditioned_prior == True:
+    #             # variance = self.prior_to_batchsize(self.prior_variance, n)
+    #             # x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device) * torch.sqrt(variance)
+    #             x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device)
+    #         else:
+    #             x = torch.randn((n, 3, self.image_size, self.image_size)).to(self.device)
+    #         y.to(self.device)
+    #
+    #         for i in tqdm(reversed(range(1, self.noise_steps)), position=0):
+    #             t = (torch.ones(n) * i).long().to(self.device)
+    #             out = self.p_sample(model=model, x=x, y=y, t=t, clip_denoised=clip_denoised)
+    #             x = out["sample"]
+    #
+    #     if self.conditioned_prior == True:
+    #         mean = self.prior_to_batchsize(self.prior_mean, n)
+    #         x += mean
+    #
+    #     return x, y
 
     def loss_vb(self, model, x_start, x_t, t, y=None, clip_denoised=True):
         """
@@ -332,6 +361,7 @@ class GaussianDiffusion:
 
         """
         x_t, noise = self.noise_images(x_start=x_start, t=t)
+        mse = nn.MSELoss()
 
         terms = {}
 
@@ -361,7 +391,7 @@ class GaussianDiffusion:
         #     terms["mse"] = mean_flat(((noise - model_output) * variance ) ** 2)
         # else:
         #     terms["mse"] = mean_flat((noise - model_output) ** 2)
-        terms["mse"] = mean_flat((noise - model_output) ** 2)
+        terms["mse"] = mse(noise, model_output)
         if self.learn_sigma == True:
             terms["loss"] = terms["mse"] + terms["vb"]
         else:
