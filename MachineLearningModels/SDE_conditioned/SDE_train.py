@@ -56,6 +56,7 @@ class ModelTrainer:
 
         self.best_val_loss = float('inf')
         self.best_model_checkpoint = None
+        self.best_model_epoch = None
 
         self.ema_model = copy.deepcopy(model)
         self.ema_model.to(self.device)
@@ -118,8 +119,6 @@ class ModelTrainer:
         sampled_images = tensor_to_PIL(sampled_images)
         structures = tensor_to_PIL(structures)
         ssim, _, _, _, mae = calculate_metrics(sampled_images, test_images)
-        self.ssim_values.append(np.mean(ssim))
-        self.mae_values.append(np.mean(mae))
         save_images(reference_images=test_images, generated_images=sampled_images,
                     structure_images=structures, path=os.path.join(self.image_path, f"{epoch}.jpg"))
         return np.mean(ssim), np.mean(mae)
@@ -148,10 +147,19 @@ class ModelTrainer:
 
                 if val_loss < self.best_val_loss:
                     self.best_val_loss = val_loss
-                    self.best_model_checkpoint = self.model.state_dict()
+                    if self.ema == True:
+                        self.best_model_checkpoint = self.model.state_dict()
+                        self.best_model_epoch = epoch
 
                 if (epoch + 1) % 5 == 0:
                     ssim, mae = self.generate_reference_images(epoch)
+
+                    if self.ema == False and mae < min(self.mae_values):
+                        self.best_model_checkpoint = self.model.state_dict()
+                        self.best_model_epoch = epoch
+
+                    self.ssim_values.append(ssim)
+                    self.mae_values.append(mae)
 
         elif self.threshold_training == True:
             mae = float('inf')
@@ -169,6 +177,7 @@ class ModelTrainer:
                 if val_loss < self.best_val_loss:
                     self.best_val_loss = val_loss
                     self.best_model_checkpoint = self.model.state_dict()
+                    self.best_model_epoch = epoch
 
                 if (epoch + 1) % 5 == 0:
                     ssim, mae = self.generate_reference_images(epoch)

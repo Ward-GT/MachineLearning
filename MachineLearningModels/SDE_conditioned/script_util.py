@@ -2,7 +2,7 @@ import math
 from models.SR3_UNet import UNet
 from models.SDE_UNet import MiddleUNet
 from models.SDE_SimpleUNet import SimpleUNet
-from SDE_tools import GaussianDiffusion
+from SDE_tools import GaussianDiffusion, DiffusionTools
 
 def create_model_diffusion(device, **kwargs):
     model = create_model(
@@ -94,6 +94,12 @@ def create_diffusion(
         learn_sigma,
         conditioned_prior
 ):
+    # return DiffusionTools(
+    #     noise_steps=noise_steps,
+    #     img_size=image_size,
+    #     device=device
+    # )
+
     return GaussianDiffusion(
         noise_steps=noise_steps,
         image_size=image_size,

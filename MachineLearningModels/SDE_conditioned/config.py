@@ -16,9 +16,9 @@ DEFAULT_SEED = 42
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-# BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
+BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
@@ -32,15 +32,15 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
-TESTING = False
+TESTING = True
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
-TEST_PATH = r"/vast.mnt/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/MiddleUNet_nblocks_2_noisesteps_1000_smartsplit_False_1/"
-SAMPLE_MODEL = "ema_model.pth"
-NR_SAMPLES = 50
+TEST_PATH = r"C:\Users\tabor\Documents\TU Eindhoven\Jaar 4\BEP\Results\Results_journal\MiddleUNet_nblocks_2_noisesteps_1000_smartsplit_False_2"
+SAMPLE_MODEL = "best_model_try.pth"
+NR_SAMPLES = 20
 
 # Training settings
-TRAINING = True
+TRAINING = False
 SMART_SPLIT = False
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
@@ -150,7 +150,8 @@ if TRAINING:
     trainer.train()
 
     torch.save(trainer.best_model_checkpoint, os.path.join(MODEL_PATH, "best_model.pth"))
-    torch.save(trainer.ema_model.state_dict(), os.path.join(MODEL_PATH, "ema_model.pth"))
+    if trainer.ema == True and trainer.ema_model is not None:
+        torch.save(trainer.ema_model.state_dict(), os.path.join(MODEL_PATH, "ema_model.pth"))
 
     if CONDITIONED_PRIOR == True:
         torch.save(trainer.diffusion.prior_mean, os.path.join(RESULT_PATH, "prior_mean.pth"))
@@ -160,6 +161,7 @@ if TRAINING:
     print(f"Max SSIM: {max_ssim}, At place: {5 * np.argmax(trainer.ssim_values)}")
     min_mae = min(trainer.mae_values)
     print(f"Min MAE: {min_mae}, At place: {5 * np.argmin(trainer.mae_values)}")
+    print(f"Best Model Epoch: {trainer.best_model_epoch}")
 
     np.savez(os.path.join(RESULT_PATH, "train_losses.npz"), losses=trainer.train_losses)
     np.savez(os.path.join(RESULT_PATH, "val_losses.npz"), losses=trainer.val_losses)
@@ -222,7 +224,7 @@ if TESTING:
         print(f"Sampling model: {MODEL_PATH}")
         set_seed(seed=DEFAULT_SEED)
         model, sampler = create_model_diffusion(DEVICE, **parameters)
-        model.load_state_dict(torch.load(MODEL_PATH))
+        model.load_state_dict(torch.load(MODEL_PATH, weights_only=True))
         sample_save_metrics(model=model,
                             device=DEVICE,
                             sampler=sampler,
