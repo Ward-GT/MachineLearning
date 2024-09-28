@@ -16,9 +16,9 @@ DEFAULT_SEED = 42
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
+# BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
@@ -32,7 +32,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
-TESTING = True
+TESTING = False
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
 TEST_PATH = r"C:\Users\tabor\Documents\TU Eindhoven\Jaar 4\BEP\Results\Results_journal\MiddleUNet_nblocks_2_noisesteps_1000_smartsplit_False_2"
@@ -40,8 +40,8 @@ SAMPLE_MODEL = "best_model_try.pth"
 NR_SAMPLES = 20
 
 # Training settings
-TRAINING = False
-SMART_SPLIT = False
+TRAINING = True
+SMART_SPLIT = True
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
 LEARN_SIGMA = False
@@ -61,7 +61,7 @@ EMA_DECAY = 0.9999
 
 # Sampling parameters
 NOISE_STEPS = 1000
-EMA = True
+EMA = False
 
 # UNet Parameters
 # MODEL_NAME = "UNet"

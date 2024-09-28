@@ -72,7 +72,7 @@ class ModelTrainer:
             images, structures = images.to(self.device), structures.to(self.device)
             t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
             losses = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
-            loss = losses["loss"].mean()
+            loss = losses["loss"]
             self.optimizer.zero_grad()
             loss.backward()
             if self.clip_grad:
@@ -145,16 +145,16 @@ class ModelTrainer:
                 logging.info("Starting validation loop")
                 val_loss = self.validation_epoch()
 
-                if val_loss < self.best_val_loss:
+                if val_loss < self.best_val_loss and self.ema == True:
                     self.best_val_loss = val_loss
-                    if self.ema == True:
-                        self.best_model_checkpoint = self.model.state_dict()
-                        self.best_model_epoch = epoch
+                    self.best_model_checkpoint = self.model.state_dict()
+                    self.best_model_epoch = epoch
 
                 if (epoch + 1) % 5 == 0:
                     ssim, mae = self.generate_reference_images(epoch)
 
-                    if self.ema == False and mae < min(self.mae_values):
+                    if self.ema == False and mae < self.best_val_loss:
+                        self.best_val_loss = mae
                         self.best_model_checkpoint = self.model.state_dict()
                         self.best_model_epoch = epoch
 
