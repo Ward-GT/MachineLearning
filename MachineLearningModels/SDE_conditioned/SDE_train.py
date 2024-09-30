@@ -79,7 +79,8 @@ class ModelTrainer:
                 nn.utils.clip_grad_norm_(self.model.parameters(), 1)
             self.optimizer.step()
 
-            self.update_ema()
+            if self.ema == True:
+                self.update_ema()
 
             loss_total += loss.item()
             pbar.set_postfix(MSE=loss.item())
