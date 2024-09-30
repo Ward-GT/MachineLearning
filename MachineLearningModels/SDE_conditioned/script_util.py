@@ -94,17 +94,17 @@ def create_diffusion(
         learn_sigma,
         conditioned_prior
 ):
-    # return DiffusionTools(
-    #     noise_steps=noise_steps,
-    #     img_size=image_size,
-    #     device=device
-    # )
-
-    return GaussianDiffusion(
+    return DiffusionTools(
         noise_steps=noise_steps,
-        image_size=image_size,
-        device=device,
-        learn_sigma=learn_sigma,
-        conditioned_prior=(True if conditioned_prior else False)
+        img_size=image_size,
+        device=device
     )
+
+    # return GaussianDiffusion(
+    #     noise_steps=noise_steps,
+    #     image_size=image_size,
+    #     device=device,
+    #     learn_sigma=learn_sigma,
+    #     conditioned_prior=(True if conditioned_prior else False)
+    # )
 

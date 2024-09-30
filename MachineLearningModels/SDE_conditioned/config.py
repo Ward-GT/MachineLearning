@@ -35,13 +35,13 @@ PIN_MEMORY = True if DEVICE == "cuda" else False
 TESTING = False
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
-TEST_PATH = r"C:\Users\tabor\Documents\TU Eindhoven\Jaar 4\BEP\Results\Results_journal\MiddleUNet_nblocks_2_noisesteps_1000_smartsplit_False_2"
-SAMPLE_MODEL = "best_model_try.pth"
-NR_SAMPLES = 20
+TEST_PATH = r"/vast.mnt/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/MiddleUNet_nblocks_2_noisesteps_1000_smartsplit_True_2/"
+SAMPLE_MODEL = "best_model.pth"
+NR_SAMPLES = 300
 
 # Training settings
 TRAINING = True
-SMART_SPLIT = True
+SMART_SPLIT = False
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
 LEARN_SIGMA = False
@@ -61,7 +61,7 @@ EMA_DECAY = 0.9999
 
 # Sampling parameters
 NOISE_STEPS = 1000
-EMA = False
+EMA = True
 
 # UNet Parameters
 # MODEL_NAME = "UNet"

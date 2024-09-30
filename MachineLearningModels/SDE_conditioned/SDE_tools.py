@@ -413,9 +413,9 @@ class DiffusionTools:
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
+        self.img_size = img_size
         self.conditioned_prior = False
         self.learn_sigma = False
-        self.img_size = img_size
         self.device = device
 
         self.betas = self.prepare_noise_schedule().to(device)
@@ -423,13 +423,16 @@ class DiffusionTools:
         self.alphas_hat = torch.cumprod(self.alphas, dim=0)
 
     def prepare_noise_schedule(self):
-        return torch.linspace(self.beta_start, self.beta_end, self.noise_steps)
+        scale = 1000 / self.noise_steps
+        beta_start = scale * self.beta_start
+        beta_end = scale * self.beta_end
+        return torch.linspace(beta_start, beta_end, self.noise_steps)
 
-    def noise_images(self, x, t):
+    def noise_images(self, x_start, t):
         sqrt_alpha_hat = torch.sqrt(self.alphas_hat[t])[:, None, None, None]
         sqrt_one_minus_alpha_hat = torch.sqrt(1. - self.alphas_hat[t])[:, None, None, None]
-        noise = torch.randn_like(x)
-        return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * noise, noise
+        noise = torch.randn_like(x_start)
+        return sqrt_alpha_hat * x_start + sqrt_one_minus_alpha_hat * noise, noise
 
     def sample_timesteps(self, n):
         return torch.randint(low=1, high=self.noise_steps, size=(n,))
@@ -460,3 +463,29 @@ class DiffusionTools:
 
         model.train()
         return x, y
+
+    def training_losses(self, model, x_start, y, t):
+        """
+        Calculate the training losses for a single timestep
+        Args:
+            model:
+            x_start:
+            y:
+            t:
+
+        Returns:
+
+        """
+        x_t, noise = self.noise_images(x_start=x_start, t=t)
+        mse = nn.MSELoss()
+
+        terms = {}
+
+        model_output = model(x_t, y, t)
+
+        assert model_output.shape == noise.shape == x_start.shape
+
+        terms["mse"] = mse(noise, model_output)
+        terms["loss"] = terms["mse"]
+
+        return terms
