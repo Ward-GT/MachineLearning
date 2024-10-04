@@ -23,6 +23,7 @@ class ModelTrainer:
             device: torch.device,
             optimizer: optim,
             image_path: str,
+            model_path: str,
             train_dataloader: DataLoader,
             val_dataloader: DataLoader,
             test_dataloader: DataLoader,
@@ -44,6 +45,7 @@ class ModelTrainer:
         self.ema = ema
         self.epochs = kwargs.get("epochs")
         self.image_path = image_path
+        self.model_path = model_path
         self.threshold_training = kwargs.get("threshold_training")
         self.threshold = kwargs.get("threshold")
         self.ema_decay = kwargs.get("ema_decay")
@@ -130,6 +132,11 @@ class ModelTrainer:
             for ema_param, param in zip(self.ema_model.parameters(), self.model.parameters()):
                 ema_param.data.mul_(self.ema_decay).add_(param.data, alpha=1 - self.ema_decay)
 
+    def update_best_model(self, epoch):
+        self.best_model_checkpoint = self.model.state_dict()
+        self.best_model_epoch = epoch
+        torch.save(self.best_model_checkpoint, os.path.join(self.model_path, "best_model.pth"))
+
     def train(self):
         logging.info(f"Starting training on {self.device}")
         self.model.to(self.device)
@@ -148,16 +155,14 @@ class ModelTrainer:
 
                 if val_loss < self.best_val_loss and self.ema == True:
                     self.best_val_loss = val_loss
-                    self.best_model_checkpoint = self.model.state_dict()
-                    self.best_model_epoch = epoch
+                    self.update_best_model(epoch)
 
                 if (epoch + 1) % 5 == 0:
                     ssim, mae = self.generate_reference_images(epoch)
 
                     if self.ema == False and mae < self.best_val_loss:
                         self.best_val_loss = mae
-                        self.best_model_checkpoint = self.model.state_dict()
-                        self.best_model_epoch = epoch
+                        self.update_best_model(epoch)
 
                     self.ssim_values.append(ssim)
                     self.mae_values.append(mae)

@@ -35,9 +35,9 @@ PIN_MEMORY = True if DEVICE == "cuda" else False
 TESTING = False
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
-TEST_PATH = r"/vast.mnt/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/MiddleUNet_nblocks_2_noisesteps_1000_smartsplit_True_2/"
+TEST_PATH = r"/vast.mnt/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/SimpleUNet_nblocks_2_noisesteps_1000_smartsplit_False_0/"
 SAMPLE_MODEL = "best_model.pth"
-NR_SAMPLES = 300
+NR_SAMPLES = 288
 
 # Training settings
 TRAINING = True
@@ -52,7 +52,7 @@ CONDITIONED_PRIOR = False
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 20
+BATCH_SIZE = 32
 IMAGE_SIZE = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
@@ -61,14 +61,14 @@ EMA_DECAY = 0.9999
 
 # Sampling parameters
 NOISE_STEPS = 1000
-EMA = True
+EMA = False
 
 # UNet Parameters
 # MODEL_NAME = "UNet"
 MODEL_NAME = "MiddleUNet"
 # MODEL_NAME = "SimpleUNet"
 N_BLOCKS = 2
-N_HEADS = 1
+N_HEADS = 4
 DIM_HEAD = None
 ATTENTION_RESOLUTIONS = "16,8"
 N_CHANNELS = 64
@@ -140,6 +140,7 @@ if TRAINING:
                            device=DEVICE,
                            optimizer=optimizer,
                            image_path=IMAGE_PATH,
+                           model_path=MODEL_PATH,
                            train_dataloader=train_dataloader,
                            val_dataloader=val_dataloader,
                            test_dataloader=test_dataloader,
