@@ -32,15 +32,15 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
-TESTING = False
+TESTING = True
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
-TEST_PATH = r"/vast.mnt/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/SimpleUNet_nblocks_2_noisesteps_1000_smartsplit_False_0/"
+TEST_PATH = r"/vast.mnt/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/MiddleUNet_nblocks_2_noisesteps_250_smartsplit_False_0/"
 SAMPLE_MODEL = "best_model.pth"
 NR_SAMPLES = 288
 
 # Training settings
-TRAINING = True
+TRAINING = False
 SMART_SPLIT = False
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
@@ -60,7 +60,7 @@ THRESHOLD = 0.01
 EMA_DECAY = 0.9999
 
 # Sampling parameters
-NOISE_STEPS = 1000
+NOISE_STEPS = 250
 EMA = False
 
 # UNet Parameters
@@ -200,7 +200,7 @@ if TRAINING:
             model = trainer.ema_model
         else:
             model.load_state_dict(trainer.best_model_checkpoint)
-        references_list, generated_list, structures_list = sample_save_metrics(model=model, device=DEVICE, sampler=trainer.diffusion, n=len(test_dataloader) * BATCH_SIZE, test_dataloader=test_dataloader, result_path=RESULT_PATH, **parameters)
+        references_list, generated_list, structures_list = sample_save_metrics(model=model, device=DEVICE, sampler=trainer.diffusion, n=(len(test_dataloader)-1) * BATCH_SIZE, test_dataloader=test_dataloader, result_path=RESULT_PATH, **parameters)
 
 if TESTING:
     PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.json')
