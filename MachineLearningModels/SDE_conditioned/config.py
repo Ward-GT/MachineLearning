@@ -16,9 +16,9 @@ DEFAULT_SEED = 42
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-# BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
+BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
@@ -32,7 +32,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
-TESTING = True
+TESTING = False
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
 TEST_PATH = r"/vast.mnt/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/MiddleUNet_nblocks_2_noisesteps_250_smartsplit_False_0/"
@@ -46,7 +46,7 @@ GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
 LEARN_SIGMA = False
 CLIP_GRAD = False
-CONDITIONED_PRIOR = False
+CONDITIONED_PRIOR = True
 
 # Training parameters
 TEST_SPLIT = 0.1
@@ -73,31 +73,31 @@ DIM_HEAD = None
 ATTENTION_RESOLUTIONS = "16,8"
 N_CHANNELS = 64
 
-if TRAINING:
-    parameters = {
-        "model_name": MODEL_NAME,
-        "smart_split": SMART_SPLIT,
-        "threshold_training": THRESHOLD_TRAINING,
-        "test_split": TEST_SPLIT,
-        "validation_split": VALIDATION_SPLIT,
-        "epochs": EPOCHS,
-        "batch_size": BATCH_SIZE,
-        "image_size": IMAGE_SIZE,
-        "init_lr": INIT_LR,
-        "weight_decay": WEIGHT_DECAY,
-        "threshold": THRESHOLD,
-        "ema_decay": EMA_DECAY,
-        "noise_steps": NOISE_STEPS,
-        "n_blocks": N_BLOCKS,
-        "n_heads": N_HEADS,
-        "dim_head": DIM_HEAD,
-        "learn_sigma": LEARN_SIGMA,
-        "attention_resolutions": ATTENTION_RESOLUTIONS,
-        "n_channels": N_CHANNELS,
-        "clip_grad": CLIP_GRAD,
-        "conditioned_prior": CONDITIONED_PRIOR
-    }
+parameters = {
+    "model_name": MODEL_NAME,
+    "smart_split": SMART_SPLIT,
+    "threshold_training": THRESHOLD_TRAINING,
+    "test_split": TEST_SPLIT,
+    "validation_split": VALIDATION_SPLIT,
+    "epochs": EPOCHS,
+    "batch_size": BATCH_SIZE,
+    "image_size": IMAGE_SIZE,
+    "init_lr": INIT_LR,
+    "weight_decay": WEIGHT_DECAY,
+    "threshold": THRESHOLD,
+    "ema_decay": EMA_DECAY,
+    "noise_steps": NOISE_STEPS,
+    "n_blocks": N_BLOCKS,
+    "n_heads": N_HEADS,
+    "dim_head": DIM_HEAD,
+    "learn_sigma": LEARN_SIGMA,
+    "attention_resolutions": ATTENTION_RESOLUTIONS,
+    "n_channels": N_CHANNELS,
+    "clip_grad": CLIP_GRAD,
+    "conditioned_prior": CONDITIONED_PRIOR
+}
 
+if TRAINING:
     run_inst = 0
     RUN_NAME = f"{MODEL_NAME}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_smartsplit_{SMART_SPLIT}_{run_inst}"
     while os.path.exists(os.path.join(BASE_OUTPUT, RUN_NAME)):

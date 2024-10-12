@@ -97,6 +97,7 @@ def create_diffusion(
     return DiffusionTools(
         noise_steps=noise_steps,
         img_size=image_size,
+        conditioned_prior=conditioned_prior,
         device=device
     )
 

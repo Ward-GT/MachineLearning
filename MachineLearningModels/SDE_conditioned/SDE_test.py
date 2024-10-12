@@ -248,20 +248,22 @@ def comparison_plot(structures: list, references: list, samples: list, path: str
 
     plt.show()
 
-def forward_process_image(sampler, dataloader, noise_steps, device):
+def forward_process_image(sampler, dataloader, device):
     if sampler.conditioned_prior == True:
         sampler.init_prior_mean_variance(dataloader)
     nr_images = 5
     images, _, _ = next(iter(dataloader))
     images = images.to(device)
     images_list = []
+    noise_steps = sampler.noise_steps
+    images_list.append(tensor_to_PIL(images)[0])
 
     for t in range(0, noise_steps, noise_steps // nr_images):
         t = sampler.get_specific_timesteps(t, images.shape[0])
         noised_images, _ = sampler.noise_images(images, t)
         if sampler.conditioned_prior == True:
             mean = sampler.prior_to_batchsize(sampler.prior_mean, images.shape[0])
-            noised_images = noised_images + mean
+            noised_images = noised_images
         noised_images = tensor_to_PIL(noised_images)
         images_list.append(noised_images[0])
 
@@ -269,7 +271,7 @@ def forward_process_image(sampler, dataloader, noise_steps, device):
         fig_width = nr_images * images_list[0].size[0] / 100  # Convert pixels to inches
         fig_height = images_list[0].size[1] / 100  # Convert pixels to inches
 
-    fig, axs = plt.subplots(1, nr_images)
+    fig, axs = plt.subplots(1, len(images_list))
 
     for i, img in enumerate(images_list):
         axs[i].imshow(img)

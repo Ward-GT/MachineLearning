@@ -72,7 +72,10 @@ def tensor_to_PIL(tensor: torch.Tensor):
     tensor = (tensor * 255).type(torch.uint8)
     images = []
     for i in range(tensor.shape[0]):
-        image = transforms.ToPILImage()(tensor[i])
+        image_tensor = tensor[i]
+        if image_tensor.ndim == 4:
+            image_tensor = image_tensor.squeeze(0)  # Remove the batch dimension
+        image = transforms.ToPILImage()(image_tensor)
         images.append(image)
     return images
 

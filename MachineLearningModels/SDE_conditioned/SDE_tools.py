@@ -113,8 +113,8 @@ class GaussianDiffusion:
                 mean = self.prior_to_batchsize(self.prior_mean, x_start.shape[0])
                 variance = self.prior_to_batchsize(self.prior_variance, x_start.shape[0])
                 assert mean.shape == variance.shape == x_start.shape
-                noise = torch.randn_like(x_start) * torch.sqrt(variance)
-                # noise = torch.randn_like(x_start)
+                # noise = torch.randn_like(x_start) * torch.sqrt(variance)
+                noise = torch.randn_like(x_start)
                 return (
                     self.extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * (x_start - mean) +
                     self.extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise, noise
@@ -409,14 +409,17 @@ class GaussianDiffusion:
         return prior.unsqueeze(0).expand(batchsize, *prior.shape).to(self.device)
 
 class DiffusionTools:
-    def __init__(self, noise_steps: int, img_size: int, device: torch.DeviceObjType, beta_start=1e-4, beta_end=0.02):
+    def __init__(self, noise_steps: int, img_size: int, conditioned_prior: bool, device: torch.DeviceObjType, beta_start=1e-4, beta_end=0.02):
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
         self.img_size = img_size
-        self.conditioned_prior = False
+        self.conditioned_prior = conditioned_prior
         self.learn_sigma = False
         self.device = device
+
+        self.prior_mean = None
+        self.prior_variance = None
 
         self.betas = self.prepare_noise_schedule().to(device)
         self.alphas = 1. - self.betas
@@ -428,14 +431,56 @@ class DiffusionTools:
         beta_end = scale * self.beta_end
         return torch.linspace(beta_start, beta_end, self.noise_steps)
 
+    def init_prior_mean_variance(self, dataloader):
+        all_images = []
+        for i, (images, _, _) in enumerate(dataloader):
+            all_images.append(images)
+
+        all_images = torch.cat(all_images, dim=0)
+        mean = torch.mean(all_images, dim=0)
+        variance = torch.var(all_images, dim=0)
+
+        self.prior_mean = mean
+        self.prior_variance = variance
+        print("Priors Initialized")
+
     def noise_images(self, x_start, t):
+
         sqrt_alpha_hat = torch.sqrt(self.alphas_hat[t])[:, None, None, None]
         sqrt_one_minus_alpha_hat = torch.sqrt(1. - self.alphas_hat[t])[:, None, None, None]
+
+        if self.conditioned_prior == True:
+            if self.prior_mean == None or self.prior_variance == None:
+                raise ValueError("Priors not initialized")
+            else:
+                mean = self.prior_to_batchsize(self.prior_mean, x_start.shape[0])
+                variance = self.prior_to_batchsize(self.prior_variance, x_start.shape[0])
+                assert mean.shape == variance.shape == x_start.shape
+                noise = torch.randn_like(x_start) * torch.sqrt(variance)
+                # noise = torch.randn_like(x_start)
+                return (
+                    sqrt_alpha_hat * (x_start) + sqrt_one_minus_alpha_hat * noise, noise
+                )
+
         noise = torch.randn_like(x_start)
         return sqrt_alpha_hat * x_start + sqrt_one_minus_alpha_hat * noise, noise
 
     def sample_timesteps(self, n):
         return torch.randint(low=1, high=self.noise_steps, size=(n,))
+
+    def get_specific_timesteps(self, timesteps, n):
+        """
+        Get a tensor of specific timesteps.
+
+        Args:
+            timesteps: List of timesteps to be converted to tensor.
+            n: Batch size.
+
+        Returns:
+            Tensor of shape (n, len(timesteps)) on the correct device.
+        """
+        timesteps_tensor = torch.tensor(timesteps, dtype=torch.long).to(self.device)
+        return timesteps_tensor.repeat(n)
 
     def p_sample_loop(self, model, n, y):
         logging.info(f"Sampling {n} images")
@@ -489,3 +534,6 @@ class DiffusionTools:
         terms["loss"] = terms["mse"]
 
         return terms
+
+    def prior_to_batchsize(self, prior, batchsize):
+        return prior.unsqueeze(0).expand(batchsize, *prior.shape).to(self.device)
