@@ -24,6 +24,7 @@ BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
 DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined_small")
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
@@ -32,12 +33,12 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
-TESTING = False
+TESTING = True
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
-TEST_PATH = r"/vast.mnt/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/MiddleUNet_nblocks_2_noisesteps_250_smartsplit_False_0/"
+TEST_PATH = r"C:\Users\tabor\Documents\TU Eindhoven\Bachelor\Jaar 4\BEP\Results\Results_journal\MiddleUNet_nblocks_2_noisesteps_250_smartsplit_False_1 - Copy"
 SAMPLE_MODEL = "best_model.pth"
-NR_SAMPLES = 288
+NR_SAMPLES = 10
 
 # Training settings
 TRAINING = False
@@ -52,7 +53,7 @@ CONDITIONED_PRIOR = True
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 32
+BATCH_SIZE = 5
 IMAGE_SIZE = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
@@ -233,5 +234,6 @@ if TESTING:
                             image_dataset_path=IMAGE_DATASET_PATH,
                             structure_dataset_path=STRUCTURE_DATASET_PATH,
                             test_path=TEST_PATH,
+                            batch_size_set=BATCH_SIZE,
                             n=NR_SAMPLES,
                             **parameters)

@@ -7,8 +7,8 @@ from PIL import Image
 from torchvision import transforms
 import re
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.figure
 
 def load_images(folder_path: str):
     images = []
@@ -19,10 +19,10 @@ def load_images(folder_path: str):
     return images
 
 def save_image_list(image_list: list, path: str):
-    if type(image_list[0]) == Image:
+    if isinstance(image_list[0], Image.Image):
         for i, image in enumerate(image_list):
             image.save(os.path.join(path, f"{i}.png"))
-    elif type(image_list[0]) == matplotlib.figure.Figure:
+    elif isinstance(image_list[0], matplotlib.figure.Figure):
         for i, fig in enumerate(image_list):
             fig.savefig(os.path.join(path, f"{i}.png"))
     else:

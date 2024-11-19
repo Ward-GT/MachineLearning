@@ -12,6 +12,7 @@ from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 
+from MachineLearningModels.SDE_conditioned.config import generated_list
 from SDE_utils import *
 from SDE_datareduction import get_data, get_test_data
 from SDE_tools import GaussianDiffusion
@@ -117,12 +118,16 @@ def sample_save_metrics(
         test_path: str = None,
         result_path: str = None,
         test_dataloader: DataLoader = None,
+        batch_size_set: int = None,
         n: int = 200,
         **kwargs
 ):
 
     image_size = kwargs.get("image_size")
-    batch_size = kwargs.get("batch_size")
+    if batch_size_set == None:
+        batch_size = kwargs.get("batch_size")
+    else:
+        batch_size = batch_size_set
 
     if test_dataloader is not None and test_path is None:
         print("Using test dataloader")
@@ -160,11 +165,12 @@ def sample_save_metrics(
 
     print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}, Parameters: {parameter_count}")
 
-    colorbar_figures = add_colorbar_to_list(references)
-    save_image_list(colorbar_figures, colorbar_path)
+    colorbar_figures = add_colorbar_to_list(samples)
+
     save_image_list(references, reference_path)
     save_image_list(samples, sample_path)
     save_image_list(structure, structure_path)
+    save_image_list(colorbar_figures, colorbar_path)
 
 def create_colorbar_plot(image):
     max_bfield = 8e-3
@@ -318,8 +324,3 @@ def forward_process_image(sampler, dataloader, device):
         axs[i].axis('off')  # Hide axes for better visualization
 
     plt.show()
-
-image_path = r"C:\Users\tabor\Documents\TU Eindhoven\Bachelor\Jaar 4\BEP\Data\figure_B_fixrange\Output\hw1_0.1_hw2_0.081_dww_ii_x_0.002_dww_oo_x_0.002_dww_x_0.02_lcore_x1_IW_0.009_dcs_0.035_hw_0.155_dw_0.18.png"
-image = Image.open(image_path)
-fig = create_colorbar_plot(image)
-fig.show()
