@@ -7,6 +7,7 @@ from PIL import Image
 from torchvision import transforms
 import re
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 
 def load_images(folder_path: str):
@@ -17,9 +18,15 @@ def load_images(folder_path: str):
         images.append(img)
     return images
 
-def save_image_list(image_list: list[Image], path: str):
-    for i, image in enumerate(image_list):
-        image.save(os.path.join(path, f"{i}.png"))
+def save_image_list(image_list: list, path: str):
+    if type(image_list[0]) == Image:
+        for i, image in enumerate(image_list):
+            image.save(os.path.join(path, f"{i}.png"))
+    elif type(image_list[0]) == matplotlib.figure.Figure:
+        for i, fig in enumerate(image_list):
+            fig.savefig(os.path.join(path, f"{i}.png"))
+    else:
+        raise ValueError("Image type not known")
 
 def save_images(reference_images: list[Image]=None, generated_images: list[Image]=None, structure_images: list[Image]=None, path: str=None, **kwargs):
     # Determine how many image sets are provided

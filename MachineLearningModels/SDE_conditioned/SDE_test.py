@@ -1,3 +1,5 @@
+from random import sample
+
 import numpy as np
 import torch
 from skimage.metrics import structural_similarity as ssim
@@ -5,7 +7,11 @@ from skimage.metrics import peak_signal_noise_ratio as psnr
 from PIL import Image, ImageColor
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
 from torch.utils.data import DataLoader
+from torchvision.utils import save_image
+
 from SDE_utils import *
 from SDE_datareduction import get_data, get_test_data
 from SDE_tools import GaussianDiffusion
@@ -139,6 +145,12 @@ def sample_save_metrics(
     sample_path = os.path.join(image_path, "Samples")
     reference_path = os.path.join(image_path, "References")
     structure_path = os.path.join(image_path, "Structures")
+    colorbar_path = os.path.join(image_path, "Colorbar")
+
+    paths = [sample_path, reference_path, structure_path, colorbar_path]
+    for path in paths:
+        if not os.path.exists(path):
+            os.makedirs(path)
 
     parameter_count = count_parameters(model)
 
@@ -148,9 +160,37 @@ def sample_save_metrics(
 
     print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}, Parameters: {parameter_count}")
 
+    colorbar_figures = add_colorbar_to_list(references)
+    save_image_list(colorbar_figures, colorbar_path)
     save_image_list(references, reference_path)
     save_image_list(samples, sample_path)
     save_image_list(structure, structure_path)
+
+def create_colorbar_plot(image):
+    max_bfield = 8e-3
+
+    image_array = np.array(image)
+
+    fig, ax = plt.subplots()
+
+    im = ax.imshow(image_array, cmap=cm.jet)
+
+    cbar = fig.colorbar(im, ax=ax)
+    cbar.set_label('Magnetic Field Strength (T)')
+
+    ticks_locations = np.linspace(0, 255, num=5)
+    tick_labels = np.linspace(0, max_bfield, num=5)
+    cbar.set_ticks(ticks_locations, labels=tick_labels)
+
+    return fig
+
+def add_colorbar_to_list(images):
+    colorbar_figures = []
+    for image in images:
+        fig = create_colorbar_plot(image)
+        colorbar_figures.append(fig)
+
+    return colorbar_figures
 
 def calculate_error_image(reference: Image, sample: Image):
     reference_array = np.array(reference)
@@ -278,3 +318,8 @@ def forward_process_image(sampler, dataloader, device):
         axs[i].axis('off')  # Hide axes for better visualization
 
     plt.show()
+
+image_path = r"C:\Users\tabor\Documents\TU Eindhoven\Bachelor\Jaar 4\BEP\Data\figure_B_fixrange\Output\hw1_0.1_hw2_0.081_dww_ii_x_0.002_dww_oo_x_0.002_dww_x_0.02_lcore_x1_IW_0.009_dcs_0.035_hw_0.155_dw_0.18.png"
+image = Image.open(image_path)
+fig = create_colorbar_plot(image)
+fig.show()

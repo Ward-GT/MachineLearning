@@ -111,6 +111,7 @@ if TRAINING:
     SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")
     REFERENCE_PATH = os.path.join(IMAGE_PATH, "References")
     STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
+    COLORBAR_PATH = os.path.join(IMAGE_PATH, "Colorbar")
 
     set_seed(seed=DEFAULT_SEED)
     print(f"Name: {RUN_NAME}")
