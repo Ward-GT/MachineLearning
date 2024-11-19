@@ -1,5 +1,4 @@
 from random import sample
-
 import numpy as np
 import torch
 from skimage.metrics import structural_similarity as ssim
@@ -11,8 +10,6 @@ from matplotlib import cm
 from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
-
-from MachineLearningModels.SDE_conditioned.config import generated_list
 from SDE_utils import *
 from SDE_datareduction import get_data, get_test_data
 from SDE_tools import GaussianDiffusion

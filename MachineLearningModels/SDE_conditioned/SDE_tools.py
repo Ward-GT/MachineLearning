@@ -456,10 +456,10 @@ class DiffusionTools:
                 mean = self.prior_to_batchsize(self.prior_mean, x_start.shape[0])
                 variance = self.prior_to_batchsize(self.prior_variance, x_start.shape[0])
                 assert mean.shape == variance.shape == x_start.shape
-                noise = torch.randn_like(x_start) * torch.sqrt(variance)
-                # noise = torch.randn_like(x_start)
+                # noise = torch.randn_like(x_start) * torch.sqrt(variance)
+                noise = torch.randn_like(x_start)
                 return (
-                    sqrt_alpha_hat * (x_start) + sqrt_one_minus_alpha_hat * noise, noise
+                    sqrt_alpha_hat * (x_start-mean) + sqrt_one_minus_alpha_hat * noise, noise
                 )
 
         noise = torch.randn_like(x_start)
@@ -487,9 +487,14 @@ class DiffusionTools:
         if y.shape[0] != n:
             y = concat_to_batchsize(y, n)
 
+        variance = self.prior_to_batchsize(self.prior_variance, n)
+        mean = self.prior_to_batchsize(self.prior_mean, n)
+
         model.eval()
         with torch.no_grad():
             x = torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
+            # if self.conditioned_prior == True:
+            #     x = x * torch.sqrt(variance)
             y.to(self.device)
 
             for i in tqdm(reversed(range(1, self.noise_steps)), position=0):
@@ -501,12 +506,16 @@ class DiffusionTools:
 
                 if i > 1:
                     noise = torch.randn_like(x)
+                    # if self.conditioned_prior == True:
+                    #     noise = noise * torch.sqrt(variance)
                 else:
                     noise = torch.zeros_like(x)
 
                 x = 1 / torch.sqrt(alpha) * (x- ((1 - alpha)/ (torch.sqrt(1-alpha_hat))) * predicted_noise) + torch.sqrt(beta) * noise
 
         model.train()
+        if self.conditioned_prior == True:
+            x = x + mean
         return x, y
 
     def training_losses(self, model, x_start, y, t):

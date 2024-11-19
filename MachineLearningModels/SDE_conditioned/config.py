@@ -16,15 +16,15 @@ DEFAULT_SEED = 42
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
+# BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
-DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
-# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
+DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined_small")
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
@@ -33,15 +33,15 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
-TESTING = True
+TESTING = False
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
 TEST_PATH = r"C:\Users\tabor\Documents\TU Eindhoven\Bachelor\Jaar 4\BEP\Results\Results_journal\MiddleUNet_nblocks_2_noisesteps_250_smartsplit_False_1 - Copy"
 SAMPLE_MODEL = "best_model.pth"
-NR_SAMPLES = 10
+NR_SAMPLES = 288
 
 # Training settings
-TRAINING = False
+TRAINING = True
 SMART_SPLIT = False
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
@@ -53,7 +53,7 @@ CONDITIONED_PRIOR = True
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 5
+BATCH_SIZE = 32
 IMAGE_SIZE = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
@@ -61,7 +61,7 @@ THRESHOLD = 0.01
 EMA_DECAY = 0.9999
 
 # Sampling parameters
-NOISE_STEPS = 250
+NOISE_STEPS = 1000
 EMA = False
 
 # UNet Parameters
