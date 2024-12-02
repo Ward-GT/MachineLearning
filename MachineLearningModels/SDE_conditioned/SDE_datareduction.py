@@ -29,16 +29,6 @@ def SSIM_matrix(dataset1, dataset2):
 
     return normalize_softmax(matrix)
 
-def extract_dimension_vectors(dimension_dict : dict):
-    core_keys = ["hw", "dw", 'dcs']
-    winding_keys = ["hw1", "hw2", "dww_ii_x", "dw_oo_x", "dww_x", "lcore_x1_IW"]
-
-    core_vector = np.array([dimension_dict[key] for key in core_keys if key in dimension_dict])
-    winding_vector = np.array([dimension_dict[key] for key in winding_keys if key in dimension_dict])
-    total_vector = np.concatenate((core_vector, winding_vector))
-
-    return core_vector, winding_vector, total_vector
-
 def scaled_dot_product(vector1, vector2):
     # Compute the dot product
     dot_product = np.dot(vector1, vector2)

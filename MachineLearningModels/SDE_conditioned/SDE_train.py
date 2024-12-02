@@ -10,7 +10,7 @@ import logging
 from torch.utils.data import DataLoader
 
 from SDE_utils import *
-from SDE_tools import GaussianDiffusion
+from SDE_tools import DiffusionTools
 from SDE_test import calculate_metrics
 from itertools import cycle
 
@@ -27,7 +27,7 @@ class ModelTrainer:
             train_dataloader: DataLoader,
             val_dataloader: DataLoader,
             test_dataloader: DataLoader,
-            diffusion: GaussianDiffusion,
+            diffusion: DiffusionTools,
             ema: bool = True,
             **kwargs
     ):
@@ -50,6 +50,7 @@ class ModelTrainer:
         self.threshold = kwargs.get("threshold")
         self.ema_decay = kwargs.get("ema_decay")
         self.clip_grad = kwargs.get("clip_grad")
+        self.vector_conditioning = kwargs.get("vector_conditioning")
 
         self.train_losses = []
         self.val_losses = []
@@ -70,10 +71,10 @@ class ModelTrainer:
         self.model.train()
         pbar = tqdm(self.train_dataloader)
 
-        for i, (images, structures, _) in enumerate(pbar):
-            images, structures = images.to(self.device), structures.to(self.device)
-            t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
-            losses = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
+        for i, (images, structures, vectors) in enumerate(pbar):
+            y = (vectors if self.vector_conditioning else structures)
+            t = self.diffusion.sample_timesteps(images.shape[0])
+            losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
             loss = losses["loss"]
             self.optimizer.zero_grad()
             loss.backward()
@@ -97,10 +98,10 @@ class ModelTrainer:
         with torch.no_grad():
             pbar = tqdm(self.val_dataloader)
 
-            for i, (images, structures, _) in enumerate(pbar):
-                images, structures = images.to(self.device), structures.to(self.device)
+            for i, (images, structures, vectors) in enumerate(pbar):
+                y = (vectors if self.vector_conditioning else structures)
                 t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
-                losses = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
+                losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
                 loss = losses["loss"].mean()
 
                 pbar.set_postfix(MSE=loss.item())
@@ -111,16 +112,16 @@ class ModelTrainer:
             return average_loss
 
     def generate_reference_images(self, epoch):
-        test_images, test_structures, _ = next(cycle(self.test_dataloader))
+        test_images, test_structures, test_vectors = next(cycle(self.test_dataloader))
         test_images = concat_to_batchsize(test_images, self.nr_samples)
-        test_structures = test_structures.to(self.device)
+        y = (test_vectors if self.vector_conditioning else test_structures)
         if self.ema == True:
-            sampled_images, structures = self.diffusion.p_sample_loop(self.ema_model, n=self.nr_samples, y=test_structures)
+            sampled_images, structures = self.diffusion.p_sample_loop(self.ema_model, n=self.nr_samples, y=y)
         else:
-            sampled_images, structures = self.diffusion.p_sample_loop(self.model, n=self.nr_samples, y=test_structures)
+            sampled_images, _ = self.diffusion.p_sample_loop(self.model, n=self.nr_samples, y=y)
         test_images = tensor_to_PIL(test_images)
         sampled_images = tensor_to_PIL(sampled_images)
-        structures = tensor_to_PIL(structures)
+        structures = tensor_to_PIL(test_structures)
         ssim, _, _, _, mae = calculate_metrics(sampled_images, test_images)
         save_images(reference_images=test_images, generated_images=sampled_images,
                     structure_images=structures, path=os.path.join(self.image_path, f"{epoch}.jpg"))

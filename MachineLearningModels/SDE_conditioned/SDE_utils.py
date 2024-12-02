@@ -28,6 +28,21 @@ def save_image_list(image_list: list, path: str):
     else:
         raise ValueError("Image type not known")
 
+def extract_dimension_vectors(dimension_dict: dict):
+    core_keys = ["hw", "dw", 'dcs']
+    winding_keys = ["hw1", "hw2", "dww_ii_x", "dw_oo_x", "dww_x", "lcore_x1_IW"]
+
+    core_vector = np.array([dimension_dict[key] for key in core_keys if key in dimension_dict])
+    winding_vector = np.array([dimension_dict[key] for key in winding_keys if key in dimension_dict])
+    total_vector = np.concatenate((core_vector, winding_vector))
+
+    return core_vector, winding_vector, total_vector
+
+def dimension_vectors_to_tensor(dimension_dict: dict):
+    vector_list = [value for value in dimension_dict.values()]
+    stacked_tensor = torch.stack(vector_list, dim=1).float()
+    return stacked_tensor
+
 def save_images(reference_images: list[Image]=None, generated_images: list[Image]=None, structure_images: list[Image]=None, path: str=None, **kwargs):
     # Determine how many image sets are provided
     image_sets_with_titles = {

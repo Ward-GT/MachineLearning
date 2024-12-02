@@ -16,9 +16,9 @@ DEFAULT_SEED = 42
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-# BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
+BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
@@ -47,14 +47,15 @@ GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
 LEARN_SIGMA = False
 CLIP_GRAD = False
-CONDITIONED_PRIOR = True
+CONDITIONED_PRIOR = False
+VECTOR_CONDITIONING = True
 
 # Training parameters
-TEST_SPLIT = 0.1
+TEST_SPLIT = 0.7
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 32
-IMAGE_SIZE = 128
+BATCH_SIZE = 8
+IMAGE_SIZE = 64
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
 THRESHOLD = 0.01
@@ -68,7 +69,7 @@ EMA = False
 # MODEL_NAME = "UNet"
 MODEL_NAME = "MiddleUNet"
 # MODEL_NAME = "SimpleUNet"
-N_BLOCKS = 2
+N_BLOCKS = 1
 N_HEADS = 4
 DIM_HEAD = None
 ATTENTION_RESOLUTIONS = "16,8"
@@ -95,7 +96,8 @@ parameters = {
     "attention_resolutions": ATTENTION_RESOLUTIONS,
     "n_channels": N_CHANNELS,
     "clip_grad": CLIP_GRAD,
-    "conditioned_prior": CONDITIONED_PRIOR
+    "conditioned_prior": CONDITIONED_PRIOR,
+    "vector_conditioning": VECTOR_CONDITIONING
 }
 
 if TRAINING:

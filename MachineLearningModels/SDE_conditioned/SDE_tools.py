@@ -409,13 +409,14 @@ class GaussianDiffusion:
         return prior.unsqueeze(0).expand(batchsize, *prior.shape).to(self.device)
 
 class DiffusionTools:
-    def __init__(self, noise_steps: int, img_size: int, conditioned_prior: bool, device: torch.DeviceObjType, beta_start=1e-4, beta_end=0.02):
+    def __init__(self, noise_steps: int, img_size: int, conditioned_prior: bool, vector_conditioning: bool, device: torch.DeviceObjType, beta_start=1e-4, beta_end=0.02):
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
         self.img_size = img_size
         self.conditioned_prior = conditioned_prior
         self.learn_sigma = False
+        self.vector_conditioning = vector_conditioning
         self.device = device
 
         self.prior_mean = None
@@ -484,11 +485,15 @@ class DiffusionTools:
 
     def p_sample_loop(self, model, n, y):
         logging.info(f"Sampling {n} images")
+        if self.vector_conditioning == True:
+            y = dimension_vectors_to_tensor(y)
+
         if y.shape[0] != n:
             y = concat_to_batchsize(y, n)
 
-        variance = self.prior_to_batchsize(self.prior_variance, n)
-        mean = self.prior_to_batchsize(self.prior_mean, n)
+        if self.conditioned_prior == True:
+            variance = self.prior_to_batchsize(self.prior_variance, n)
+            mean = self.prior_to_batchsize(self.prior_mean, n)
 
         model.eval()
         with torch.no_grad():
@@ -499,6 +504,10 @@ class DiffusionTools:
 
             for i in tqdm(reversed(range(1, self.noise_steps)), position=0):
                 t = (torch.ones(n) * i).long().to(self.device)
+
+                if self.vector_conditioning == True:
+                    y = dimension_vectors_to_tensor(y)
+
                 predicted_noise = model(x, y, t)
                 alpha = self.alphas[t][:, None, None, None]
                 alpha_hat = self.alphas_hat[t][:, None, None, None]
@@ -530,11 +539,15 @@ class DiffusionTools:
         Returns:
 
         """
+        if self.vector_conditioning == True:
+            y = dimension_vectors_to_tensor(y)
+
+        x_start, y, t = x_start.to(self.device), y.to(self.device), t.to(self.device)
+
         x_t, noise = self.noise_images(x_start=x_start, t=t)
         mse = nn.MSELoss()
 
         terms = {}
-
         model_output = model(x_t, y, t)
 
         assert model_output.shape == noise.shape == x_start.shape

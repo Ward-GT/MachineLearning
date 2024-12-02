@@ -14,6 +14,7 @@ def create_model_diffusion(device, **kwargs):
         dim_head=kwargs.get("dim_head"),
         n_channels=kwargs.get("n_channels"),
         attention_resolutions=kwargs.get("attention_resolutions"),
+        vector_conditioning=kwargs.get("vector_conditioning"),
         device=device
     )
 
@@ -22,7 +23,8 @@ def create_model_diffusion(device, **kwargs):
         image_size=kwargs.get("image_size"),
         device=device,
         learn_sigma=kwargs.get("learn_sigma"),
-        conditioned_prior=kwargs.get("conditioned_prior")
+        conditioned_prior=kwargs.get("conditioned_prior"),
+        vector_conditioning=kwargs.get("vector_conditioning")
     )
 
     return model, diffusion
@@ -36,8 +38,10 @@ def create_model(
         dim_head,
         n_channels,
         attention_resolutions,
+        vector_conditioning,
         device
 ):
+
     if model_name == "SimpleUNet":
         return SimpleUNet(
             n_channels=n_channels,
@@ -78,9 +82,11 @@ def create_model(
 
     elif model_name == "MiddleUNet":
         return MiddleUNet(
-            input_channels=6,
+            vector_conditioning = vector_conditioning,
+            input_channels=(6 if not vector_conditioning else 4),
             output_channels=(3 if not learn_sigma else 6),
             n_channels = n_channels,
+            image_size = image_size,
             n_blocks = n_blocks
         ).to(device)
 
@@ -92,12 +98,14 @@ def create_diffusion(
         image_size,
         device,
         learn_sigma,
-        conditioned_prior
+        conditioned_prior,
+        vector_conditioning
 ):
     return DiffusionTools(
         noise_steps=noise_steps,
         img_size=image_size,
         conditioned_prior=conditioned_prior,
+        vector_conditioning=vector_conditioning,
         device=device
     )
 

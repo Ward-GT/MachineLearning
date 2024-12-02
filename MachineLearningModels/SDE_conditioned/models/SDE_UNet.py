@@ -144,9 +144,10 @@ class UpSample(nn.Module):
         return self.up(x)
 
 class MiddleUNet(nn.Module):
-    def __init__(self, input_channels: int = 6, output_channels: int = 3, n_channels: int = 64, ch_mults: List[int] = (1, 2, 2, 4), is_attn: List[bool] = (False, False, True, True), n_blocks: int = 1):
+    def __init__(self, vector_conditioning: bool, input_channels: int = 6, output_channels: int = 3, n_channels: int = 64, vector_dim: int = 9, image_size: int = 128, ch_mults: List[int] = (1, 2, 2, 4), is_attn: List[bool] = (False, False, True, True), n_blocks: int = 1):
         super().__init__()
-
+        self.vector_conditioning = vector_conditioning
+        self.vector_proj = nn.Linear(vector_dim, image_size * image_size)
         self.image_proj = nn.Conv2d(input_channels, n_channels, kernel_size=(3, 3), padding=(1, 1))
         self.time_emb = TimeEmbedding(n_channels*4)
         out_channels = in_channels = n_channels
@@ -189,6 +190,10 @@ class MiddleUNet(nn.Module):
         self.out = nn.Conv2d(in_channels, output_channels, kernel_size=(3, 3), padding=(1, 1))
 
     def forward(self, x_t: torch.Tensor, y: torch.Tensor, t: torch.Tensor):
+        if self.vector_conditioning == True:
+            y = self.vector_proj(y)
+            y = y.reshape(x_t.shape[0], 1, x_t.shape[2], x_t.shape[3])
+
         x = torch.cat((x_t, y), dim=1)
         t = self.time_emb(t)
         x = self.image_proj(x)
@@ -206,8 +211,6 @@ class MiddleUNet(nn.Module):
                 x = block(torch.cat([x, h.pop()], dim=1), t)
 
         return self.out(self.act(self.norm(x)))
-
-
 
 
 
