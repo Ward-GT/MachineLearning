@@ -22,7 +22,7 @@ def sample_model_output(
         n: int,
         batch_size: int,
 ):
-    references_list = []
+    references_list = [] #TODO fix with vector conditioning
     generated_list = []
     structures_list = []
     iterator = iter(dataloader)

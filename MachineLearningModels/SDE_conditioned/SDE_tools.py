@@ -498,16 +498,9 @@ class DiffusionTools:
         model.eval()
         with torch.no_grad():
             x = torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
-            # if self.conditioned_prior == True:
-            #     x = x * torch.sqrt(variance)
-            y.to(self.device)
-
+            y = y.to(self.device)
             for i in tqdm(reversed(range(1, self.noise_steps)), position=0):
                 t = (torch.ones(n) * i).long().to(self.device)
-
-                if self.vector_conditioning == True:
-                    y = dimension_vectors_to_tensor(y)
-
                 predicted_noise = model(x, y, t)
                 alpha = self.alphas[t][:, None, None, None]
                 alpha_hat = self.alphas_hat[t][:, None, None, None]

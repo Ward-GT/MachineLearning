@@ -12,7 +12,7 @@ def extract_dimensions_from_filename(filename: str):
     matches = re.findall(pattern, filename)
 
     # Convert the matches into a dictionary where keys are dimensions and values are numerical values
-    dimensions = {dim: float(value) for dim, value in matches}
+    dimensions = {dim: torch.tensor(float(value)) for dim, value in matches}
 
     return dimensions
 

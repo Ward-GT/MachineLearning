@@ -171,7 +171,7 @@ def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: 
 
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
         val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
-        test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+        test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
         if result_path is not None:
             torch.save(train_dataset.indices, os.path.join(result_path, "train_indices.pth"))
