@@ -1,5 +1,6 @@
 from torch.utils.data import Dataset
 from torchvision.io import read_image
+from torchvision import transforms
 import os
 import re
 import torch
@@ -54,6 +55,21 @@ class LabeledDataset(Dataset):
         self.input_images = sorted(os.listdir(input_dir))
         self.label_images = self.input_images # os.listdir(label_dir)
 
+        self.geometric_data = torch.tensor([])
+        for image in self.input_images:
+            _, vector = extract_dimensions_from_filename(image)
+            self.geometric_data = torch.cat((self.geometric_data, vector), dim=0)
+
+        self.geometric_min = torch.min(self.geometric_data)
+        self.geometric_max = torch.max(self.geometric_data)
+
+        self.geometric_transform = transforms.Compose([
+        transforms.Lambda(lambda t: t / self.geometric_max),
+        transforms.Lambda(lambda t: (t * 2) - 1)
+    ])
+
+
+
         if len(self.input_images) != len(self.label_images):
             raise ValueError("Number of input images and label images do not match")
 
@@ -67,6 +83,7 @@ class LabeledDataset(Dataset):
         input_image_path = os.path.join(self.input_dir, self.input_images[idx])
         label_image_path = os.path.join(self.label_dir, self.label_images[idx])
         dimensions_dict, dimensions_tens = extract_dimensions_from_filename(self.input_images[idx])
+        dimensions_tens = self.geometric_transform(dimensions_tens)
         input_image = read_image(input_image_path)
         label_image = read_image(label_image_path)
 

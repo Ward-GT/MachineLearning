@@ -41,7 +41,7 @@ SAMPLE_MODEL = "best_model.pth"
 NR_SAMPLES = 288
 
 # Training settings
-TRAINING = True
+TRAINING = False
 SMART_SPLIT = False
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
@@ -124,15 +124,6 @@ if TRAINING:
 
     if not os.path.exists(IMAGE_PATH):
         os.makedirs(IMAGE_PATH)
-
-    if not os.path.exists(SAMPLE_PATH):
-        os.makedirs(SAMPLE_PATH)
-
-    if not os.path.exists(REFERENCE_PATH):
-        os.makedirs(REFERENCE_PATH)
-
-    if not os.path.exists(STRUCTURE_PATH):
-        os.makedirs(STRUCTURE_PATH)
 
     with open(os.path.join(RESULT_PATH, 'parameters.json'), "w") as f:
         json.dump(parameters, f, indent=4)
