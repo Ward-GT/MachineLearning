@@ -485,8 +485,8 @@ class DiffusionTools:
 
     def p_sample_loop(self, model, n, y):
         logging.info(f"Sampling {n} images")
-        if self.vector_conditioning == True:
-            y = dimension_vectors_to_tensor(y)
+        # if self.vector_conditioning == True:
+        #     y = dimension_vectors_to_tensor(y)
 
         if y.shape[0] != n:
             y = concat_to_batchsize(y, n)
@@ -532,8 +532,8 @@ class DiffusionTools:
         Returns:
 
         """
-        if self.vector_conditioning == True:
-            y = dimension_vectors_to_tensor(y)
+        # if self.vector_conditioning == True:
+        #     y = dimension_vectors_to_tensor(y)
 
         x_start, y, t = x_start.to(self.device), y.to(self.device), t.to(self.device)
 

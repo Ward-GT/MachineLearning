@@ -4,6 +4,7 @@ import torch
 from tensorboard.compat.tensorflow_stub.tensor_shape import vector
 
 from SDE_datareduction import get_test_data, get_data
+from SDE_dataclass import LabeledDataset
 from config import IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH, parameters
 from script_util import create_model_diffusion
 from SDE_test import forward_process_image
@@ -34,11 +35,13 @@ from torch.utils.data import DataLoader, Subset
 
 train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(image_dataset_path=IMAGE_DATASET_PATH, structure_dataset_path=STRUCTURE_DATASET_PATH, **parameters)
 
-_, _, vectors = next(iter(train_dataloader))
+_, _, vectors, tensor = next(iter(train_dataloader))
 
 vector_list = [value for value in vectors.values()]
 
 stacked_tensor = torch.stack(vector_list, dim=1)
+
+dataset = LabeledDataset(IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH)
 
 
 

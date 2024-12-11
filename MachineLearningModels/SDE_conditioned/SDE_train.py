@@ -71,7 +71,7 @@ class ModelTrainer:
         self.model.train()
         pbar = tqdm(self.train_dataloader)
 
-        for i, (images, structures, vectors) in enumerate(pbar):
+        for i, (images, structures, _, vectors) in enumerate(pbar):
             y = (vectors if self.vector_conditioning else structures)
             t = self.diffusion.sample_timesteps(images.shape[0])
             losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
@@ -98,7 +98,7 @@ class ModelTrainer:
         with torch.no_grad():
             pbar = tqdm(self.val_dataloader)
 
-            for i, (images, structures, vectors) in enumerate(pbar):
+            for i, (images, structures, _, vectors) in enumerate(pbar):
                 y = (vectors if self.vector_conditioning else structures)
                 t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
                 losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
@@ -112,7 +112,7 @@ class ModelTrainer:
             return average_loss
 
     def generate_reference_images(self, epoch):
-        test_images, test_structures, test_vectors = next(cycle(self.test_dataloader))
+        test_images, test_structures, _, test_vectors = next(cycle(self.test_dataloader))
         test_images = concat_to_batchsize(test_images, self.nr_samples)
         test_structures = concat_to_batchsize(test_structures, self.nr_samples)
         y = (test_vectors if self.vector_conditioning else test_structures)

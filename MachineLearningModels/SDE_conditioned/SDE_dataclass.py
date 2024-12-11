@@ -12,9 +12,11 @@ def extract_dimensions_from_filename(filename: str):
     matches = re.findall(pattern, filename)
 
     # Convert the matches into a dictionary where keys are dimensions and values are numerical values
-    dimensions = {dim: torch.tensor(float(value)) for dim, value in matches}
+    dimensions_dict = {dim: float(value) for dim, value in matches}
 
-    return dimensions
+    dimensions_tens = torch.tensor([value for value in dimensions_dict.values()])
+
+    return dimensions_dict, dimensions_tens
 
 def extract_dimensions(input_dir: str, file_name: str):
     # List all files in the input directory
@@ -64,7 +66,7 @@ class LabeledDataset(Dataset):
 
         input_image_path = os.path.join(self.input_dir, self.input_images[idx])
         label_image_path = os.path.join(self.label_dir, self.label_images[idx])
-        dimensions = extract_dimensions_from_filename(self.input_images[idx])
+        dimensions_dict, dimensions_tens = extract_dimensions_from_filename(self.input_images[idx])
         input_image = read_image(input_image_path)
         label_image = read_image(label_image_path)
 
@@ -72,4 +74,4 @@ class LabeledDataset(Dataset):
             input_image = self.transform(input_image)
             label_image = self.transform(label_image)
 
-        return input_image, label_image, dimensions
+        return input_image, label_image, dimensions_dict, dimensions_tens
