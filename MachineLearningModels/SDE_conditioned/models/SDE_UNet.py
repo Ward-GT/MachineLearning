@@ -191,7 +191,7 @@ class MiddleUNet(nn.Module):
 
     def forward(self, x_t: torch.Tensor, y: torch.Tensor, t: torch.Tensor):
         if self.vector_conditioning == True:
-            y = self.vector_proj(y)
+            y = self.act(self.vector_proj(y))
             y = y.reshape(x_t.shape[0], 1, x_t.shape[2], x_t.shape[3])
 
         x = torch.cat((x_t, y), dim=1)
