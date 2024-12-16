@@ -117,7 +117,7 @@ class ModelTrainer:
         test_structures = concat_to_batchsize(test_structures, self.nr_samples)
         y = (test_vectors if self.vector_conditioning else test_structures)
         if self.ema == True:
-            sampled_images, structures = self.diffusion.p_sample_loop(self.ema_model, n=self.nr_samples, y=y)
+            sampled_images, _ = self.diffusion.p_sample_loop(self.ema_model, n=self.nr_samples, y=y)
         else:
             sampled_images, _ = self.diffusion.p_sample_loop(self.model, n=self.nr_samples, y=y)
         test_images = tensor_to_PIL(test_images)

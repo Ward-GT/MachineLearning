@@ -21,17 +21,20 @@ def sample_model_output(
         dataloader: DataLoader,
         n: int,
         batch_size: int,
+        vector_conditioning: bool
 ):
-    references_list = [] #TODO fix with vector conditioning
+    references_list = []
     generated_list = []
     structures_list = []
     iterator = iter(dataloader)
     print(f"Sampling on {device}")
     for i in range(0, n, batch_size):
-        references, structures, _ = next(iterator)
+        references, structures, _, vectors = next(iterator)
         structures = structures.to(device)
         references = references.to(device)
-        generated, structures = sampler.p_sample_loop(model=model, n=batch_size, y=structures)
+        vectors = vectors.to(device)
+        y = (structures if not vector_conditioning else vectors)
+        generated, structures = sampler.p_sample_loop(model=model, n=batch_size, y=y)
         references = tensor_to_PIL(references)
         generated = tensor_to_PIL(generated)
         structures = tensor_to_PIL(structures)
@@ -121,6 +124,7 @@ def sample_save_metrics(
 ):
 
     image_size = kwargs.get("image_size")
+    vector_conditioning = kwargs.get("vector_conditioning")
     if batch_size_set == None:
         batch_size = kwargs.get("batch_size")
     else:
@@ -156,7 +160,7 @@ def sample_save_metrics(
 
     parameter_count = count_parameters(model)
 
-    references, samples, structure = sample_model_output(model=model, device=device, sampler=sampler, n=n, dataloader=dataloader, batch_size=batch_size)
+    references, samples, structure = sample_model_output(model=model, device=device, sampler=sampler, n=n, dataloader=dataloader, batch_size=batch_size, vector_conditioning=vector_conditioning)
 
     ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(references, samples)
 
