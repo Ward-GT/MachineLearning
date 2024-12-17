@@ -86,7 +86,7 @@ class ModelTrainer:
                 self.update_ema()
 
             loss_total += loss.item()
-            pbar.set_postfix(MSE=loss.item())
+            pbar.set_postfix(Loss=loss.item())
 
         average_loss = loss_total / len(self.train_dataloader)
         self.train_losses.append(average_loss)
@@ -104,7 +104,7 @@ class ModelTrainer:
                 losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
                 loss = losses["loss"].mean()
 
-                pbar.set_postfix(MSE=loss.item())
+                pbar.set_postfix(loss=loss.item())
                 loss_total += loss.item()
 
             average_loss = loss_total / len(self.val_dataloader)

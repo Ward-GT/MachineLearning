@@ -12,12 +12,12 @@ from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 from SDE_utils import *
 from SDE_datareduction import get_data, get_test_data
-from SDE_tools import GaussianDiffusion
+from SDE_tools import DiffusionTools
 
 def sample_model_output(
         model: torch.nn.Module,
         device: torch.device,
-        sampler: GaussianDiffusion,
+        sampler: DiffusionTools,
         dataloader: DataLoader,
         n: int,
         batch_size: int,
@@ -112,7 +112,7 @@ def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Imag
 def sample_save_metrics(
         model: torch.nn.Module,
         device: torch.device,
-        sampler: GaussianDiffusion,
+        sampler: DiffusionTools,
         image_dataset_path = None,
         structure_dataset_path = None,
         test_path: str = None,
