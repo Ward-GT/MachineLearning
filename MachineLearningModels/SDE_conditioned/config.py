@@ -47,7 +47,6 @@ GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
 LEARN_SIGMA = True
 CLIP_GRAD = False
-CONDITIONED_PRIOR = False
 VECTOR_CONDITIONING = True
 
 # Training parameters
@@ -96,7 +95,6 @@ parameters = {
     "attention_resolutions": ATTENTION_RESOLUTIONS,
     "n_channels": N_CHANNELS,
     "clip_grad": CLIP_GRAD,
-    "conditioned_prior": CONDITIONED_PRIOR,
     "vector_conditioning": VECTOR_CONDITIONING
 }
 
@@ -148,10 +146,6 @@ if TRAINING:
     torch.save(trainer.best_model_checkpoint, os.path.join(MODEL_PATH, "best_model.pth"))
     if trainer.ema == True and trainer.ema_model is not None:
         torch.save(trainer.ema_model.state_dict(), os.path.join(MODEL_PATH, "ema_model.pth"))
-
-    if CONDITIONED_PRIOR == True:
-        torch.save(trainer.diffusion.prior_mean, os.path.join(RESULT_PATH, "prior_mean.pth"))
-        torch.save(trainer.diffusion.prior_variance, os.path.join(RESULT_PATH, "prior_variance.pth"))
 
     max_ssim = max(trainer.ssim_values)
     print(f"Max SSIM: {max_ssim}, At place: {5 * np.argmax(trainer.ssim_values)}")

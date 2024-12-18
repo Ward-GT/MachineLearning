@@ -138,12 +138,6 @@ def sample_save_metrics(
         print("Using test data")
         image_path = os.path.join(test_path, "images")
         test_dataset_path = os.path.join(test_path, "test_indices.pth")
-        prior_mean_path = os.path.join(test_path, "prior_mean.pth")
-        prior_variance_path = os.path.join(test_path, "prior_variance.pth")
-
-        if sampler.conditioned_prior == True:
-            sampler.prior_mean = torch.load(prior_mean_path)
-            sampler.prior_variance = torch.load(prior_variance_path)
 
         dataloader = get_test_data(test_path=test_dataset_path, image_size=image_size, batch_size=batch_size,
                                    image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path)
@@ -296,8 +290,6 @@ def comparison_plot(structures: list, references: list, samples: list, path: str
     plt.show()
 
 def forward_process_image(sampler, dataloader, device):
-    if sampler.conditioned_prior == True:
-        sampler.init_prior_mean_variance(dataloader)
     nr_images = 5
     images, _, _ = next(iter(dataloader))
     images = images.to(device)
@@ -308,9 +300,6 @@ def forward_process_image(sampler, dataloader, device):
     for t in range(0, noise_steps, noise_steps // nr_images):
         t = sampler.get_specific_timesteps(t, images.shape[0])
         noised_images, _ = sampler.noise_images(images, t)
-        if sampler.conditioned_prior == True:
-            mean = sampler.prior_to_batchsize(sampler.prior_mean, images.shape[0])
-            noised_images = noised_images
         noised_images = tensor_to_PIL(noised_images)
         images_list.append(noised_images[0])
 

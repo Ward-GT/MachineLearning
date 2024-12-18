@@ -23,7 +23,6 @@ def create_model_diffusion(device, **kwargs):
         image_size=kwargs.get("image_size"),
         device=device,
         learn_sigma=kwargs.get("learn_sigma"),
-        conditioned_prior=kwargs.get("conditioned_prior"),
         vector_conditioning=kwargs.get("vector_conditioning")
     )
 
@@ -98,13 +97,11 @@ def create_diffusion(
         image_size,
         device,
         learn_sigma,
-        conditioned_prior,
         vector_conditioning
 ):
     return DiffusionTools(
         noise_steps=noise_steps,
         img_size=image_size,
-        conditioned_prior=conditioned_prior,
         vector_conditioning=vector_conditioning,
         learn_sigma=learn_sigma,
         device=device

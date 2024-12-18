@@ -7,18 +7,14 @@ from SDE_utils import *
 from losses import normal_kl, discretized_gaussian_log_likelihood
 
 class DiffusionTools:
-    def __init__(self, noise_steps: int, img_size: int, conditioned_prior: bool, vector_conditioning: bool, learn_sigma: bool, device: torch.DeviceObjType, beta_start=1e-4, beta_end=0.02):
+    def __init__(self, noise_steps: int, img_size: int, vector_conditioning: bool, learn_sigma: bool, device: torch.DeviceObjType, beta_start=1e-4, beta_end=0.02):
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
         self.img_size = img_size
-        self.conditioned_prior = conditioned_prior
         self.learn_sigma = learn_sigma
         self.vector_conditioning = vector_conditioning
         self.device = device
-
-        self.prior_mean = None
-        self.prior_variance = None
 
         self.betas = self.prepare_noise_schedule().to(device)
         self.alphas = 1. - self.betas
@@ -43,36 +39,10 @@ class DiffusionTools:
         beta_end = scale * self.beta_end
         return torch.linspace(beta_start, beta_end, self.noise_steps)
 
-    def init_prior_mean_variance(self, dataloader):
-        all_images = []
-        for i, (images, _, _) in enumerate(dataloader):
-            all_images.append(images)
-
-        all_images = torch.cat(all_images, dim=0)
-        mean = torch.mean(all_images, dim=0)
-        variance = torch.var(all_images, dim=0)
-
-        self.prior_mean = mean
-        self.prior_variance = variance
-        print("Priors Initialized")
-
     def noise_images(self, x_start, t):
 
         sqrt_alpha_hat = torch.sqrt(self.alphas_cumprod[t])[:, None, None, None]
         sqrt_one_minus_alpha_hat = torch.sqrt(1. - self.alphas_cumprod[t])[:, None, None, None]
-
-        if self.conditioned_prior == True:
-            if self.prior_mean == None or self.prior_variance == None:
-                raise ValueError("Priors not initialized")
-            else:
-                mean = self.prior_to_batchsize(self.prior_mean, x_start.shape[0])
-                variance = self.prior_to_batchsize(self.prior_variance, x_start.shape[0])
-                assert mean.shape == variance.shape == x_start.shape
-                # noise = torch.randn_like(x_start) * torch.sqrt(variance)
-                noise = torch.randn_like(x_start)
-                return (
-                    sqrt_alpha_hat * (x_start-mean) + sqrt_one_minus_alpha_hat * noise, noise
-                )
 
         noise = torch.randn_like(x_start)
         return sqrt_alpha_hat * x_start + sqrt_one_minus_alpha_hat * noise, noise
@@ -102,10 +72,6 @@ class DiffusionTools:
         if y.shape[0] != n:
             y = concat_to_batchsize(y, n)
 
-        if self.conditioned_prior == True:
-            variance = self.prior_to_batchsize(self.prior_variance, n)
-            mean = self.prior_to_batchsize(self.prior_mean, n)
-
         model.eval()
         with torch.no_grad():
             x = torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
@@ -122,8 +88,6 @@ class DiffusionTools:
                 x = out["mean"] + torch.exp(0.5 * out["log_variance"]) * noise
 
         model.train()
-        if self.conditioned_prior == True:
-            x = x + mean
         return x, y
 
     def q_posterior_mean_variance(self, x_start, x_t, t):
@@ -263,6 +227,3 @@ class DiffusionTools:
             terms["loss"] = terms["mse"]
 
         return terms
-
-    def prior_to_batchsize(self, prior, batchsize):
-        return prior.unsqueeze(0).expand(batchsize, *prior.shape).to(self.device)

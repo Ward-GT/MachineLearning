@@ -142,8 +142,6 @@ class ModelTrainer:
     def train(self):
         logging.info(f"Starting training on {self.device}")
         self.model.to(self.device)
-        if self.diffusion.conditioned_prior == True:
-            self.diffusion.init_prior_mean_variance(self.train_dataloader)
         start_time = time.time()
         if self.threshold_training == False:
             for epoch in range(self.epochs):
