@@ -41,7 +41,7 @@ SAMPLE_MODEL = "best_model.pth"
 NR_SAMPLES = 288
 
 # Training settings
-TRAINING = True
+TRAINING = False
 SMART_SPLIT = False
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False

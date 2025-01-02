@@ -9,6 +9,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.figure
+from matplotlib import cm
 
 def load_images(folder_path: str):
     images = []
@@ -27,6 +28,88 @@ def save_image_list(image_list: list, path: str):
             fig.savefig(os.path.join(path, f"{i}.png"))
     else:
         raise ValueError("Image type not known")
+
+def tensor_jet_to_tesla(image_tensor, max_b_field):
+    """
+    Convert jet colormap tensor to Tesla values, handling white pixels
+
+    Parameters:
+    -----------
+    image_tensor : torch.Tensor
+        Input tensor of shape [C, H, W] or [B, C, H, W]
+    max_b_field : float
+        Maximum magnetic field value
+
+    Returns:
+    --------
+    torch.Tensor
+        Tensor of Tesla values
+    """
+    # Ensure tensor is in the right format
+    if image_tensor.max() > 1:
+        image_tensor = image_tensor / 255.0
+
+    # Create jet colormap lookup table
+    jet_lut = torch.tensor(cm.jet(np.linspace(0, 1, 256))[:, :3], dtype=image_tensor.dtype, device=image_tensor.device)
+
+    # Reshape
+    if image_tensor.ndim == 3:
+        image_tensor = image_tensor.permute(1, 2, 0)
+
+    # Flatten the spatial dimensions
+    image_flat = image_tensor.reshape(-1, 3)
+
+    # Detect white pixels (RGB values all close to 1)
+    white_mask = torch.all(image_flat > 0.95, dim=1)
+
+    # Calculate squared differences for non-white pixels
+    diff = torch.sum((image_flat.unsqueeze(1) - jet_lut) ** 2, dim=2)
+    indices = torch.argmin(diff, dim=1)
+
+    # Convert indices to intensities and then to Tesla values
+    intensities = indices.float() / 255.0
+    tesla_values = intensities * max_b_field
+
+    # Set white pixels to 0 Tesla
+    tesla_values[white_mask] = 0.0
+
+    # Reshape back to original spatial dimensions
+    return tesla_values.reshape(image_tensor.shape[:2]).unsqueeze(-3)
+
+
+def tesla_to_tensor_jet(tesla_values, max_b_field):
+    """
+    Convert Tesla values back to jet colormap RGB tensor
+
+    Parameters:
+    -----------
+    tesla_values : torch.Tensor
+        Input tensor of Tesla values
+    max_b_field : float
+        Maximum magnetic field value
+
+    Returns:
+    --------
+    torch.Tensor
+        RGB tensor with jet colormap values
+    """
+    # Normalize tesla values to [0, 1]
+    intensities = tesla_values / max_b_field
+    # Create jet colormap lookup table
+    jet_lut = torch.tensor(cm.jet(np.linspace(0, 1, 256))[:, :3], dtype=intensities.dtype, device=intensities.device)
+
+    # Convert intensities to indices
+    indices = (intensities * 255).long().clamp(0, 255)
+
+    # Look up RGB values
+    rgb_values = jet_lut[indices]
+
+    # Handle zeros (potentially from white pixels) - set to white
+    white_mask = tesla_values == 0
+    rgb_values[white_mask] = 1.0
+    rgb_values = rgb_values.squeeze(-4)
+
+    return rgb_values.moveaxis(-1, -3)
 
 def extract_dimension_vectors(dimension_dict: dict):
     core_keys = ["hw", "dw", 'dcs']

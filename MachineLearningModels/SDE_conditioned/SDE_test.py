@@ -167,8 +167,7 @@ def sample_save_metrics(
     save_image_list(structure, structure_path)
     save_image_list(colorbar_figures, colorbar_path)
 
-def create_colorbar_plot(image):
-    max_bfield = 8e-3
+def create_colorbar_plot(image, max_bfield):
 
     image_array = np.array(image)
 
@@ -188,7 +187,7 @@ def create_colorbar_plot(image):
 def add_colorbar_to_list(images):
     colorbar_figures = []
     for image in images:
-        fig = create_colorbar_plot(image)
+        fig = create_colorbar_plot(image, 8e-3)
         colorbar_figures.append(fig)
 
     return colorbar_figures
