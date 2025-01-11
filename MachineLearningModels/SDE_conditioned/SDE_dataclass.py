@@ -64,11 +64,9 @@ class LabeledDataset(Dataset):
         self.geometric_max = torch.max(self.geometric_data)
 
         self.geometric_transform = transforms.Compose([
-        transforms.Lambda(lambda t: t / self.geometric_max),
-        transforms.Lambda(lambda t: (t * 2) - 1)
-    ])
-
-
+            transforms.Lambda(lambda t: t / self.geometric_max),
+            transforms.Lambda(lambda t: (t * 2) - 1)
+        ])
 
         if len(self.input_images) != len(self.label_images):
             raise ValueError("Number of input images and label images do not match")
