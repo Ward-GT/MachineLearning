@@ -47,7 +47,7 @@ GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
 LEARN_SIGMA = True
 CLIP_GRAD = False
-VECTOR_CONDITIONING = True
+VECTOR_CONDITIONING = False
 
 # Training parameters
 TEST_SPLIT = 0.7
@@ -66,8 +66,8 @@ EMA = False
 
 # UNet Parameters
 # MODEL_NAME = "UNet"
-MODEL_NAME = "MiddleUNet"
-# MODEL_NAME = "SimpleUNet"
+# MODEL_NAME = "MiddleUNet"
+MODEL_NAME = "SimpleUNet"
 N_BLOCKS = 1
 N_HEADS = 4
 DIM_HEAD = None

@@ -1,6 +1,7 @@
 import torch
 import math
 import torch.nn as nn
+from typing import Optional, Tuple, Union, List
 import torch.nn.functional as F
 
 class Swish(nn.Module):
@@ -8,7 +9,7 @@ class Swish(nn.Module):
         return x * torch.sigmoid(x)
 
 class Block(nn.Module):
-    def __init__(self, in_ch, out_ch, time_emb_dim, up=False):
+    def __init__(self, in_ch, out_ch, time_emb_dim, has_attention, n_heads, dim_head, up=False):
         super().__init__()
         self.time_mlp = nn.Linear(time_emb_dim, out_ch)
         if up:
@@ -20,19 +21,25 @@ class Block(nn.Module):
         self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
         self.bnorm1 = nn.BatchNorm2d(out_ch)
         self.bnorm2 = nn.BatchNorm2d(out_ch)
-        self.relu = nn.ReLU()
+        self.act = Swish()
+        if has_attention:
+            self.attn = AttentionBlock(n_channels=out_ch, n_heads=n_heads, dim_head=dim_head)
+        else:
+            self.attn = nn.Identity()
 
     def forward(self, x, t):
         # First Conv
-        h = self.bnorm1(self.relu(self.conv1(x)))
+        h = self.bnorm1(self.act(self.conv1(x)))
         # Time embedding
-        time_emb = self.relu(self.time_mlp(t))
+        time_emb = self.act(self.time_mlp(t))
         # Extend last 2 dimensions
         time_emb = time_emb[(...,) + (None,) * 2]
         # Add time channel
         h = h + time_emb
         # Second Conv
-        h = self.bnorm2(self.relu(self.conv2(h)))
+        h = self.bnorm2(self.act(self.conv2(h)))
+        # Attention
+        h = self.attn(h)
         # Down or Upsample
         return self.transform(h)
 
@@ -56,11 +63,42 @@ class TimeEmbedding(nn.Module):
         emb = self.lin2(emb)
         return emb
 
+class AttentionBlock(nn.Module):
+    def __init__(self, n_channels: int, n_heads: int = 4, dim_head: int = None, n_groups: int = 32):
+        super().__init__()
+
+        if dim_head is None:
+            dim_head = n_channels
+
+        self.norm = nn.GroupNorm(n_groups, n_channels)
+        self.projection = nn.Linear(n_channels, n_heads * dim_head * 3)
+        self.output = nn.Linear(n_heads * dim_head, n_channels)
+        self.scale = dim_head ** -0.5
+        self.n_heads = n_heads
+        self.dim_head = dim_head
+
+    def forward(self, x: torch.Tensor):
+        batch_size, n_channels, height, width = x.shape
+
+        x = x.reshape(batch_size, n_channels, height*width).permute(0, 2, 1)
+
+        qkv = self.projection(x).reshape(batch_size, height*width, self.n_heads, self.dim_head*3)
+        q, k, v = torch.chunk(qkv, 3, dim=-1)
+
+        attn = torch.einsum('bihd,bjhd->bijh', q, k) * self.scale
+        attn = attn.softmax(dim=2)
+
+        res = torch.einsum('bijh,bjhd->bihd', attn, v)
+        res = res.reshape(batch_size, -1, self.n_heads*self.dim_head)
+        res = self.output(res)
+        res += x
+        return res.permute(0, 2, 1).reshape(batch_size, n_channels, height, width)
+
 class SimpleUNet(nn.Module):
     """
     A simplified variant of the Unet architecture.
     """
-    def __init__(self, n_channels, image_channels=6, out_dim=3):
+    def __init__(self, n_channels, image_channels=6, out_dim=3, is_attn=[False, False, True, True], n_heads=4, dim_head=None):
         super().__init__()
         image_channels = image_channels
         down_channels = (64, 128, 256, 512, 1024)
@@ -74,9 +112,10 @@ class SimpleUNet(nn.Module):
         self.conv0 = nn.Conv2d(image_channels, down_channels[0], 3, padding=1)
 
         # Downsample
-        self.downs = nn.ModuleList([Block(down_channels[i], down_channels[i + 1], time_emb_dim) for i in range(len(down_channels) - 1)])
+        self.downs = nn.ModuleList([Block(down_channels[i], down_channels[i + 1], time_emb_dim, has_attention=is_attn[i], n_heads=n_heads, dim_head=dim_head) for i in range(len(down_channels) - 1)])
         # Upsample
-        self.ups = nn.ModuleList([Block(up_channels[i], up_channels[i + 1], time_emb_dim, up=True) for i in range(len(up_channels) - 1)])
+        is_attn.reverse()
+        self.ups = nn.ModuleList([Block(up_channels[i], up_channels[i + 1], time_emb_dim, up=True, has_attention=is_attn[i], n_heads=n_heads, dim_head=dim_head) for i in range(len(up_channels) - 1)])
 
         # Edit: Corrected a bug found by Jakub C (see YouTube comment)
         self.output = nn.Conv2d(up_channels[-1], out_dim, 1)

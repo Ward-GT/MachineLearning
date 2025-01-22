@@ -20,7 +20,8 @@ def calculate_mape(y_true, y_pred):
 
     # Compute MAPE
     mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
-    return mape
+    maxpe = np.max(np.abs((y_true - y_pred) / y_true)) * 100
+    return mape, maxpe
 
 class TensorStandardScaler:
     def __init__(self):
@@ -178,7 +179,7 @@ def train_model(input_dir, model_params={}):
 
     return model, train_loader, val_loader
 
-input_dir = r"/Data/Bmax.csv"
+input_dir = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data\Bmax.csv"
 
 model, _, val_loader = train_model(input_dir)
 
@@ -191,4 +192,4 @@ with torch.no_grad():
 
 X_batch, y_batch, y_pred = X_batch.cpu(), y_batch.cpu(), y_pred.cpu()
 
-mape = calculate_mape(y_batch, y_pred)
+mape, maxpe = calculate_mape(y_batch, y_pred)
