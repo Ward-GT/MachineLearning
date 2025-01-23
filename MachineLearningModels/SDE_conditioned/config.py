@@ -48,6 +48,7 @@ THRESHOLD_TRAINING = False
 LEARN_SIGMA = True
 CLIP_GRAD = False
 VECTOR_CONDITIONING = False
+MIXED_PRECISION = False
 
 # Training parameters
 TEST_SPLIT = 0.1
@@ -95,7 +96,8 @@ parameters = {
     "attention_resolutions": ATTENTION_RESOLUTIONS,
     "n_channels": N_CHANNELS,
     "clip_grad": CLIP_GRAD,
-    "vector_conditioning": VECTOR_CONDITIONING
+    "vector_conditioning": VECTOR_CONDITIONING,
+    "mixed_precision": MIXED_PRECISION
 }
 
 if TRAINING:

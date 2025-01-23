@@ -8,7 +8,7 @@ from torch import optim
 from tqdm import tqdm
 import logging
 from torch.utils.data import DataLoader
-
+from torch.cuda.amp import autocast, GradScaler
 from SDE_utils import *
 from SDE_tools import DiffusionTools
 from SDE_test import calculate_metrics
@@ -51,6 +51,10 @@ class ModelTrainer:
         self.ema_decay = kwargs.get("ema_decay")
         self.clip_grad = kwargs.get("clip_grad")
         self.vector_conditioning = kwargs.get("vector_conditioning")
+        self.mixed_precision = kwargs.get("mixed_precision", False)
+
+        # Initialize GradScaler for mixed precision training
+        self.scaler = GradScaler() if self.mixed_precision else None
 
         self.train_losses = []
         self.val_losses = []
@@ -74,15 +78,34 @@ class ModelTrainer:
         for i, (images, structures, _, vectors) in enumerate(pbar):
             y = (vectors if self.vector_conditioning else structures)
             t = self.diffusion.sample_timesteps(images.shape[0])
-            losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
-            loss = losses["loss"]
+            # Mixed precision training logic
             self.optimizer.zero_grad()
-            loss.backward()
-            if self.clip_grad:
-                nn.utils.clip_grad_norm_(self.model.parameters(), 1)
-            self.optimizer.step()
 
-            if self.ema == True:
+            if self.mixed_precision:
+                with autocast(dtype=torch.float16):
+                    losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
+                    loss = losses["loss"]
+
+                # Scale loss and perform backward pass
+                self.scaler.scale(loss).backward()
+
+                # Unscale gradients and optimize
+                if self.clip_grad:
+                    self.scaler.unscale_(self.optimizer)
+                    nn.utils.clip_grad_norm_(self.model.parameters(), 1)
+
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+            else:
+                # Standard training if mixed precision is off
+                losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
+                loss = losses["loss"]
+                loss.backward()
+                if self.clip_grad:
+                    nn.utils.clip_grad_norm_(self.model.parameters(), 1)
+                self.optimizer.step()
+
+            if self.ema:
                 self.update_ema()
 
             loss_total += loss.item()
@@ -101,8 +124,14 @@ class ModelTrainer:
             for i, (images, structures, _, vectors) in enumerate(pbar):
                 y = (vectors if self.vector_conditioning else structures)
                 t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
-                losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
-                loss = losses["loss"].mean()
+                # Use autocast for validation if mixed precision is on
+                if self.mixed_precision:
+                    with autocast(dtype=torch.float16):
+                        losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
+                        loss = losses["loss"].mean()
+                else:
+                    losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
+                    loss = losses["loss"].mean()
 
                 pbar.set_postfix(loss=loss.item())
                 loss_total += loss.item()
@@ -141,6 +170,11 @@ class ModelTrainer:
 
     def train(self):
         logging.info(f"Starting training on {self.device}")
+
+        # Mixed precision setup note
+        if self.mixed_precision:
+            logging.info("Mixed precision training enabled")
+
         self.model.to(self.device)
         start_time = time.time()
         if self.threshold_training == False:
