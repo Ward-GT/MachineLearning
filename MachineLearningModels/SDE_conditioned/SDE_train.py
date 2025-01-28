@@ -8,7 +8,7 @@ from torch import optim
 from tqdm import tqdm
 import logging
 from torch.utils.data import DataLoader
-from torch.cuda.amp import autocast, GradScaler
+from torch.amp import autocast, GradScaler
 from SDE_utils import *
 from SDE_tools import DiffusionTools
 from SDE_test import calculate_metrics
@@ -54,7 +54,7 @@ class ModelTrainer:
         self.mixed_precision = kwargs.get("mixed_precision", False)
 
         # Initialize GradScaler for mixed precision training
-        self.scaler = GradScaler() if self.mixed_precision else None
+        self.scaler = GradScaler(device.type) if self.mixed_precision else None
 
         self.train_losses = []
         self.val_losses = []
@@ -82,7 +82,7 @@ class ModelTrainer:
             self.optimizer.zero_grad()
 
             if self.mixed_precision:
-                with autocast(dtype=torch.float16):
+                with autocast(self.device.type, dtype=torch.float16):
                     losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
                     loss = losses["loss"]
 
@@ -126,7 +126,7 @@ class ModelTrainer:
                 t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
                 # Use autocast for validation if mixed precision is on
                 if self.mixed_precision:
-                    with autocast(dtype=torch.float16):
+                    with autocast(self.device.type, dtype=torch.float16):
                         losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
                         loss = losses["loss"].mean()
                 else:
