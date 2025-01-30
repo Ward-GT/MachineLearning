@@ -2,6 +2,7 @@ import math
 from models.SR3_UNet import UNet
 from models.SDE_UNet import MiddleUNet
 from models.SDE_SimpleUNet import SimpleUNet
+from models.SDE_SmallUNet import SmallUNet
 from SDE_tools import DiffusionTools
 
 def create_model_diffusion(device, **kwargs):
@@ -48,13 +49,13 @@ def create_model(
             out_dim=(3 if not learn_sigma else 6)
         ).to(device)
 
-    elif model_name == "UNet":
+    elif model_name == "UNet" or model_name == "SmallUNet":
         if image_size == 256:
             channel_mult = [1, 1, 2, 2, 4, 4]
         elif image_size == 128:
             channel_mult = [1, 2, 2, 3, 4]
         elif image_size == 64:
-            channel_mult = (1, 2, 3, 4)
+            channel_mult = [1, 2, 3, 4]
         else:
             raise ValueError(f"Unsupported image size: {image_size}")
 
@@ -67,17 +68,28 @@ def create_model(
 
         for res in attention_ds:
             is_attn[int(math.log2(res))] = True
-
-        return UNet(
-            input_channels=6,
-            output_channels=(3 if not learn_sigma else 6),
-            n_channels=n_channels,
-            ch_mults=channel_mult,
-            is_attn=is_attn,
-            n_blocks=n_blocks,
-            n_heads=n_heads,
-            dim_head=dim_head
-        ).to(device)
+        if model_name == "UNet":
+            return UNet(
+                input_channels=6,
+                output_channels=(3 if not learn_sigma else 6),
+                n_channels=n_channels,
+                ch_mults=channel_mult,
+                is_attn=is_attn,
+                n_blocks=n_blocks,
+                n_heads=n_heads,
+                dim_head=dim_head
+            ).to(device)
+        elif model_name == "SmallUNet":
+            return SmallUNet(
+                input_channels=6,
+                output_channels=(3 if not learn_sigma else 6),
+                n_channels=n_channels,
+                ch_mults=channel_mult,
+                is_attn=is_attn,
+                n_blocks=n_blocks,
+                n_heads=n_heads,
+                dim_head=dim_head
+            ).to(device)
 
     elif model_name == "MiddleUNet":
         return MiddleUNet(

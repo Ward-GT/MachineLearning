@@ -4,6 +4,7 @@ import torch
 from tensorboard.compat.tensorflow_stub.tensor_shape import vector
 from torchvision.io import read_image
 from models.SDE_SimpleUNet import SimpleUNet
+from models.SDE_SmallUNet import SmallUNet
 
 from SDE_datareduction import get_test_data, get_data
 from SDE_dataclass import LabeledDataset
@@ -31,6 +32,14 @@ from SDE_test import mae, count_parameters
 
 # error = mae(image_tensor.numpy(), converted_image.numpy())
 
-model = SimpleUNet(n_channels=64, image_channels=6, out_dim=6)
+model = SmallUNet(
+            input_channels=6,
+            output_channels=6,
+            n_channels=64,
+            ch_mults=[1, 2, 2, 3, 4],
+            is_attn=[False, True, True, False, False],
+            n_blocks=1,
+            n_heads=4,
+            dim_head=None)
 parameters = count_parameters(model)
 
