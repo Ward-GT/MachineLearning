@@ -152,7 +152,7 @@ class ModelTrainer:
         test_images = tensor_to_PIL(test_images)
         sampled_images = tensor_to_PIL(sampled_images)
         structures = tensor_to_PIL(test_structures)
-        ssim, _, _, _, mae = calculate_metrics(sampled_images, test_images)
+        ssim, _, mae, _ = calculate_metrics(sampled_images, test_images)
         save_images(reference_images=test_images, generated_images=sampled_images,
                     structure_images=structures, path=os.path.join(self.image_path, f"{epoch}.jpg"))
         return np.mean(ssim), np.mean(mae)

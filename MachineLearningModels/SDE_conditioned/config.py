@@ -191,7 +191,12 @@ if TRAINING:
             model = trainer.ema_model
         else:
             model.load_state_dict(trainer.best_model_checkpoint)
-        references_list, generated_list, structures_list = sample_save_metrics(model=model, device=DEVICE, sampler=trainer.diffusion, n=(len(test_dataloader)-1) * BATCH_SIZE, test_dataloader=test_dataloader, result_path=RESULT_PATH, **parameters)
+        sample_save_metrics(model=model,
+                            device=DEVICE,
+                            sampler=trainer.diffusion,
+                            n=(len(test_dataloader)-1) * BATCH_SIZE,
+                            test_dataloader=test_dataloader,
+                            result_path=RESULT_PATH, **parameters)
 
 if TESTING:
     PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.json')
@@ -206,8 +211,8 @@ if TESTING:
         structure_images = load_images(STRUCTURE_PATH)
         reference_images = load_images(REFERENCE_PATH)
         sampled_images = load_images(SAMPLE_PATH)
-        ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(reference_images[0:1], sampled_images[0:1])
-        print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}")
+        ssim_values, psnr_values, mae_values, max_error_values = calculate_metrics(reference_images[0:1], sampled_images[0:1])
+        print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, Max Error: {np.max(max_error_values)}")
 
     if SAMPLE_METRICS == True:
         with open(PARAMETER_PATH, "r") as f:

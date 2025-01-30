@@ -86,7 +86,8 @@ def mae_effective_area(imageA, imageB, threshold=254):
 
 def mae(imageA, imageB):
     mae = np.mean(np.abs(np.subtract(imageA.astype(np.float32), imageB.astype(np.float32))))/255
-    return mae
+    max_error = np.max(np.abs(np.subtract(imageA.astype(np.float32), imageB.astype(np.float32))))/255
+    return mae, max_error
 
 def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Image]):
 
@@ -95,19 +96,17 @@ def calculate_metrics(image_set1: list[Image.Image], image_set2: list[Image.Imag
 
     ssim_values = []
     psnr_values = []
-    mse_mean_values = []
-    mse_max_values = []
     mae_values = []
+    max_error_values = []
 
     for i in range(len(image_set1)):
         ssim_values.append(ssim(np.array(image_set1[i]), np.array(image_set2[i]), channel_axis=-1, multichannel=True))
         psnr_values.append(psnr(np.array(image_set1[i]), np.array(image_set2[i]), data_range=np.array(image_set1[i]).max() - np.array(image_set1[i]).min()))
-        mae_values.append(mae_effective_area(np.array(image_set1[i]), np.array(image_set2[i])))
-        mse_mean, mse_max = mse(np.array(image_set1[i]), np.array(image_set2[i]))
-        mse_mean_values.append(mse_mean)
-        mse_max_values.append(mse_max)
+        mae, max_error = mae_effective_area(np.array(image_set1[i]), np.array(image_set2[i]))
+        mae_values.append(mae)
+        max_error_values.append(max_error)
 
-    return ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values
+    return ssim_values, psnr_values, mae_values, max_error_values
 
 def sample_save_metrics(
         model: torch.nn.Module,
@@ -156,9 +155,9 @@ def sample_save_metrics(
 
     references, samples, structure = sample_model_output(model=model, device=device, sampler=sampler, n=n, dataloader=dataloader, batch_size=batch_size, vector_conditioning=vector_conditioning)
 
-    ssim_values, psnr_values, mse_mean_values, mse_max_values, mae_values = calculate_metrics(references, samples)
+    ssim_values, psnr_values, mae_values, max_error_values = calculate_metrics(references, samples)
 
-    print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, MSE Mean: {np.mean(mse_mean_values)}, MSE Max: {np.mean(mse_max_values)}, Parameters: {parameter_count}")
+    print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, Max Error: {np.max(max_error_values)}, Parameters: {parameter_count}")
 
     colorbar_figures = add_colorbar_to_list(samples)
 
