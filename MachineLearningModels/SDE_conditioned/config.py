@@ -16,9 +16,9 @@ DEFAULT_SEED = 42
 BASE_OUTPUT = "results"
 # BASE_OUTPUT = r"E:\Ward Taborsky\results"
 
-BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
+# BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
 # BASE_INPUT = r"E:\Ward Taborsky"
-# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
@@ -54,8 +54,8 @@ MIXED_PRECISION = True
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 16
-IMAGE_SIZE = 64
+BATCH_SIZE = 32
+IMAGE_SIZE = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
 THRESHOLD = 0.01

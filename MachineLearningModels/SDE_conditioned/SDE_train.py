@@ -8,7 +8,7 @@ from torch import optim
 from tqdm import tqdm
 import logging
 from torch.utils.data import DataLoader
-from torch.amp import autocast, GradScaler
+from torch.cuda.amp import autocast, GradScaler
 from SDE_utils import *
 from SDE_tools import DiffusionTools
 from SDE_test import calculate_metrics
