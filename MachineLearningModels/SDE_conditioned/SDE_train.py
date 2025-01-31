@@ -82,7 +82,7 @@ class ModelTrainer:
             self.optimizer.zero_grad()
 
             if self.mixed_precision:
-                with autocast(self.device.type, dtype=torch.float16):
+                with autocast(device_type=self.device.type, enabled=True, dtype=torch.float16):
                     losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
                     loss = losses["loss"]
 
@@ -126,7 +126,7 @@ class ModelTrainer:
                 t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
                 # Use autocast for validation if mixed precision is on
                 if self.mixed_precision:
-                    with autocast(self.device.type, dtype=torch.float16):
+                    with autocast(device_type=self.device.type, enabled=True, dtype=torch.float16):
                         losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
                         loss = losses["loss"].mean()
                 else:
