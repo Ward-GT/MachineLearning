@@ -13,8 +13,8 @@ from script_util import create_model_diffusion
 DEFAULT_SEED = 42
 
 # Base Paths
-BASE_OUTPUT = "results"
-# BASE_OUTPUT = r"E:\Ward Taborsky\results"
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__)) #TODO Fix TEMPDIR for running on HPC
+BASE_OUTPUT = os.path.join(SCRIPT_DIR, "results")
 
 BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
 # BASE_INPUT = r"E:\Ward Taborsky"
@@ -25,7 +25,6 @@ BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
 DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
-# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined_small")
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 
@@ -151,9 +150,9 @@ if TRAINING:
         torch.save(trainer.ema_model.state_dict(), os.path.join(MODEL_PATH, "ema_model.pth"))
 
     max_ssim = max(trainer.ssim_values)
-    print(f"Max SSIM: {max_ssim}, At place: {5 * np.argmax(trainer.ssim_values)}")
+    print(f"Max SSIM: {max_ssim}, At place: {5 * np.argmax(trainer.ssim_values)+4}")
     min_mae = min(trainer.mae_values)
-    print(f"Min MAE: {min_mae}, At place: {5 * np.argmin(trainer.mae_values)}")
+    print(f"Min MAE: {min_mae}, At place: {5 * np.argmin(trainer.mae_values)+4}")
     print(f"Best Model Epoch: {trainer.best_model_epoch}")
 
     np.savez(os.path.join(RESULT_PATH, "train_losses.npz"), losses=trainer.train_losses)
