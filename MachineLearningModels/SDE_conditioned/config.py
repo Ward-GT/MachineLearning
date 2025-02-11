@@ -14,11 +14,11 @@ DEFAULT_SEED = 42
 
 # Base Paths
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__)) #TODO Fix TEMPDIR for running on HPC
-BASE_OUTPUT = os.path.join(SCRIPT_DIR, "results")
 
-BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
-# BASE_INPUT = r"E:\Ward Taborsky"
-# BASE_INPUT = r"/home/tue/20234635/MachineLearningGit/MachineLearningModels/data"
+BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
+
+# BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
+BASE_INPUT = os.path.join(SCRIPT_DIR, "data")
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
@@ -40,7 +40,7 @@ SAMPLE_MODEL = "best_model.pth"
 NR_SAMPLES = 288
 
 # Training settings
-TRAINING = False
+TRAINING = True
 SMART_SPLIT = False
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
