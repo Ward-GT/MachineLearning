@@ -13,19 +13,20 @@ from script_util import create_model_diffusion
 DEFAULT_SEED = 42
 
 # Base Paths
-SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__)) #TODO Fix TEMPDIR for running on HPC
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+print(f"Script Dir {SCRIPT_DIR}")
+BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
+# BASE_OUTPUT = "results"
 
-# BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
-BASE_OUTPUT = "results"
-
-BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
-# BASE_INPUT = os.path.join(SCRIPT_DIR, "data")
+# BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data"
+BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
 DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 
@@ -41,7 +42,7 @@ SAMPLE_MODEL = "best_model.pth"
 NR_SAMPLES = 288
 
 # Training settings
-TRAINING = False
+TRAINING = True
 SMART_SPLIT = False
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
@@ -54,7 +55,7 @@ MIXED_PRECISION = True
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 IMAGE_SIZE = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
