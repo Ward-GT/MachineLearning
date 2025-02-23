@@ -74,10 +74,12 @@ class ModelTrainer:
         loss_total = 0
         self.model.train()
         pbar = tqdm(self.train_dataloader)
-
+        data_start_time = time.time()
         for i, (images, structures, _, vectors) in enumerate(pbar):
+            data_end_time = time.time()
             y = (vectors if self.vector_conditioning else structures)
             t = self.diffusion.sample_timesteps(images.shape[0])
+            train_start_time = time.time()
             # Mixed precision training logic
             self.optimizer.zero_grad()
 
@@ -108,8 +110,15 @@ class ModelTrainer:
             if self.ema:
                 self.update_ema()
 
+            train_end_time = time.time()
+
             loss_total += loss.item()
             pbar.set_postfix(Loss=loss.item())
+
+            data_time = data_start_time - data_end_time
+            train_time = train_start_time - train_end_time
+            logging.info(f"Data time: f{data_time}, Train time: {train_time}")
+            data_start_time = time.time()
 
         average_loss = loss_total / len(self.train_dataloader)
         self.train_losses.append(average_loss)
