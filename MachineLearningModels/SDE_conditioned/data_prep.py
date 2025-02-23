@@ -117,7 +117,7 @@ def sample_files(input_folder1, input_folder2, output_folder1, output_folder2, o
         shutil.copy(os.path.join(input_folder1, files[index]), output_folder1)
         shutil.copy(os.path.join(input_folder2, files[index]), output_folder2)
 
-path = r"C:\Users\tabor\Documents\TU Eindhoven\Bachelor\Jaar 4\BEP\Data\figure_B_fixrange"
+path = r"C:\Users\tabor\Documents\TU Eindhoven\Bachelor\Jaar 4\BEP\Data\figure_B_maxrange_5000"
 output_path = os.path.join(path, "Output")
 structure_path = os.path.join(path, "Structure")
 
