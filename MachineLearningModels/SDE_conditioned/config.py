@@ -25,8 +25,8 @@ BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
-DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
-# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
+DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 
@@ -55,7 +55,7 @@ MIXED_PRECISION = True
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 32
+BATCH_SIZE = 128
 IMAGE_SIZE = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
@@ -67,9 +67,9 @@ NOISE_STEPS = 1000
 EMA = False
 
 # UNet Parameters
-# MODEL_NAME = "UNet"
+MODEL_NAME = "UNet"
 # MODEL_NAME = "MiddleUNet"
-MODEL_NAME = "SmallUNet"
+# MODEL_NAME = "SmallUNet"
 # MODEL_NAME = "SimpleUNet"
 N_BLOCKS = 2
 N_HEADS = 4
