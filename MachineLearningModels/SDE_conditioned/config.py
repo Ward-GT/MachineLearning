@@ -27,6 +27,7 @@ BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
 DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
+
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 
@@ -37,7 +38,7 @@ PIN_MEMORY = True if DEVICE == "cuda" else False
 TESTING = False
 CALCULATE_METRICS = False
 SAMPLE_METRICS = True
-TEST_PATH = r"C:\Users\tabor\Documents\TU Eindhoven\Bachelor\Jaar 4\BEP\Results\Results_journal\MiddleUNet_nblocks_2_noisesteps_250_smartsplit_False_1 - Copy"
+TEST_PATH = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/UNet_nblocks_2_noisesteps_1000_smartsplit_False_1/"
 SAMPLE_MODEL = "best_model.pth"
 NR_SAMPLES = 288
 
@@ -55,7 +56,7 @@ MIXED_PRECISION = True
 TEST_SPLIT = 0.1
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
-BATCH_SIZE = 128
+BATCH_SIZE = 32
 IMAGE_SIZE = 128
 INIT_LR = 0.00002
 WEIGHT_DECAY = 0.001
