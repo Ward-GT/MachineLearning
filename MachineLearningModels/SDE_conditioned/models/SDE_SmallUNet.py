@@ -32,10 +32,11 @@ class ResidualBlock(nn.Module):
         super().__init__()
         self.norm1 = nn.GroupNorm(n_groups, in_channels)
         self.act1 = Swish()
-        self.DWconv = nn.Conv2d(in_channels, in_channels, kernel_size=(3,3), padding=(1,1), groups=in_channels)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), padding=(1, 1))
+        self.DWconv = nn.Conv2d(out_channels, out_channels, kernel_size=(3,3), padding=(1,1), groups=out_channels)
         self.norm2 = nn.GroupNorm(n_groups, in_channels)
         self.act2 = Swish()
-        self.PWconv = nn.Conv2d(in_channels, out_channels, kernel_size=(1,1), stride=(1,1))
+        self.PWconv = nn.Conv2d(out_channels, out_channels, kernel_size=(1,1), stride=(1,1))
 
         if in_channels != out_channels:
             self.skip = nn.Conv2d(in_channels, out_channels, kernel_size=(1,1))
@@ -47,9 +48,9 @@ class ResidualBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x: torch.Tensor, t: torch.Tensor):
-        h = self.DWconv(self.act1(self.norm1(x)))
+        h = self.conv1(self.act1(self.norm1(x)))
         h += self.time_emb(self.time_act(t))[:, :, None, None]
-        h = self.PWconv(self.dropout(self.act2(self.norm2(h))))
+        h = self.PWconv(self.dropout(self.act2(self.norm2(self.DWconv(h)))))
         return h + self.skip(x)
 
 class AttentionBlock(nn.Module):
