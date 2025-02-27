@@ -43,7 +43,7 @@ class ResidualBlock(nn.Module):
         else:
             self.skip = nn.Identity()
 
-        self.time_emb = nn.Linear(time_channels, in_channels)
+        self.time_emb = nn.Linear(time_channels, out_channels)
         self.time_act = Swish()
         self.dropout = nn.Dropout(dropout)
 
