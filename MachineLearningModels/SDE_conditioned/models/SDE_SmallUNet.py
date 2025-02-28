@@ -34,7 +34,7 @@ class ResidualBlock(nn.Module):
         self.act1 = Swish()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), padding=(1, 1))
         self.DWconv = nn.Conv2d(out_channels, out_channels, kernel_size=(3,3), padding=(1,1), groups=out_channels)
-        self.norm2 = nn.GroupNorm(n_groups, in_channels)
+        self.norm2 = nn.GroupNorm(n_groups, out_channels)
         self.act2 = Swish()
         self.PWconv = nn.Conv2d(out_channels, out_channels, kernel_size=(1,1), stride=(1,1))
 

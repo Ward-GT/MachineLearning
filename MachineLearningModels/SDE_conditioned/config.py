@@ -43,7 +43,7 @@ SAMPLE_MODEL = "best_model.pth"
 NR_SAMPLES = 288
 
 # Training settings
-TRAINING = False
+TRAINING = True
 SMART_SPLIT = False
 GENERATE_IMAGES = True
 THRESHOLD_TRAINING = False
@@ -68,9 +68,9 @@ NOISE_STEPS = 1000
 EMA = False
 
 # UNet Parameters
-MODEL_NAME = "UNet"
+# MODEL_NAME = "UNet"
 # MODEL_NAME = "MiddleUNet"
-# MODEL_NAME = "SmallUNet"
+MODEL_NAME = "SmallUNet"
 # MODEL_NAME = "SimpleUNet"
 N_BLOCKS = 2
 N_HEADS = 4
