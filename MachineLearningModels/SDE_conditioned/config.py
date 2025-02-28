@@ -2,6 +2,7 @@ import torch
 import os
 import json
 import numpy as np
+import random
 from torch import optim
 from matplotlib import pyplot as plt
 from SDE_train import ModelTrainer
@@ -104,10 +105,14 @@ parameters = {
 }
 
 if TRAINING:
-    run_inst = 0
+    # Generate a 4-digit random job ID
+    run_inst = random.randint(1000, 9999)  # Generates a random integer between 1000 and 9999 inclusive
+
     RUN_NAME = f"{MODEL_NAME}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_smartsplit_{SMART_SPLIT}_{run_inst}"
+
+    # Check for existing run names and increment if needed (but now by generating a new random id)
     while os.path.exists(os.path.join(BASE_OUTPUT, RUN_NAME)):
-        run_inst += 1
+        run_inst = random.randint(1000, 9999) #generate a new random ID
         RUN_NAME = f"{MODEL_NAME}_nblocks_{N_BLOCKS}_noisesteps_{NOISE_STEPS}_smartsplit_{SMART_SPLIT}_{run_inst}"
 
     # Output paths
