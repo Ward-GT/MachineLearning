@@ -169,9 +169,9 @@ def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: 
         else:
             train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
 
-        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=os.cpu_count())
-        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=os.cpu_count())
-        test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=os.cpu_count())
+        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=2)
+        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=2)
+        test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=2)
 
         if result_path is not None:
             torch.save(train_dataset.indices, os.path.join(result_path, "train_indices.pth"))
@@ -196,6 +196,6 @@ def get_test_data(test_path: str, image_size: int, batch_size: int, image_datase
     print(f"Loaded {len(test_indices)} test indices")
     test_subset = Subset(dataset, test_indices)
     print(f"Made subset with {len(test_subset)} images")
-    test_dataloader = DataLoader(test_subset, batch_size=batch_size, pin_memory=True, num_workers=os.cpu_count())
+    test_dataloader = DataLoader(test_subset, batch_size=batch_size, pin_memory=True, num_workers=2)
 
     return test_dataloader

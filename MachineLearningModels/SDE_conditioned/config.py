@@ -79,6 +79,7 @@ DIM_HEAD = None
 ATTENTION_RESOLUTIONS = "32,16"
 N_CHANNELS = 64
 
+#TODO Use if __main__ == __name__ to make distinction between import and function
 parameters = {
     "model_name": MODEL_NAME,
     "smart_split": SMART_SPLIT,
