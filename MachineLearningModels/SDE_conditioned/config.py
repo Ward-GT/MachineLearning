@@ -37,9 +37,9 @@ PIN_MEMORY = True if DEVICE == "cuda" else False
 
 # Test settings
 TESTING = False
-CALCULATE_METRICS = False
-SAMPLE_METRICS = True
-TEST_PATH = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/UNet_nblocks_2_noisesteps_1000_smartsplit_False_1/"
+CALCULATE_METRICS = True
+SAMPLE_METRICS = False
+TEST_PATH = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/UNet_nblocks_2_noisesteps_250_smartsplit_False_8793/"
 SAMPLE_MODEL = "best_model.pth"
 NR_SAMPLES = 288
 
@@ -54,7 +54,7 @@ VECTOR_CONDITIONING = False
 MIXED_PRECISION = True
 
 # Training parameters
-TEST_SPLIT = 0.1
+TEST_SPLIT = 0.6
 VALIDATION_SPLIT = 0.1
 EPOCHS = 1000
 BATCH_SIZE = 32
@@ -65,7 +65,7 @@ THRESHOLD = 0.01
 EMA_DECAY = 0.9999
 
 # Sampling parameters
-NOISE_STEPS = 1000
+NOISE_STEPS = 250
 EMA = False
 
 # UNet Parameters
@@ -105,7 +105,7 @@ parameters = {
     "mixed_precision": MIXED_PRECISION
 }
 
-if TRAINING:
+if TRAINING is True and TESTING is not True:
     # Generate a 4-digit random job ID
     run_inst = random.randint(1000, 9999)  # Generates a random integer between 1000 and 9999 inclusive
 
@@ -220,7 +220,7 @@ if TESTING:
         structure_images = load_images(STRUCTURE_PATH)
         reference_images = load_images(REFERENCE_PATH)
         sampled_images = load_images(SAMPLE_PATH)
-        ssim_values, psnr_values, mae_values, max_error_values = calculate_metrics(reference_images[0:1], sampled_images[0:1])
+        ssim_values, psnr_values, mae_values, max_error_values = calculate_metrics(reference_images, sampled_images)
         print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, Max Error: {np.max(max_error_values)}")
 
     if SAMPLE_METRICS == True:
