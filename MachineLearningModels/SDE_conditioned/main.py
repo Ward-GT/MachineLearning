@@ -181,16 +181,25 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    # test_splits = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-    #
-    # for test_split in test_splits:
-    #     with open('config.json', "r", encoding="utf-8") as f:
-    #         config = json.load(f)
-    #
-    #     config['test_split'] = test_split
-    #
-    #     with open('config.json', "w", encoding="utf-8") as f:
-    #         json.dump(config, f, indent=4)
-    #
-    #     main()
+    test_splits = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+
+    for test_split in test_splits:
+        with open('config.json', "r+", encoding="utf-8") as file:
+            config = json.load(file)
+            config['test_split'] = test_split
+            config['smart_split'] = False
+            file.seek(0)
+            json.dump(config, file, indent=4)
+            file.truncate()
+
+        main()
+
+        with open('config.json', "r+", encoding="utf-8") as file:
+            config = json.load(file)
+            config['test_split'] = test_split
+            config['smart_split'] = True
+            file.seek(0)
+            json.dump(config, file, indent=4)
+            file.truncate()
+
+        main()
