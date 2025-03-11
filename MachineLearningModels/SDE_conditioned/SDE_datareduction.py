@@ -1,5 +1,6 @@
 import os
 import random
+import platform
 import numpy as np
 import matplotlib.pyplot as plt
 from SDE_dataclass import LabeledDataset
@@ -151,6 +152,11 @@ def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: 
     smart_split = kwargs.get("smart_split")
     batch_size = kwargs.get("batch_size")
 
+    if platform.system() == "Windows":
+        num_workers = 0
+    else:
+        num_workers = 2
+
     data_transform = transforms.Compose([
         transforms.Resize((image_size, image_size)),
         transforms.Lambda(lambda t: t / 255.0),
@@ -169,9 +175,9 @@ def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: 
         else:
             train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
 
-        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=2)
-        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=2)
-        test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=2)
+        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=num_workers)
+        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=num_workers)
+        test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=num_workers)
 
         if result_path is not None:
             torch.save(train_dataset.indices, os.path.join(result_path, "train_indices.pth"))
@@ -180,7 +186,7 @@ def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: 
 
         return train_dataloader, val_dataloader, test_dataloader, train_dataset, val_dataset, test_dataset
     else:
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=num_workers)
         return dataloader, dataset, -1, -1, -1, -1
 
 def get_test_data(test_path: str, image_size: int, batch_size: int, image_dataset_path: str, structure_dataset_path: str):
@@ -190,12 +196,17 @@ def get_test_data(test_path: str, image_size: int, batch_size: int, image_datase
         transforms.Lambda(lambda t: (t * 2) - 1)
     ])
 
+    if platform.system() == "Windows":
+        num_workers = 0
+    else:
+        num_workers = 2
+
     dataset = LabeledDataset(image_dataset_path, structure_dataset_path, transform=data_transform)
 
     test_indices = torch.load(test_path)
     print(f"Loaded {len(test_indices)} test indices")
     test_subset = Subset(dataset, test_indices)
     print(f"Made subset with {len(test_subset)} images")
-    test_dataloader = DataLoader(test_subset, batch_size=batch_size, pin_memory=True, num_workers=2)
+    test_dataloader = DataLoader(test_subset, batch_size=batch_size, pin_memory=True, num_workers=num_workers)
 
     return test_dataloader

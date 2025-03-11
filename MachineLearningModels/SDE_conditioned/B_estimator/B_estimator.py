@@ -179,7 +179,7 @@ def train_model(input_dir, model_params={}):
 
     return model, train_loader, val_loader
 
-input_dir = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data\Bmax.csv"
+input_dir = r"/data\Bmax.csv"
 
 model, _, val_loader = train_model(input_dir)
 

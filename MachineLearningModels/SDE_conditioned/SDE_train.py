@@ -28,7 +28,6 @@ class ModelTrainer:
             val_dataloader: DataLoader,
             test_dataloader: DataLoader,
             diffusion: DiffusionTools,
-            ema: bool = True,
             **kwargs
     ):
         super().__init__()
@@ -42,7 +41,7 @@ class ModelTrainer:
         self.device = device
         self.mse = nn.MSELoss()
         self.nr_samples = 5
-        self.ema = ema
+        self.ema = kwargs.get("ema")
         self.epochs = kwargs.get("epochs")
         self.image_path = image_path
         self.model_path = model_path
@@ -117,8 +116,8 @@ class ModelTrainer:
             loss_total += loss.item()
             pbar.set_postfix(Loss=loss.item())
 
-            data_time += (data_start_time - data_end_time)
-            train_time += (train_start_time - train_end_time)
+            data_time += (data_end_time - data_start_time)
+            train_time += (train_end_time - train_start_time)
             data_start_time = time.time()
 
         average_loss = loss_total / len(self.train_dataloader)

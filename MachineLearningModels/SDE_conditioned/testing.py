@@ -9,7 +9,7 @@ from script_util import create_model_diffusion
 
 from SDE_datareduction import get_test_data, get_data
 from SDE_dataclass import LabeledDataset
-from config import IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH, parameters
+from main import IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH, config
 from SDE_test import forward_process_image
 from torch.utils.data import DataLoader, Subset
 from SDE_utils import *
@@ -25,13 +25,13 @@ from SDE_test import mae, count_parameters
 #
 # dataset = LabeledDataset(IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH)
 # converted_image = tesla_to_tensor_jet(image_tensor_b, 8e-3)*255
-# image_path = r"C:\Users\tabor\Documents\Programming\MachineLearning\Data\figure_B_fixrange\Output\hw1_0.1_hw2_0.11_dww_ii_x_0.002_dww_oo_x_0.002_dww_x_0.05_lcore_x1_IW_0.01_dcs_0.04_hw_0.165_dw_0.195.png"
+# image_path = r"C:\Users\tabor\Documents\Programming\MachineLearning\data\figure_B_fixrange\Output\hw1_0.1_hw2_0.11_dww_ii_x_0.002_dww_oo_x_0.002_dww_x_0.05_lcore_x1_IW_0.01_dcs_0.04_hw_0.165_dw_0.195.png"
 #
 # image_tensor = read_image(image_path)
 # image_tensor_b = tensor_jet_to_tesla(image_tensor, 8e-3)
 
 # error = mae(image_tensor.numpy(), converted_image.numpy())
 
-model, _ = create_model_diffusion("cpu", **parameters)
+model, _ = create_model_diffusion("cpu", **config)
 parameters = count_parameters(model)
 

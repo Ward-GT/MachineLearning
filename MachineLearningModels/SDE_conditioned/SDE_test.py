@@ -118,7 +118,6 @@ def sample_save_metrics(
         result_path: str = None,
         test_dataloader: DataLoader = None,
         batch_size_set: int = None,
-        n: int = 200,
         **kwargs
 ):
 
@@ -137,10 +136,10 @@ def sample_save_metrics(
         print("Using test data")
         image_path = os.path.join(test_path, "images")
         test_dataset_path = os.path.join(test_path, "test_indices.pth")
-
         dataloader = get_test_data(test_path=test_dataset_path, image_size=image_size, batch_size=batch_size,
                                    image_dataset_path=image_dataset_path, structure_dataset_path=structure_dataset_path)
 
+    n = (len(dataloader)-1) * batch_size
     sample_path = os.path.join(image_path, "Samples")
     reference_path = os.path.join(image_path, "References")
     structure_path = os.path.join(image_path, "Structures")
