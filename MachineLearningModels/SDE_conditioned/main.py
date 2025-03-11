@@ -25,9 +25,9 @@ BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
-DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
-# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
+DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
 
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     test_splits = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 
     for test_split in test_splits:
-        with open('config.json', "r+", encoding="utf-8") as file:
+        with open("config.json", "r+", encoding="utf-8") as file:
             config = json.load(file)
             config['test_split'] = test_split
             config['smart_split'] = False
@@ -194,7 +194,7 @@ if __name__ == "__main__":
 
         main()
 
-        with open('config.json', "r+", encoding="utf-8") as file:
+        with open("config.json", "r+", encoding="utf-8") as file:
             config = json.load(file)
             config['test_split'] = test_split
             config['smart_split'] = True
