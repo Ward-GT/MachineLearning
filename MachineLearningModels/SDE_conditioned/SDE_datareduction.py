@@ -145,17 +145,22 @@ def smart_data_split(dataset, train_size: int, val_size: int, test_size: int, op
 
     return train_dataset, val_dataset, test_dataset
 
+def check_platform_num_workers():
+    if platform.system() == "Windows":
+        num_workers = 0
+    else:
+        num_workers = 2
+
+    print(f"Num workers: {num_workers}")
+    return num_workers
+
 def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: str = None, split: bool = True, **kwargs):
     image_size = kwargs.get("image_size")
     test_split = kwargs.get("test_split")
     validation_split = kwargs.get("validation_split")
     smart_split = kwargs.get("smart_split")
     batch_size = kwargs.get("batch_size")
-
-    if platform.system() == "Windows":
-        num_workers = 0
-    else:
-        num_workers = 2
+    num_workers = check_platform_num_workers()
 
     data_transform = transforms.Compose([
         transforms.Resize((image_size, image_size)),
@@ -196,10 +201,7 @@ def get_test_data(test_path: str, image_size: int, batch_size: int, image_datase
         transforms.Lambda(lambda t: (t * 2) - 1)
     ])
 
-    if platform.system() == "Windows":
-        num_workers = 0
-    else:
-        num_workers = 2
+    num_workers = check_platform_num_workers()
 
     dataset = LabeledDataset(image_dataset_path, structure_dataset_path, transform=data_transform)
 
