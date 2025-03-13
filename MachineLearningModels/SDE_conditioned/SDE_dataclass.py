@@ -55,13 +55,15 @@ class LabeledDataset(Dataset):
         self.input_images = sorted(os.listdir(input_dir))
         self.label_images = self.input_images # os.listdir(label_dir)
 
-        self.geometric_data = torch.tensor([])
+        self.dimension_tensors = torch.tensor([])
+        self.dimension_dicts = []
         for image in self.input_images:
-            _, vector = extract_dimensions_from_filename(image)
-            self.geometric_data = torch.cat((self.geometric_data, vector), dim=0)
+            dimension_dict, dimension_tensor = extract_dimensions_from_filename(image)
+            self.dimension_tensors = torch.cat((self.dimension_tensors, dimension_tensor), dim=0)
+            self.dimension_dicts.append(dimension_dict)
 
-        self.geometric_min = torch.min(self.geometric_data)
-        self.geometric_max = torch.max(self.geometric_data)
+        self.geometric_min = torch.min(self.dimension_tensors)
+        self.geometric_max = torch.max(self.dimension_tensors)
 
         self.geometric_transform = transforms.Compose([
             transforms.Lambda(lambda t: t / self.geometric_max),
@@ -80,8 +82,8 @@ class LabeledDataset(Dataset):
 
         input_image_path = os.path.join(self.input_dir, self.input_images[idx])
         label_image_path = os.path.join(self.label_dir, self.label_images[idx])
-        dimensions_dict, dimensions_tens = extract_dimensions_from_filename(self.input_images[idx])
-        dimensions_tens = self.geometric_transform(dimensions_tens)
+        dimensions_dict = self.dimension_dicts[idx]
+        dimensions_tens = self.geometric_transform(self.dimension_tensors[idx])
         input_image = read_image(input_image_path)
         label_image = read_image(label_image_path)
 
