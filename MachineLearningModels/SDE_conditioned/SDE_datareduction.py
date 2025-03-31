@@ -171,7 +171,8 @@ def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: 
     dataset = LabeledDataset(image_dataset_path, structure_dataset_path, transform=data_transform)
 
     if split == True:
-        train_size = int((1 - test_split - validation_split) * len(dataset))
+        train_split = round(1 - (test_split + validation_split), 2)
+        train_size = int((train_split) * len(dataset))
         val_size = int(validation_split * len(dataset))
         test_size = int(test_split * len(dataset))
 
