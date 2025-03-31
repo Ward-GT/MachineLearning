@@ -5,4 +5,4 @@ saved_models
 results
 runs
 __pycache__
-.sh
+training_job.sh
