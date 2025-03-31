@@ -178,18 +178,3 @@ def train_model(input_dir, model_params={}):
     model.load_state_dict(best_model)
 
     return model, train_loader, val_loader
-
-input_dir = r"/data\Bmax.csv"
-
-model, _, val_loader = train_model(input_dir)
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-with torch.no_grad():
-    X_batch, y_batch = next(iter(val_loader))
-    X_batch, y_batch = X_batch.to(device), y_batch.to(device)
-    y_pred = model(X_batch)
-
-X_batch, y_batch, y_pred = X_batch.cpu(), y_batch.cpu(), y_pred.cpu()
-
-mape, maxpe = calculate_mape(y_batch, y_pred)

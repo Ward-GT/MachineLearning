@@ -127,7 +127,7 @@ def save_ordered_dataset(dataset, indices, path):
 
     save_image_list(images, path)
 
-def smart_data_split(dataset, train_size: int, val_size: int, test_size: int, optimization_steps: int = 500):
+def smart_data_split(dataset, train_size: int, test_size: int, optimization_steps: int = 500):
     _, total_matrix = calculate_dot_matrix_datasets(dataset, dataset)
 
     indices, similarities = optimize_flatten_similarity(total_matrix, optimization_steps)
@@ -141,9 +141,9 @@ def smart_data_split(dataset, train_size: int, val_size: int, test_size: int, op
     remaining_indices = [index for index in all_indices if index not in train_indices]
 
     train_dataset = Subset(dataset, train_indices)
-    val_dataset, test_dataset = torch.utils.data.random_split(Subset(dataset, remaining_indices), [val_size, test_size])
+    test_dataset = Subset(dataset, remaining_indices)
 
-    return train_dataset, val_dataset, test_dataset
+    return train_dataset, test_dataset
 
 def check_platform_num_workers():
     if platform.system() == "Windows":
@@ -171,18 +171,23 @@ def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: 
     dataset = LabeledDataset(image_dataset_path, structure_dataset_path, transform=data_transform)
 
     if split == True:
+        dataset_size = len(dataset)
         train_split = round(1 - (test_split + validation_split), 2)
-        train_size = int((train_split) * len(dataset))
-        val_size = int(validation_split * len(dataset))
-        test_size = int(test_split * len(dataset))
+        train_size = int((train_split) * dataset_size)
+        val_size = int(validation_split * dataset_size)
+        test_size = int(test_split * dataset_size)
+
+        # Create consistent validation dataloader
+        generator = torch.Generator().manual_seed(42)  # Use the same seed as your main seed
+        remaining_dataset, val_dataset = torch.utils.data.random_split(dataset, [dataset_size - val_size, val_size], generator=generator)
+        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=num_workers)
 
         if smart_split == True:
-            train_dataset, val_dataset, test_dataset = smart_data_split(dataset, train_size, val_size, test_size)
+            train_dataset, test_dataset = smart_data_split(remaining_dataset,train_size, test_size)
         else:
-            train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
+            train_dataset, test_dataset = torch.utils.data.random_split(remaining_dataset, [train_size, test_size])
 
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=num_workers)
-        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=num_workers)
         test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=num_workers)
 
         if result_path is not None:

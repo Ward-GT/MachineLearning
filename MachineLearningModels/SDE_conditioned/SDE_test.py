@@ -21,7 +21,7 @@ def sample_model_output(
         dataloader: DataLoader,
         n: int,
         batch_size: int,
-        vector_conditioning: bool
+        vector_conditioning: bool = False
 ):
     references_list = []
     generated_list = []

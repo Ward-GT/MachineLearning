@@ -9,6 +9,8 @@ from tqdm import tqdm
 import logging
 from torch.utils.data import DataLoader
 from torch.amp import autocast, GradScaler
+
+from SDE_test import sample_model_output
 from SDE_utils import *
 from SDE_tools import DiffusionTools
 from SDE_test import calculate_metrics
@@ -51,6 +53,8 @@ class ModelTrainer:
         self.clip_grad = kwargs.get("clip_grad")
         self.vector_conditioning = kwargs.get("vector_conditioning")
         self.mixed_precision = kwargs.get("mixed_precision", False)
+        self.batch_size = kwargs.get("batch_size")
+        self.val_samples = 100
 
         # Initialize GradScaler for mixed precision training
         self.scaler = GradScaler(device.type) if self.mixed_precision else None
@@ -152,20 +156,26 @@ class ModelTrainer:
             return average_loss
 
     def generate_reference_images(self, epoch):
-        test_images, test_structures, _, test_vectors = next(cycle(self.val_dataloader))
-        test_images = concat_to_batchsize(test_images, self.nr_samples)
-        test_structures = concat_to_batchsize(test_structures, self.nr_samples)
-        y = (test_vectors if self.vector_conditioning else test_structures)
+        n = self.batch_size if epoch < 0.5 * self.epochs else 4*self.batch_size
+
         if self.ema == True:
-            sampled_images, _ = self.diffusion.p_sample_loop(self.ema_model, n=self.nr_samples, y=y)
+            references_list, generated_list, structures_list = sample_model_output(model=self.ema_model,
+                                                                                   device=self.device,
+                                                                                   sampler=self.diffusion,
+                                                                                   dataloader=self.val_dataloader,
+                                                                                   n=n,
+                                                                                   batch_size=self.batch_size)
         else:
-            sampled_images, _ = self.diffusion.p_sample_loop(self.model, n=self.nr_samples, y=y)
-        test_images = tensor_to_PIL(test_images)
-        sampled_images = tensor_to_PIL(sampled_images)
-        structures = tensor_to_PIL(test_structures)
-        ssim, _, mae, _ = calculate_metrics(sampled_images, test_images)
-        save_images(reference_images=test_images, generated_images=sampled_images,
-                    structure_images=structures, path=os.path.join(self.image_path, f"{epoch}.jpg"))
+            references_list, generated_list, structures_list = sample_model_output(model=self.model,
+                                                                                   device=self.device,
+                                                                                   sampler=self.diffusion,
+                                                                                   dataloader=self.val_dataloader,
+                                                                                   n=n,
+                                                                                   batch_size=self.batch_size)
+
+        ssim, _, mae, _ = calculate_metrics(references_list, generated_list)
+        save_images(reference_images=references_list[:5], generated_images=generated_list[:5],
+                    structure_images=structures_list[:5], path=os.path.join(self.image_path, f"{epoch}.jpg"))
         return np.mean(ssim), np.mean(mae)
 
     def update_ema(self):
