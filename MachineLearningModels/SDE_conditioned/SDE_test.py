@@ -165,6 +165,8 @@ def sample_save_metrics(
     save_image_list(structure, structure_path)
     save_image_list(colorbar_figures, colorbar_path)
 
+    return
+
 def create_colorbar_plot(image, max_bfield):
 
     image_array = np.array(image)
@@ -285,6 +287,7 @@ def comparison_plot(structures: list, references: list, samples: list, path: str
         plt.savefig(path)
 
     plt.show()
+    return
 
 def forward_process_image(sampler, dataloader, device):
     nr_images = 5
@@ -311,3 +314,4 @@ def forward_process_image(sampler, dataloader, device):
         axs[i].axis('off')  # Hide axes for better visualization
 
     plt.show()
+    return

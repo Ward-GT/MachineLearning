@@ -16,8 +16,8 @@ DEFAULT_SEED = 42
 # Base Paths
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 print(f"Script Dir {SCRIPT_DIR}")
-# BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
-BASE_OUTPUT = "results"
+BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
+# BASE_OUTPUT = "results"
 
 # BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\data"
 BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
@@ -25,9 +25,9 @@ BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
-DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
-# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
+DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
 
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
@@ -57,10 +57,6 @@ def main():
         RESULT_PATH = os.path.join(BASE_OUTPUT, run_name)
         MODEL_PATH = os.path.join(RESULT_PATH, "models")
         IMAGE_PATH = os.path.join(RESULT_PATH, "images")
-        SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")
-        REFERENCE_PATH = os.path.join(IMAGE_PATH, "References")
-        STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
-        COLORBAR_PATH = os.path.join(IMAGE_PATH, "Colorbar")
 
         set_seed(seed=DEFAULT_SEED)
         print(f"Name: {run_name}")
@@ -135,6 +131,7 @@ def main():
         plt.savefig(os.path.join(RESULT_PATH, "MAE.png"))
 
         if config['generate_images']:
+
             if config['ema']:
                 model = trainer.ema_model
             else:
@@ -182,26 +179,15 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    # test_splits = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-    #
-    # for test_split in test_splits:
-    #     with open("config.json", "r+", encoding="utf-8") as file:
-    #         config = json.load(file)
-    #         config['test_split'] = test_split
-    #         config['smart_split'] = True
-    #         file.seek(0)
-    #         json.dump(config, file, indent=4)
-    #         file.truncate()
-    #
-    #     main()
-    #
-    #     with open("config.json", "r+", encoding="utf-8") as file:
-    #         config = json.load(file)
-    #         config['test_split'] = test_split
-    #         config['smart_split'] = True
-    #         file.seek(0)
-    #         json.dump(config, file, indent=4)
-    #         file.truncate()
-    #
-    #     main()
+    test_splits = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+
+    for test_split in test_splits:
+        with open("config.json", "r+", encoding="utf-8") as file:
+            config = json.load(file)
+            config['test_split'] = test_split
+            config['smart_split'] = False
+            file.seek(0)
+            json.dump(config, file, indent=4)
+            file.truncate()
+
+        main()

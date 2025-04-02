@@ -128,7 +128,6 @@ class ModelTrainer:
         self.train_losses.append(average_loss)
         logging.info(f"Data time: {data_time}, Train time: {train_time}")
 
-
     def validation_epoch(self):
         loss_total = 0
         self.model.eval()
