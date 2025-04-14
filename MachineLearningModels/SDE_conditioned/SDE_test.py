@@ -143,9 +143,8 @@ def sample_save_metrics(
     sample_path = os.path.join(image_path, "Samples")
     reference_path = os.path.join(image_path, "References")
     structure_path = os.path.join(image_path, "Structures")
-    colorbar_path = os.path.join(image_path, "Colorbar")
 
-    paths = [sample_path, reference_path, structure_path, colorbar_path]
+    paths = [sample_path, reference_path, structure_path]
     for path in paths:
         if not os.path.exists(path):
             os.makedirs(path)
@@ -158,12 +157,9 @@ def sample_save_metrics(
 
     print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, Max Error: {np.max(max_error_values)}, Parameters: {parameter_count}")
 
-    colorbar_figures = add_colorbar_to_list(samples)
-
     save_image_list(references, reference_path)
     save_image_list(samples, sample_path)
     save_image_list(structure, structure_path)
-    save_image_list(colorbar_figures, colorbar_path)
 
     return
 
