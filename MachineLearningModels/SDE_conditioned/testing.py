@@ -1,6 +1,7 @@
 import os
 
 import torch
+import json
 from tensorboard.compat.tensorflow_stub.tensor_shape import vector
 from torchvision.io import read_image
 
@@ -9,7 +10,7 @@ from script_util import create_model_diffusion
 
 from SDE_datareduction import get_test_data, get_data
 from SDE_dataclass import LabeledDataset
-from main import IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH, config
+from main import IMAGE_DATASET_PATH, STRUCTURE_DATASET_PATH
 from SDE_test import forward_process_image
 from torch.utils.data import DataLoader, Subset
 from SDE_utils import *
@@ -32,6 +33,27 @@ from SDE_test import mae, count_parameters
 
 # error = mae(image_tensor.numpy(), converted_image.numpy())
 
-model, _ = create_model_diffusion("cpu", **config)
-parameters = count_parameters(model)
+# model, _ = create_model_diffusion("cpu", **config)
+# parameters = count_parameters(model)
+
+with open('config.json', "r", encoding="utf-8") as f:
+    config = json.load(f)
+
+train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(image_dataset_path=IMAGE_DATASET_PATH,
+                                                                      structure_dataset_path=STRUCTURE_DATASET_PATH, **config)
+# images = []
+# for batch in train_dataloader:
+#     image_batch = batch[0]
+#     image_batch = tensor_to_PIL(image_batch)
+#     images.extend(image_batch)
+#
+# path = r"results\unsorted_dataset"
+# if not os.path.exists(path):
+#     os.makedirs(path)
+#
+# save_image_list(images, path)
+
+print(f"Train Dataloader: {len(train_dataloader.dataset)}")
+print(f"Val Dataloader: {len(val_dataloader.dataset)}")
+print(f"Test Dataloader: {len(test_dataloader.dataset)}")
 

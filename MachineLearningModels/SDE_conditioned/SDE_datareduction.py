@@ -127,10 +127,10 @@ def save_ordered_dataset(dataset, indices, path):
 
     save_image_list(images, path)
 
-def smart_data_split(dataset, train_size: int, test_size: int, optimization_steps: int = 500):
+def smart_data_split(dataset, train_size: int, test_size: int):
     _, total_matrix = calculate_dot_matrix_datasets(dataset, dataset)
 
-    indices, similarities = optimize_flatten_similarity(total_matrix, optimization_steps)
+    indices, similarities = optimize_flatten_similarity(total_matrix, len(dataset))
 
     evenly_spaced_numbers = np.linspace(0, len(indices) - 1, train_size)
 
@@ -180,12 +180,17 @@ def get_data(image_dataset_path: str, structure_dataset_path: str, result_path: 
         # Create consistent validation dataloader
         generator = torch.Generator().manual_seed(42)  # Use the same seed as your main seed
         remaining_dataset, val_dataset = torch.utils.data.random_split(dataset, [dataset_size - val_size, val_size], generator=generator)
+
+        assert len(val_dataset) == val_size
+
         val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=num_workers)
 
         if smart_split == True:
             train_dataset, test_dataset = smart_data_split(remaining_dataset,train_size, test_size)
         else:
             train_dataset, test_dataset = torch.utils.data.random_split(remaining_dataset, [train_size, test_size])
+
+        assert len(train_dataset) == train_size and len(test_dataset) == test_size
 
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=num_workers)
         test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=num_workers)
