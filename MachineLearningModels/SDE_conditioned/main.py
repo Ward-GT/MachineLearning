@@ -2,6 +2,7 @@ import os
 import json
 import random
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 import torch
 from torch import optim
@@ -43,6 +44,7 @@ def main():
         config = json.load(f)
 
     if config['training'] is True and config['testing'] is not True:
+
         # Generate a 4-digit random job ID
         run_inst = random.randint(1000, 9999)  # Generates a random integer between 1000 and 9999
         run_name_base = f"{config['model_name']}_nblocks_{config['n_blocks']}_noisesteps_{config['noise_steps']}_smartsplit_{config['smart_split']}"
@@ -137,11 +139,25 @@ def main():
             else:
                 model.load_state_dict(trainer.best_model_checkpoint)
 
-            sample_save_metrics(model=model,
-                                    device=device,
-                                    sampler=trainer.diffusion,
-                                    test_dataloader=test_dataloader,
-                                    result_path=RESULT_PATH, **config)
+            model_results = sample_save_metrics(model=model,
+                                                device=device,
+                                                sampler=trainer.diffusion,
+                                                test_dataloader=test_dataloader,
+                                                result_path=RESULT_PATH, **config)
+
+            model_results['train id'] = run_inst
+            model_results['bm ssim'] = max_ssim
+            model_results['bm mae'] = min_mae
+            model_results['bm epoch'] = trainer.best_model_epoch
+
+            df_model_results = pd.DataFrame(model_results)
+
+            excel_results = os.path.join(RESULT_PATH, "results.xlsx")
+
+            with pd.ExcelWriter(excel_results, mode='a', engine='openpyxl') as writer:
+                df_model_results.to_excel(writer, sheet_name='Results', index=False, header=False,
+                                     startrow=writer.sheets['Results'].max_row if 'Results' in writer.sheets else 0)
+
 
     if config['testing']:
         PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.json')
@@ -179,15 +195,15 @@ def main():
 
 
 if __name__ == "__main__":
-    test_splits = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+    test_splits = [0.8]
+    for _ in range(1):
+        for test_split in test_splits:
+            with open("config.json", "r+", encoding="utf-8") as file:
+                config = json.load(file)
+                config['test_split'] = test_split
+                config['smart_split'] = True
+                file.seek(0)
+                json.dump(config, file, indent=4)
+                file.truncate()
 
-    for test_split in test_splits:
-        with open("config.json", "r+", encoding="utf-8") as file:
-            config = json.load(file)
-            config['test_split'] = test_split
-            config['smart_split'] = False
-            file.seek(0)
-            json.dump(config, file, indent=4)
-            file.truncate()
-
-        main()
+            main()

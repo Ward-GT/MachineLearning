@@ -28,7 +28,11 @@ def sample_model_output(
     structures_list = []
     iterator = iter(dataloader)
     print(f"Sampling on {device}")
+
     for i in range(0, n, batch_size):
+        if n - i < batch_size:
+            print(f"Stopping at index {i} because remaining items ({n - i}) are less than batch_size ({batch_size}).")
+            break  # Exit the loop
         references, structures, _, vectors = next(iterator)
         structures = structures.to(device)
         references = references.to(device)
@@ -155,13 +159,20 @@ def sample_save_metrics(
 
     ssim_values, psnr_values, mae_values, max_error_values = calculate_metrics(references, samples)
 
+    model_results = {
+        'ssim': np.mean(ssim_values),
+        'psnr': np.mean(psnr_values),
+        'mae': np.mean(mae_values),
+        'max_error': np.max(max_error_values)
+    }
+
     print(f"SSIM: {np.mean(ssim_values)}, PSNR: {np.mean(psnr_values)}, MAE: {np.mean(mae_values)}, Max Error: {np.max(max_error_values)}, Parameters: {parameter_count}")
 
     save_image_list(references, reference_path)
     save_image_list(samples, sample_path)
     save_image_list(structure, structure_path)
 
-    return
+    return model_results
 
 def create_colorbar_plot(image, max_bfield):
 
