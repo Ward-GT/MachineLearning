@@ -17,8 +17,8 @@ DEFAULT_SEED = 42
 # Base Paths
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 print(f"Script Dir {SCRIPT_DIR}")
-BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
-# BASE_OUTPUT = "results"
+# BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
+BASE_OUTPUT = "results"
 
 # BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\data"
 BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
@@ -26,9 +26,9 @@ BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
-# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
+DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
-DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
 
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
@@ -152,12 +152,17 @@ def main():
 
             df_model_results = pd.DataFrame(model_results)
 
-            excel_results = os.path.join(RESULT_PATH, "results.xlsx")
+            excel_results = os.path.join(BASE_OUTPUT, "results.xlsx")
 
-            with pd.ExcelWriter(excel_results, mode='a', engine='openpyxl') as writer:
-                df_model_results.to_excel(writer, sheet_name='Results', index=False, header=False,
-                                     startrow=writer.sheets['Results'].max_row if 'Results' in writer.sheets else 0)
-
+            try:
+                with pd.ExcelWriter(excel_results, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
+                    df_model_results.to_excel(writer, sheet_name='Results', index=False, header=False,
+                                              startrow=writer.sheets[
+                                                  'Results'].max_row if 'Results' in writer.sheets else 0)
+            except FileNotFoundError:
+                print(f"Error: The file '{excel_results}' was not found. Creating a new file.")
+                with pd.ExcelWriter(excel_results, mode='w', engine='openpyxl') as writer:
+                    df_model_results.to_excel(writer, sheet_name='Results', index=False)
 
     if config['testing']:
         PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.json')
@@ -195,13 +200,13 @@ def main():
 
 
 if __name__ == "__main__":
-    test_splits = [0.8]
+    test_splits = [0.1]
     for _ in range(1):
         for test_split in test_splits:
             with open("config.json", "r+", encoding="utf-8") as file:
                 config = json.load(file)
                 config['test_split'] = test_split
-                config['smart_split'] = True
+                config['smart_split'] = False
                 file.seek(0)
                 json.dump(config, file, indent=4)
                 file.truncate()
