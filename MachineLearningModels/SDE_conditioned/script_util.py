@@ -1,6 +1,5 @@
 import math
 from models.SR3_UNet import UNet
-from models.SDE_UNet import MiddleUNet
 from models.SDE_SimpleUNet import SimpleUNet
 from models.SDE_SmallUNet import SmallUNet
 from SDE_tools import DiffusionTools
@@ -15,7 +14,6 @@ def create_model_diffusion(device, **kwargs):
         dim_head=kwargs.get("dim_head"),
         n_channels=kwargs.get("n_channels"),
         attention_resolutions=kwargs.get("attention_resolutions"),
-        vector_conditioning=kwargs.get("vector_conditioning"),
         device=device
     )
 
@@ -38,7 +36,6 @@ def create_model(
         dim_head,
         n_channels,
         attention_resolutions,
-        vector_conditioning,
         device
 ):
 
@@ -94,16 +91,6 @@ def create_model(
                 n_heads=n_heads,
                 dim_head=dim_head
             ).to(device)
-
-    elif model_name == "MiddleUNet":
-        return MiddleUNet(
-            vector_conditioning = vector_conditioning,
-            input_channels=(6 if not vector_conditioning else 4),
-            output_channels=(3 if not learn_sigma else 6),
-            n_channels = n_channels,
-            image_size = image_size,
-            n_blocks = n_blocks
-        ).to(device)
 
     else:
         raise ValueError("Model Type not supported")

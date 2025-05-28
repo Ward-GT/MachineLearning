@@ -33,6 +33,7 @@ def sample_model_output(
         if n - i < batch_size:
             print(f"Stopping at index {i} because remaining items ({n - i}) are less than batch_size ({batch_size}).")
             break  # Exit the loop
+
         references, structures, _, vectors = next(iterator)
         structures = structures.to(device)
         references = references.to(device)

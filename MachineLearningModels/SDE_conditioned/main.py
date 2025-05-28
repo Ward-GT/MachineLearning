@@ -77,6 +77,9 @@ def main():
         set_seed(seed=DEFAULT_SEED)
         print(f"Name: {run_name}")
 
+        if not os.path.exists(result_path):
+            os.makedirs(result_path)
+
         if not os.path.exists(model_path):
             os.makedirs(model_path)
 

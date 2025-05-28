@@ -51,7 +51,6 @@ class ModelTrainer:
         self.threshold = kwargs.get("threshold")
         self.ema_decay = kwargs.get("ema_decay")
         self.clip_grad = kwargs.get("clip_grad")
-        self.vector_conditioning = kwargs.get("vector_conditioning")
         self.mixed_precision = kwargs.get("mixed_precision", False)
         self.batch_size = kwargs.get("batch_size")
         self.val_samples = 100
@@ -80,17 +79,17 @@ class ModelTrainer:
         data_time = 0
         train_time = 0
         data_start_time = time.time()
-        for i, (images, structures, _, vectors) in enumerate(pbar):
+        for i, (images, structures, *_) in enumerate(pbar):
             data_end_time = time.time()
-            y = (vectors if self.vector_conditioning else structures)
             t = self.diffusion.sample_timesteps(images.shape[0])
             train_start_time = time.time()
             # Mixed precision training logic
             self.optimizer.zero_grad()
 
+            # Use autocast if mixed precision is on
             if self.mixed_precision:
                 with autocast(device_type=self.device.type, enabled=True, dtype=torch.float16):
-                    losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
+                    losses = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
                     loss = losses["loss"]
 
                 # Scale loss and perform backward pass
@@ -105,7 +104,7 @@ class ModelTrainer:
                 self.scaler.update()
             else:
                 # Standard training if mixed precision is off
-                losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
+                losses = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
                 loss = losses["loss"]
                 loss.backward()
                 if self.clip_grad:
@@ -135,16 +134,15 @@ class ModelTrainer:
         with torch.no_grad():
             pbar = tqdm(self.val_dataloader)
 
-            for i, (images, structures, _, vectors) in enumerate(pbar):
-                y = (vectors if self.vector_conditioning else structures)
+            for i, (images, structures, *_) in enumerate(pbar):
                 t = self.diffusion.sample_timesteps(images.shape[0]).to(self.device)
                 # Use autocast for validation if mixed precision is on
                 if self.mixed_precision:
                     with autocast(device_type=self.device.type, enabled=True, dtype=torch.float16):
-                        losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
+                        losses = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
                         loss = losses["loss"].mean()
                 else:
-                    losses = self.diffusion.training_losses(model=self.model, x_start=images, y=y, t=t)
+                    losses = self.diffusion.training_losses(model=self.model, x_start=images, y=structures, t=t)
                     loss = losses["loss"].mean()
 
                 pbar.set_postfix(loss=loss.item())
