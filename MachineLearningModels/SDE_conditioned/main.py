@@ -150,6 +150,7 @@ def main():
 
         if config['generate_images']:
 
+            # Load different model if ema was used
             if config['ema']:
                 model = trainer.ema_model
             else:
@@ -161,6 +162,7 @@ def main():
                                                 test_dataloader=test_dataloader,
                                                 result_path=result_path, **config)
 
+            # Add information to model results dict to save to excel
             model_results['train id'] = run_inst
             model_results['bm ssim'] = max_ssim
             model_results['bm mae'] = min_mae
@@ -171,11 +173,13 @@ def main():
             excel_results = os.path.join(BASE_OUTPUT, "results.xlsx")
 
             try:
+                # Write results to first white row of excel file
                 with pd.ExcelWriter(excel_results, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
                     df_model_results.to_excel(writer, sheet_name='Results', index=False, header=False,
                                               startrow=writer.sheets[
                                                   'Results'].max_row if 'Results' in writer.sheets else 0)
             except FileNotFoundError:
+                # If the file does not yet exist, create a new excel file
                 print(f"Error: The file '{excel_results}' was not found. Creating a new file.")
                 with pd.ExcelWriter(excel_results, mode='w', engine='openpyxl') as writer:
                     df_model_results.to_excel(writer, sheet_name='Results', index=False)

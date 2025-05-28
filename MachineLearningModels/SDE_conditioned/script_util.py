@@ -49,9 +49,10 @@ def create_model(
             out_dim=(3 if not learn_sigma else 6)
         ).to(device)
 
+    # Get appropriate channel multipliers dependend on image size
     elif model_name == "UNet" or model_name == "SmallUNet":
         if image_size == 256:
-            channel_mult = [1, 1, 2, 2, 4, 4]
+            channel_mult = [1, 2, 2, 4]
         elif image_size == 128:
             channel_mult = [1, 2, 2, 4]
         elif image_size == 64:
@@ -60,14 +61,17 @@ def create_model(
             raise ValueError(f"Unsupported image size: {image_size}")
 
         attention_ds = []
-
+        # Get places for attention layers
         for res in attention_resolutions.split(","):
             attention_ds.append(image_size // int(res))
 
+        # Initialize list with false values
         is_attn = [False for _ in range(len(channel_mult))]
 
+        # Math log2(res) because res should be converted from resolution to index
         for res in attention_ds:
             is_attn[int(math.log2(res))] = True
+
         if model_name == "UNet":
             return UNet(
                 input_channels=6,
