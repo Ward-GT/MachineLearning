@@ -26,9 +26,9 @@ BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_specific")
-DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
+# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_combined")
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_fixrange")
-# DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
+DATASET_PATH = os.path.join(BASE_INPUT, "figure_B_maxrange_5000")
 
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "Output")
 STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
@@ -39,61 +39,77 @@ pin_memory = device == "cuda"
 TEST_PATH = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/UNet_nblocks_2_noisesteps_250_smartsplit_False_8793/"
 SAMPLE_MODEL = "best_model.pth"
 
+def gen_run_name(config):
+    """
+    Generate a unique run name for this training instance.
+    Args:
+        config: dict with values for this configuration.
+
+    Returns:
+        run_name: str that contains the run name for this training instance.
+        run_inst: int with the specific id for this training instance.
+    """
+    # Generate a 4-digit random job ID
+    run_inst = random.randint(1000, 9999)  # Generates a random integer between 1000 and 9999
+    run_name_base = f"{config['model_name']}_nblocks_{config['n_blocks']}_noisesteps_{config['noise_steps']}_smartsplit_{config['smart_split']}"
+    run_name = f"{run_name_base}_{run_inst}"
+
+    # Check for existing run names and increment if needed (but now by generating a new random id)
+    while os.path.exists(os.path.join(BASE_OUTPUT, run_name)):
+        run_inst = random.randint(1000, 9999)  # generate a new random ID
+        run_name = f"{run_name_base}_{run_inst}"
+
+    return run_name, run_inst
+
 def main():
     with open('config.json', "r", encoding="utf-8") as f:
         config = json.load(f)
 
     if config['training'] is True and config['testing'] is not True:
 
-        # Generate a 4-digit random job ID
-        run_inst = random.randint(1000, 9999)  # Generates a random integer between 1000 and 9999
-        run_name_base = f"{config['model_name']}_nblocks_{config['n_blocks']}_noisesteps_{config['noise_steps']}_smartsplit_{config['smart_split']}"
-        run_name = f"{run_name_base}_{run_inst}"
-
-        # Check for existing run names and increment if needed (but now by generating a new random id)
-        while os.path.exists(os.path.join(BASE_OUTPUT, run_name)):
-            run_inst = random.randint(1000, 9999) #generate a new random ID
-            run_name = f"{run_name_base}_{run_inst}"
+        run_name, run_inst = gen_run_name(config)
 
         # Output paths
-        RESULT_PATH = os.path.join(BASE_OUTPUT, run_name)
-        MODEL_PATH = os.path.join(RESULT_PATH, "models")
-        IMAGE_PATH = os.path.join(RESULT_PATH, "images")
+        result_path = os.path.join(BASE_OUTPUT, run_name)
+        model_path = os.path.join(result_path, "models")
+        image_path = os.path.join(result_path, "images")
 
         set_seed(seed=DEFAULT_SEED)
         print(f"Name: {run_name}")
 
-        if not os.path.exists(MODEL_PATH):
-            os.makedirs(MODEL_PATH)
+        if not os.path.exists(model_path):
+            os.makedirs(model_path)
 
-        if not os.path.exists(IMAGE_PATH):
-            os.makedirs(IMAGE_PATH)
+        if not os.path.exists(image_path):
+            os.makedirs(image_path)
 
-        with open(os.path.join(RESULT_PATH, 'config.json'), "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=4)
-
+        # Initialize model and diffusion classes with parameters from config
         model, diffusion = create_model_diffusion(device, **config)
+        # AdamW optimizer for increased generalization with weight decay
         optimizer = optim.AdamW(model.parameters(), lr=config['init_lr'], weight_decay=config['weight_decay'])
-        train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(image_dataset_path=IMAGE_DATASET_PATH,
-                                                                              structure_dataset_path=STRUCTURE_DATASET_PATH,
-                                                                              result_path=RESULT_PATH, **config)
 
+        train_dataloader, val_dataloader, test_dataloader, *_ = get_data(image_dataset_path=IMAGE_DATASET_PATH,
+                                                                              structure_dataset_path=STRUCTURE_DATASET_PATH,
+                                                                              result_path=result_path, **config)
+        # Initialize trainer class
         trainer = ModelTrainer(model=model,
                                device=device,
                                optimizer=optimizer,
-                               image_path=IMAGE_PATH,
-                               model_path=MODEL_PATH,
+                               image_path=image_path,
+                               model_path=model_path,
                                train_dataloader=train_dataloader,
                                val_dataloader=val_dataloader,
                                test_dataloader=test_dataloader,
                                diffusion=diffusion,
                                **config)
-
+        # Start training
         trainer.train()
 
-        torch.save(trainer.best_model_checkpoint, os.path.join(MODEL_PATH, "best_model.pth"))
+        torch.save(trainer.best_model_checkpoint, os.path.join(model_path, "best_model.pth"))
+
+        # If EMA was used, different model has to be saved
         if trainer.ema is True and trainer.ema_model is not None:
-            torch.save(trainer.ema_model.state_dict(), os.path.join(MODEL_PATH, "ema_model.pth"))
+            torch.save(trainer.ema_model.state_dict(), os.path.join(model_path, "ema_model.pth"))
 
         max_ssim = max(trainer.ssim_values)
         print(f"Max SSIM: {max_ssim}, At place: {5 * np.argmax(trainer.ssim_values)+4}")
@@ -101,10 +117,10 @@ def main():
         print(f"Min MAE: {min_mae}, At place: {5 * np.argmin(trainer.mae_values)+4}")
         print(f"Best Model Epoch: {trainer.best_model_epoch}")
 
-        np.savez(os.path.join(RESULT_PATH, "train_losses.npz"), losses=trainer.train_losses)
-        np.savez(os.path.join(RESULT_PATH, "val_losses.npz"), losses=trainer.val_losses)
-        np.savez(os.path.join(RESULT_PATH, "ssim_values.npz"), losses=trainer.ssim_values)
-        np.savez(os.path.join(RESULT_PATH, "mae_values.npz"), losses=trainer.mae_values)
+        np.savez(os.path.join(result_path, "train_losses.npz"), losses=trainer.train_losses)
+        np.savez(os.path.join(result_path, "val_losses.npz"), losses=trainer.val_losses)
+        np.savez(os.path.join(result_path, "ssim_values.npz"), losses=trainer.ssim_values)
+        np.savez(os.path.join(result_path, "mae_values.npz"), losses=trainer.mae_values)
 
         plt.figure(figsize=(12, 6))
         plt.plot(trainer.train_losses[1:], label='Train Loss')
@@ -113,7 +129,7 @@ def main():
         plt.xlabel('Epoch')
         plt.ylabel('MSE')
         plt.title('Loss over Epochs')
-        plt.savefig(os.path.join(RESULT_PATH, "losses.png"))
+        plt.savefig(os.path.join(result_path, "losses.png"))
         plt.show()
 
         x_values = range(0, len(trainer.ssim_values) * 5, 5)
@@ -122,7 +138,7 @@ def main():
         plt.xlabel('Epoch')
         plt.ylabel('SSIM')
         plt.title('SSIM over Epochs')
-        plt.savefig(os.path.join(RESULT_PATH, "SSIM.png"))
+        plt.savefig(os.path.join(result_path, "SSIM.png"))
 
         x_values = range(0, len(trainer.mae_values) * 5, 5)
         plt.figure(figsize=(12, 6))
@@ -130,7 +146,7 @@ def main():
         plt.xlabel('Epoch')
         plt.ylabel('MAE')
         plt.title('MAE over Epochs')
-        plt.savefig(os.path.join(RESULT_PATH, "MAE.png"))
+        plt.savefig(os.path.join(result_path, "MAE.png"))
 
         if config['generate_images']:
 
@@ -143,7 +159,7 @@ def main():
                                                 device=device,
                                                 sampler=trainer.diffusion,
                                                 test_dataloader=test_dataloader,
-                                                result_path=RESULT_PATH, **config)
+                                                result_path=result_path, **config)
 
             model_results['train id'] = run_inst
             model_results['bm ssim'] = max_ssim
@@ -165,18 +181,16 @@ def main():
                     df_model_results.to_excel(writer, sheet_name='Results', index=False)
 
     if config['testing']:
-        PARAMETER_PATH = os.path.join(TEST_PATH, 'parameters.json')
-        MODEL_PATH = os.path.join(os.path.join(TEST_PATH, "models"), SAMPLE_MODEL)
-        IMAGE_PATH = os.path.join(TEST_PATH, "images")
-        SAMPLE_PATH = os.path.join(IMAGE_PATH, "Samples")
-        REFERENCE_PATH = os.path.join(IMAGE_PATH, "References")
-        STRUCTURE_PATH = os.path.join(IMAGE_PATH, "Structures")
-        TEST_DATASET_PATH = os.path.join(TEST_PATH, "test_indices.pth")
+        parameter_path = os.path.join(TEST_PATH, 'parameters.json')
+        model_path = os.path.join(os.path.join(TEST_PATH, "models"), SAMPLE_MODEL)
+        image_path = os.path.join(TEST_PATH, "images")
+        sample_path = os.path.join(image_path, "Samples")
+        reference_path = os.path.join(image_path, "References")
+        test_dataset_path = os.path.join(TEST_PATH, "test_indices.pth")
 
         if config['calculate_metrics']:
-            structure_images = load_images(STRUCTURE_PATH)
-            reference_images = load_images(REFERENCE_PATH)
-            sampled_images = load_images(SAMPLE_PATH)
+            reference_images = load_images(reference_path)
+            sampled_images = load_images(sample_path)
             ssim_values, psnr_values, mae_values, max_error_values = calculate_metrics(reference_images, sampled_images)
             print(f"SSIM: {np.mean(ssim_values)}, "
                   f"PSNR: {np.mean(psnr_values)}, "
@@ -184,17 +198,17 @@ def main():
                   f"Max Error: {np.max(max_error_values)}")
 
         if config['sample_metrics']:
-            with open(PARAMETER_PATH, "r", encoding="utf-8") as f:
+            with open(parameter_path, "r", encoding="utf-8") as f:
                 config = json.load(f)
 
-            print(f"Sampling model: {MODEL_PATH}")
+            print(f"Sampling model: {model_path}")
             set_seed(seed=DEFAULT_SEED)
             model, sampler = create_model_diffusion(device, **config)
-            model.load_state_dict(torch.load(MODEL_PATH, weights_only=True))
+            model.load_state_dict(torch.load(model_path, weights_only=True))
             sample_save_metrics(model=model,
                                 device=device,
                                 sampler=sampler,
-                                test_path=TEST_DATASET_PATH,
+                                test_path=test_dataset_path,
                                 result_path=TEST_PATH, **config)
             return
 

@@ -10,6 +10,12 @@ import torch
 
 def calculate_mape(y_true, y_pred):
     # Convert to numpy arrays if not already
+    if y_true.is_cuda:
+        y_true = y_true.cpu()
+
+    if y_pred.is_cuda:
+        y_pred = y_pred.cpu()
+
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
 
@@ -79,7 +85,7 @@ class MLPRegressor(nn.Module):
                 nn.Linear(prev_dim, dim),
                 nn.ReLU(),
                 nn.BatchNorm1d(dim),
-                nn.Dropout(0.2)
+                nn.Dropout(0.1)
             ])
             prev_dim = dim
 
@@ -95,8 +101,8 @@ def get_dataloaders(input_dir, batch_size):
     # Create datasets and dataloaders
     dataset = RegressionDataset(input_dir)
 
-    train_size = 0.8
-    val_size = 0.2
+    train_size = 0.7
+    val_size = 0.3
 
     train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
 
@@ -117,7 +123,7 @@ def train_model(input_dir, model_params={}):
         'hidden_dims': [128, 64, 32, 16],
         'learning_rate': 0.001,
         'batch_size': 32,
-        'epochs': 500
+        'epochs': 2000
     }
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Update defaults with provided parameters
@@ -162,13 +168,16 @@ def train_model(input_dir, model_params={}):
             for X_batch, y_batch in val_loader:
                 X_batch, y_batch = X_batch.to(device), y_batch.to(device)
                 y_pred = model(X_batch)
-                val_loss += criterion(y_pred, y_batch).item()
+                mape, _ = calculate_mape(y_pred, y_batch)
+                val_loss += mape
 
         # Print progress
         if (epoch + 1) % 10 == 0:
+            avg_train_loss = train_loss / len(train_loader)
+            avg_val_loss = val_loss / len(val_loader)
             print(f'Epoch [{epoch + 1}/{params["epochs"]}], '
-                  f'Train Loss: {train_loss / len(train_loader):.4f}, '
-                  f'Val Loss: {val_loss / len(val_loader):.4f}')
+                  f'Train Loss: {avg_train_loss:.4f}, '
+                  f'Val Loss: {avg_val_loss:.4f}')
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
@@ -178,3 +187,7 @@ def train_model(input_dir, model_params={}):
     model.load_state_dict(best_model)
 
     return model, train_loader, val_loader
+
+if __name__ == "__main__":
+    input_dir = r"C:\Users\tabor\Documents\Programming\MachineLearning\MachineLearningModels\data\Bmax.csv"
+    model, train_loader, val_loader = train_model(input_dir)

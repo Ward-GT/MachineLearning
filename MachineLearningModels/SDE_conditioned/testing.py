@@ -37,11 +37,11 @@ from SDE_test import mae, count_parameters
 # model, _ = create_model_diffusion("cpu", **config)
 # parameters = count_parameters(model)
 
-# with open('config.json', "r", encoding="utf-8") as f:
-#     config = json.load(f)
-#
-# train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(image_dataset_path=IMAGE_DATASET_PATH,
-#                                                                       structure_dataset_path=STRUCTURE_DATASET_PATH, **config)
+with open('config.json', "r", encoding="utf-8") as f:
+    config = json.load(f)
+
+train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(image_dataset_path=IMAGE_DATASET_PATH,
+                                                                      structure_dataset_path=STRUCTURE_DATASET_PATH, **config)
 # images = []
 # for batch in train_dataloader:
 #     image_batch = batch[0]
@@ -54,37 +54,6 @@ from SDE_test import mae, count_parameters
 #
 # save_image_list(images, path)
 #
-# print(f"Train Dataloader: {len(train_dataloader.dataset)}")
-# print(f"Val Dataloader: {len(val_dataloader.dataset)}")
-# print(f"Test Dataloader: {len(test_dataloader.dataset)}")
-
-model_results = {
-        'ssim': 0.1,
-        'psnr': 0.144,
-        'mae': 3,
-        'max_error': 4
-    }
-
-model_results['train id'] = 1234
-model_results['bm ssim'] = 55
-model_results['bm mae'] = 66
-model_results['bm epoch'] = 100
-
-df_model_results = pd.DataFrame([model_results])
-
-train_id_col = df_model_results.pop('train id')
-
-df_model_results.insert(0, 'train id', train_id_col)
-
-excel_results = os.path.join(BASE_OUTPUT, "results.xlsx")
-
-excel_results = 'results\\results.xlsx'
-
-try:
-    with pd.ExcelWriter(excel_results, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
-        df_model_results.to_excel(writer, sheet_name='Results', index=False, header=False,
-                                 startrow=writer.sheets['Results'].max_row if 'Results' in writer.sheets else 0)
-except FileNotFoundError:
-    print(f"Error: The file '{excel_results}' was not found. Creating a new file.")
-    with pd.ExcelWriter(excel_results, mode='w', engine='openpyxl') as writer:
-        df_model_results.to_excel(writer, sheet_name='Results', index=False)
+print(f"Train Dataloader: {len(train_dataloader.dataset)}")
+print(f"Val Dataloader: {len(val_dataloader.dataset)}")
+print(f"Test Dataloader: {len(test_dataloader.dataset)}")
