@@ -34,12 +34,10 @@ def sample_model_output(
             print(f"Stopping at index {i} because remaining items ({n - i}) are less than batch_size ({batch_size}).")
             break  # Exit the loop
 
-        references, structures, _, vectors = next(iterator)
+        references, structures, *_ = next(iterator)
         structures = structures.to(device)
         references = references.to(device)
-        vectors = vectors.to(device)
-        y = (structures if not vector_conditioning else vectors)
-        generated, structures = sampler.p_sample_loop(model=model, n=batch_size, y=y)
+        generated, structures = sampler.p_sample_loop(model=model, n=batch_size, y=structures)
         references = tensor_to_PIL(references)
         generated = tensor_to_PIL(generated)
         structures = tensor_to_PIL(structures)
