@@ -171,7 +171,7 @@ def main():
             model_results['bm mae'] = min_mae
             model_results['bm epoch'] = trainer.best_model_epoch
 
-            df_model_results = pd.DataFrame(model_results)
+            df_model_results = pd.DataFrame([list(model_results.keys()), list(model_results.values())])
 
             excel_results = os.path.join(BASE_OUTPUT, "results.xlsx")
 

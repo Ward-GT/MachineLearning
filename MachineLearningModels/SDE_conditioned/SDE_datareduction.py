@@ -387,7 +387,7 @@ def smart_data_split(dataset, train_target_size: int, test_target_size: int) -> 
     # `np.linspace` creates `train_target_size` points distributed from 0 to `len(ordered_indices) - 1`.
     if train_target_size > len(ordered_indices):
         raise ValueError(f"Warning: train_target_size ({train_target_size}) is greater than the number of available ordered items ({len(ordered_indices)})")
-    elif train_target_size == 0:
+    if train_target_size == 0:
         train_sample_indices_in_ordered_list = []
     else:
         train_sample_indices_in_ordered_list = np.linspace(0, len(ordered_indices) - 1, num=train_target_size,
