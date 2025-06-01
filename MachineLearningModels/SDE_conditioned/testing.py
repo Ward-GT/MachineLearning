@@ -37,11 +37,11 @@ from SDE_test import mae, count_parameters
 # model, _ = create_model_diffusion("cpu", **config)
 # parameters = count_parameters(model)
 
-with open('config.json', "r", encoding="utf-8") as f:
-    config = json.load(f)
-
-train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(image_dataset_path=IMAGE_DATASET_PATH,
-                                                                      structure_dataset_path=STRUCTURE_DATASET_PATH, **config)
+# with open('config.json', "r", encoding="utf-8") as f:
+#     config = json.load(f)
+#
+# train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(image_dataset_path=IMAGE_DATASET_PATH,
+#                                                                       structure_dataset_path=STRUCTURE_DATASET_PATH, **config)
 # images = []
 # for batch in train_dataloader:
 #     image_batch = batch[0]
@@ -54,6 +54,29 @@ train_dataloader, val_dataloader, test_dataloader, _, _, _ = get_data(image_data
 #
 # save_image_list(images, path)
 #
-print(f"Train Dataloader: {len(train_dataloader.dataset)}")
-print(f"Val Dataloader: {len(val_dataloader.dataset)}")
-print(f"Test Dataloader: {len(test_dataloader.dataset)}")
+# print(f"Train Dataloader: {len(train_dataloader.dataset)}")
+# print(f"Val Dataloader: {len(val_dataloader.dataset)}")
+# print(f"Test Dataloader: {len(test_dataloader.dataset)}")
+
+# Add information to model results dict to save to excel
+model_results = {}
+model_results['train id'] = 1234
+model_results['bm ssim'] = 0.112
+model_results['bm mae'] = 0.113
+model_results['bm epoch'] = 994
+
+df_model_results = pd.DataFrame([model_results])
+
+excel_results = os.path.join(BASE_OUTPUT, "results.xlsx")
+
+try:
+    # Write results to first white row of excel file
+    with pd.ExcelWriter(excel_results, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
+        df_model_results.to_excel(writer, sheet_name='Results', index=False, header=False,
+                                  startrow=writer.sheets[
+                                      'Results'].max_row if 'Results' in writer.sheets else 0)
+except FileNotFoundError:
+    # If the file does not yet exist, create a new excel file
+    print(f"Error: The file '{excel_results}' was not found. Creating a new file.")
+    with pd.ExcelWriter(excel_results, mode='w', engine='openpyxl') as writer:
+        df_model_results.to_excel(writer, sheet_name='Results', index=False)

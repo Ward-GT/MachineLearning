@@ -17,8 +17,8 @@ DEFAULT_SEED = 42
 # Base Paths
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 print(f"Script Dir {SCRIPT_DIR}")
-BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
-# BASE_OUTPUT = "results"
+# BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
+BASE_OUTPUT = "results"
 
 # BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\data"
 BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
@@ -171,7 +171,7 @@ def main():
             model_results['bm mae'] = min_mae
             model_results['bm epoch'] = trainer.best_model_epoch
 
-            df_model_results = pd.DataFrame([list(model_results.keys()), list(model_results.values())])
+            df_model_results = pd.DataFrame([model_results])
 
             excel_results = os.path.join(BASE_OUTPUT, "results.xlsx")
 
