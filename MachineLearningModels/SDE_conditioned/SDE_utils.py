@@ -262,4 +262,31 @@ def mean_flat(tensor):
     """
     return tensor.mean(dim=list(range(1, len(tensor.shape))))
 
+def save_json_file(data, filename, indent=4):
+    """
+    Saves a Python dictionary or list to a JSON file.
+
+    Args:
+        data (dict or list): The Python object to be serialized to JSON.
+        filename (str): The name of the file to save (e.g., "my_data.json").
+        indent (int, optional): The number of spaces to use for indentation
+                                in the JSON file. Use None for no indentation
+                                (compact output). Defaults to 4.
+    """
+    try:
+        # Ensure the directory exists if the filename includes a path
+        directory = os.path.dirname(filename)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)
+            print(f"Created directory: {directory}")
+
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=indent, ensure_ascii=False)
+        print(f"Data successfully saved to '{filename}'")
+    except TypeError as e:
+        print(f"Error: Cannot serialize data to JSON. Check data types. {e}")
+    except IOError as e:
+        print(f"Error saving file '{filename}': {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 

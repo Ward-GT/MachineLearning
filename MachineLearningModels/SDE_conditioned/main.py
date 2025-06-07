@@ -9,7 +9,7 @@ from torch import optim
 from SDE_train import ModelTrainer
 from SDE_datareduction import get_data
 from SDE_test import calculate_metrics, sample_save_metrics
-from SDE_utils import set_seed, load_images
+from SDE_utils import set_seed, load_images, save_json_file
 from script_util import create_model_diffusion
 
 DEFAULT_SEED = 42
@@ -17,8 +17,8 @@ DEFAULT_SEED = 42
 # Base Paths
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 print(f"Script Dir {SCRIPT_DIR}")
-# BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
-BASE_OUTPUT = "results"
+BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
+# BASE_OUTPUT = "results"
 
 # BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\data"
 BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
@@ -85,6 +85,9 @@ def main():
 
         if not os.path.exists(image_path):
             os.makedirs(image_path)
+
+        # Save the config parameters in the results folder
+        save_json_file(config, os.path.join(result_path, "config.json"))
 
         # Initialize model and diffusion classes with parameters from config
         model, diffusion = create_model_diffusion(device, **config)
@@ -222,7 +225,7 @@ def main():
 
 if __name__ == "__main__":
     test_splits = [0.1]
-    for _ in range(1):
+    for _ in range(2):
         for test_split in test_splits:
             with open("config.json", "r+", encoding="utf-8") as file:
                 config = json.load(file)
