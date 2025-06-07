@@ -189,5 +189,5 @@ def train_model(input_dir, model_params={}):
     return model, train_loader, val_loader
 
 if __name__ == "__main__":
-    input_dir = r"C:\Users\tabor\Documents\Programming\MachineLearning\MachineLearningModels\data\Bmax.csv"
+    input_dir = r"C:\Users\tabor\Documents\Studie\Bachelor\Jaar 4\BEP\Data\figure_B_maxrange_5000\Bmax_maxrange_5000.csv"
     model, train_loader, val_loader = train_model(input_dir)

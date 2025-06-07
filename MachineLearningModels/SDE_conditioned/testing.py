@@ -59,24 +59,11 @@ from SDE_test import mae, count_parameters
 # print(f"Test Dataloader: {len(test_dataloader.dataset)}")
 
 # Add information to model results dict to save to excel
-model_results = {}
-model_results['train id'] = 1234
-model_results['bm ssim'] = 0.112
-model_results['bm mae'] = 0.113
-model_results['bm epoch'] = 994
 
-df_model_results = pd.DataFrame([model_results])
+with open('config.json', "r", encoding="utf-8") as f:
+    config = json.load(f)
 
-excel_results = os.path.join(BASE_OUTPUT, "results.xlsx")
+model, diffusion = create_model_diffusion('cuda', **config)
 
-try:
-    # Write results to first white row of excel file
-    with pd.ExcelWriter(excel_results, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
-        df_model_results.to_excel(writer, sheet_name='Results', index=False, header=False,
-                                  startrow=writer.sheets[
-                                      'Results'].max_row if 'Results' in writer.sheets else 0)
-except FileNotFoundError:
-    # If the file does not yet exist, create a new excel file
-    print(f"Error: The file '{excel_results}' was not found. Creating a new file.")
-    with pd.ExcelWriter(excel_results, mode='w', engine='openpyxl') as writer:
-        df_model_results.to_excel(writer, sheet_name='Results', index=False)
+parameters = count_parameters(model)
+

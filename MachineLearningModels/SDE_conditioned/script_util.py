@@ -1,6 +1,6 @@
 import math
 from models.SR3_UNet import UNet
-from models.SDE_SimpleUNet import SimpleUNet
+from models.FastGAN_UNet import UNet as FG_UNet
 from models.SDE_SmallUNet import SmallUNet
 from SDE_tools import DiffusionTools
 
@@ -39,12 +39,14 @@ def create_model(
         device
 ):
 
-    if model_name == "SimpleUNet":
-        return SimpleUNet(
-            n_channels=n_channels,
-            image_channels=6,
-            out_dim=(3 if not learn_sigma else 6)
-        ).to(device)
+    if model_name == "FastGAN":
+        return FG_UNet(
+                input_channels=6,
+                output_channels=(3 if not learn_sigma else 6),
+                n_channels=16,
+                ch_mults=[2, 2, 2, 2, 2, 2],
+                n_blocks=1
+            ).to(device)
 
     # Get appropriate channel multipliers dependend on image size
     elif model_name == "UNet" or model_name == "SmallUNet":
