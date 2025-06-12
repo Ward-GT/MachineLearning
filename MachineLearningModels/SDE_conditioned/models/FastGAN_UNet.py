@@ -28,12 +28,12 @@ class TimeEmbedding(nn.Module):
         return emb
 
 class ResidualBlock(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, time_channels: int, dropout: float = 0.1):
+    def __init__(self, in_channels: int, out_channels: int, time_channels: int, n_groups: int = 32, dropout: float = 0.1):
         super().__init__()
-        self.norm1 = nn.BatchNorm2d(in_channels)
+        self.norm1 = nn.GroupNorm(n_groups, in_channels)
         self.act1 = Swish()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=(3,3), padding=(1,1))
-        self.norm2 = nn.BatchNorm2d(out_channels)
+        self.norm2 = nn.GroupNorm(n_groups, out_channels)
         self.act2 = Swish()
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=(3,3), padding=(1,1))
 

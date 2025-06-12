@@ -43,7 +43,7 @@ def create_model(
         return FG_UNet(
                 input_channels=6,
                 output_channels=(3 if not learn_sigma else 6),
-                n_channels=16,
+                n_channels=32,
                 ch_mults=[2, 2, 2, 2, 2, 2],
                 n_blocks=1
             ).to(device)

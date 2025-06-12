@@ -153,7 +153,7 @@ class ModelTrainer:
             return average_loss
 
     def generate_reference_images(self, epoch):
-        n = self.batch_size if epoch < 0.7 * self.epochs else len(self.val_dataloader.dataset)
+        n = self.batch_size if epoch < 0.6 * self.epochs else len(self.val_dataloader.dataset)
 
         if self.ema == True:
             references_list, generated_list, structures_list = sample_model_output(model=self.ema_model,

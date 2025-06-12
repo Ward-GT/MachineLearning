@@ -176,7 +176,7 @@ def main():
 
             df_model_results = pd.DataFrame([model_results])
 
-            excel_results = os.path.join(BASE_OUTPUT, "results.xlsx")
+            excel_results = os.path.join(BASE_OUTPUT, "results_p.xlsx")
 
             try:
                 # Write results to first white row of excel file
@@ -225,7 +225,7 @@ def main():
 
 if __name__ == "__main__":
     test_splits = [0.1]
-    for _ in range(2):
+    for _ in range(1):
         for test_split in test_splits:
             with open("config.json", "r+", encoding="utf-8") as file:
                 config = json.load(file)
