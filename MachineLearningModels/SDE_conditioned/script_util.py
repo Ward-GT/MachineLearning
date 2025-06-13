@@ -93,7 +93,38 @@ def create_model(
                 n_heads=n_heads,
                 dim_head=dim_head
             ).to(device)
+    elif model_name == "LargeUNet":
+        if image_size == 256:
+            channel_mult = [1, 1, 2, 1, 2, 1]
+        elif image_size == 128:
+            channel_mult = [1, 1, 2, 1, 2, 1]
+        elif image_size == 64:
+            channel_mult = [1, 2, 4, 12]
+        else:
+            raise ValueError(f"Unsupported image size: {image_size}")
 
+        attention_ds = []
+        # Get places for attention layers
+        for res in attention_resolutions.split(","):
+            attention_ds.append(image_size // int(res))
+
+        # Initialize list with false values
+        is_attn = [False for _ in range(len(channel_mult))]
+
+        # Math log2(res) because res should be converted from resolution to index
+        for res in attention_ds:
+            is_attn[int(math.log2(res))] = True
+
+        return UNet(
+            input_channels=6,
+            output_channels=(3 if not learn_sigma else 6),
+            n_channels=256,
+            ch_mults=channel_mult,
+            is_attn=is_attn,
+            n_blocks=n_blocks,
+            n_heads=n_heads,
+            dim_head=dim_head
+        ).to(device)
     else:
         raise ValueError("Model Type not supported")
 

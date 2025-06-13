@@ -21,10 +21,10 @@
     "ema_decay": 0.999,
     "threshold": 0.01,
     "noise_steps": 250,
-    "model_name": "FastGAN",
+    "model_name": "LargeUNet",
     "n_blocks": 2,
     "n_heads": 4,
-    "dim_head": null,
-    "attention_resolutions": "32,16",
-    "n_channels": 64
+    "dim_head": 128,
+    "attention_resolutions": "32,16,8",
+    "n_channels": 256
 }

@@ -67,3 +67,5 @@ model, diffusion = create_model_diffusion('cuda', **config)
 
 parameters = count_parameters(model)
 
+print(parameters)
+
