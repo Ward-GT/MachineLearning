@@ -20,8 +20,8 @@ print(f"Script Dir {SCRIPT_DIR}")
 BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
 # BASE_OUTPUT = "results"
 
-# BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\data"
-BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
+BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\MachineLearningModels\data"
+# BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
