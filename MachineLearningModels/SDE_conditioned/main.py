@@ -17,8 +17,8 @@ DEFAULT_SEED = 42
 # Base Paths
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 print(f"Script Dir {SCRIPT_DIR}")
-BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
-# BASE_OUTPUT = "results"
+# BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
+BASE_OUTPUT = "results"
 
 BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\MachineLearningModels\data"
 # BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
