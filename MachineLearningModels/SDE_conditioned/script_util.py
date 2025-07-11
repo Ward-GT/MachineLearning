@@ -52,7 +52,7 @@ def create_model(
     # Get appropriate channel multipliers dependend on image size
     elif model_name == "UNet" or model_name == "SmallUNet":
         if image_size == 256:
-            channel_mult = [1, 2, 2, 2, 4]
+            channel_mult = [1, 2, 2, 4]
         elif image_size == 128:
             channel_mult = [1, 2, 2, 4]
         elif image_size == 64:
