@@ -15,7 +15,6 @@ from matplotlib import cm
 def load_images(folder_path: str):
     images = []
     for filename in sorted(os.listdir(folder_path), key=lambda x: int(re.search(r'\d+', x).group())):
-        print(filename)
         img = Image.open(os.path.join(folder_path, filename))
         images.append(img)
     return images
