@@ -162,6 +162,7 @@ def sample_save_metrics(
         'ssim': np.mean(ssim_values),
         'psnr': np.mean(psnr_values),
         'mae': np.mean(mae_values),
+        'max_mae': np.max(mae_values),
         'max_error': np.max(max_error_values),
         'parameter_count': parameter_count
     }

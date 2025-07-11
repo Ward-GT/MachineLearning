@@ -17,11 +17,11 @@ DEFAULT_SEED = 42
 # Base Paths
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 print(f"Script Dir {SCRIPT_DIR}")
-# BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
-BASE_OUTPUT = "results"
+BASE_OUTPUT = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results"
+# BASE_OUTPUT = "results"
 
-BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\MachineLearningModels\data"
-# BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
+# BASE_INPUT = r"C:\Users\tabor\Documents\Programming\MachineLearning\MachineLearningModels\data"
+BASE_INPUT = os.path.join(os.path.dirname(SCRIPT_DIR), "data")
 
 # Dataset paths
 # DATASET_PATH = os.path.join(BASE_INPUT, "figure_B")
@@ -36,6 +36,7 @@ STRUCTURE_DATASET_PATH = os.path.join(DATASET_PATH, "Structure")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 pin_memory = device == "cuda"
 
+TEST_PATH = r"/home/20234635/MachineLearningGit/MachineLearningModels/SDE_conditioned/results/UNet_nblocks_2_noisesteps_250_smartsplit_False_8793/"
 SAMPLE_MODEL = "best_model.pth"
 
 def gen_run_name(config):
@@ -60,40 +61,7 @@ def gen_run_name(config):
 
     return run_name, run_inst
 
-def test_func(config, test_path):
-    parameter_path = os.path.join(test_path, 'parameters.json')
-    model_path = os.path.join(os.path.join(test_path, "models"), SAMPLE_MODEL)
-    image_path = os.path.join(test_path, "images")
-    sample_path = os.path.join(image_path, "Samples")
-    reference_path = os.path.join(image_path, "References")
-    test_dataset_path = os.path.join(test_path, "test_indices.pth")
-
-    if config['calculate_metrics']:
-        reference_images = load_images(reference_path)
-        sampled_images = load_images(sample_path)
-        ssim_values, psnr_values, mae_values, max_error_values = calculate_metrics(reference_images, sampled_images)
-        print(f"SSIM: {np.mean(ssim_values)}, "
-              f"PSNR: {np.mean(psnr_values)}, "
-              f"MAE: {np.mean(mae_values)}, "
-              f"Max MAE {np.max(mae_values)},"
-              f"Max Error: {np.max(max_error_values)}")
-
-    if config['sample_metrics']:
-        with open(parameter_path, "r", encoding="utf-8") as f:
-            config = json.load(f)
-
-        print(f"Sampling model: {model_path}")
-        set_seed(seed=DEFAULT_SEED)
-        model, sampler = create_model_diffusion(device, **config)
-        model.load_state_dict(torch.load(model_path, weights_only=True))
-        sample_save_metrics(model=model,
-                            device=device,
-                            sampler=sampler,
-                            test_path=test_dataset_path,
-                            result_path=test_path, **config)
-        return
-
-def main(test_path=None):
+def main():
     with open('config.json', "r", encoding="utf-8") as f:
         config = json.load(f)
 
@@ -223,18 +191,40 @@ def main(test_path=None):
                     df_model_results.to_excel(writer, sheet_name='Results', index=False)
 
     if config['testing']:
-        test_func(config, test_path)
+        parameter_path = os.path.join(TEST_PATH, 'parameters.json')
+        model_path = os.path.join(os.path.join(TEST_PATH, "models"), SAMPLE_MODEL)
+        image_path = os.path.join(TEST_PATH, "images")
+        sample_path = os.path.join(image_path, "Samples")
+        reference_path = os.path.join(image_path, "References")
+        test_dataset_path = os.path.join(TEST_PATH, "test_indices.pth")
+
+        if config['calculate_metrics']:
+            reference_images = load_images(reference_path)
+            sampled_images = load_images(sample_path)
+            ssim_values, psnr_values, mae_values, max_error_values = calculate_metrics(reference_images, sampled_images)
+            print(f"SSIM: {np.mean(ssim_values)}, "
+                  f"PSNR: {np.mean(psnr_values)}, "
+                  f"MAE: {np.mean(mae_values)}, "
+                  f"Max MAE: {np.max(mae_values)}"
+                  f"Max Error: {np.max(max_error_values)}")
+
+        if config['sample_metrics']:
+            with open(parameter_path, "r", encoding="utf-8") as f:
+                config = json.load(f)
+
+            print(f"Sampling model: {model_path}")
+            set_seed(seed=DEFAULT_SEED)
+            model, sampler = create_model_diffusion(device, **config)
+            model.load_state_dict(torch.load(model_path, weights_only=True))
+            sample_save_metrics(model=model,
+                                device=device,
+                                sampler=sampler,
+                                test_path=test_dataset_path,
+                                result_path=TEST_PATH, **config)
+            return
 
 
 if __name__ == "__main__":
-    # parent_folder = r"C:\Users\tabor\Documents\Studie\Bachelor\Jaar 4\BEP\Results\Results_journal\results\to_test"
-    # model_results = {}
-    # for item in os.listdir(parent_folder):
-    #     item_path = os.path.join(parent_folder, item)
-    #     if os.path.isdir(item_path) and item != "Outputfiles":
-    #         print(f"Model: {item}")
-    #         main(test_path=item_path)
-
     test_splits = [0.1]
     for _ in range(1):
         for test_split in test_splits:
