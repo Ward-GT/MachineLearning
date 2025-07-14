@@ -1,13 +1,13 @@
-from random import sample
-import numpy as np
-import torch
+
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
-from PIL import Image, ImageColor
-import matplotlib.colors as mcolors
+from PIL import Image
+import io
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 from SDE_utils import *
@@ -210,6 +210,11 @@ def calculate_error_image(reference: Image, sample: Image):
 
     return error_image
 
+def get_white_mask(image, threshold=254):
+    # Create a mask to identify the effective area (non-white pixels)
+    mask = (image[:, :, 0] > threshold) & (image[:, :, 1] > threshold) & (image[:, :, 2] > threshold)
+    return mask
+
 def error_image(structure: Image, reference: Image, sample: Image):
     """
     Generates an error image highlighting differences between reference and sample images,
@@ -228,23 +233,29 @@ def error_image(structure: Image, reference: Image, sample: Image):
     sample_data = sample.getdata()
     reference_data = reference.getdata()
     structure_data = structure.getdata()
+
+    white_mask = get_white_mask(np.array(reference)).flatten()
     mask_data = []
 
-    for pixel1, pixel2, pixel3 in zip(sample_data, reference_data, structure_data):
+    white_color = (255, 255, 255)
+
+    for pixel1, pixel2, pixel3, mask_value in zip(sample_data, reference_data, structure_data, white_mask):
         diffs = [abs(pixel1[i] - pixel2[i]) for i in range(len(pixel1))]
         mae = sum(diffs) / (len(pixel1) * 255) * 100
 
         # Calculate color based on continuous gradient
-        if mae > 6:  # Cap at 5% for red
-            mae = 6
+        if mae > 5:  # Cap at 5% for red
+            mae = 5
+
         hue = 120 - mae * 20  # 120 is green, 0 is red
-        color_hex = ImageColor.getrgb(f"hsl({hue}, 100%, 50%)")  # Full saturation, 50% lightness
+        color_hex = ImageColor.getrgb(f"hsl({hue}, 100%, 50%)") # Full saturation, 50% lightness
 
-        if mae > 0.1:  # Only apply color to errors above 1%
-            mask_data.append(color_hex)
+        if mask_value == 1:
+            mask_data.append(white_color)
         else:
-            mask_data.append(pixel3)  # Use structure color for low errors
+            mask_data.append(color_hex)
 
+    # Use structure color for low errors
     mask = Image.new(sample.mode, sample.size)
     mask.putdata(mask_data)
     return mask
