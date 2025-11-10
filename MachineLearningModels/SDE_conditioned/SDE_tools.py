@@ -222,7 +222,7 @@ class DiffusionTools:
 
         terms["mse"] = mse(noise, out["eps"])
         if "vb" in terms:
-            terms["loss"] = terms["mse"] + terms["vb"]
+            terms["loss"] = terms["mse"] + 0.001*terms["vb"]
         else:
             terms["loss"] = terms["mse"]
 
