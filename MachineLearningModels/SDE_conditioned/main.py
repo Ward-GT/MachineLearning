@@ -226,7 +226,7 @@ def main():
 
 if __name__ == "__main__":
     test_splits = [0.1]
-    for _ in range(1):
+    for _ in range(2):
         for test_split in test_splits:
             with open("config.json", "r+", encoding="utf-8") as file:
                 config = json.load(file)
