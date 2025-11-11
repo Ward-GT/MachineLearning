@@ -179,10 +179,10 @@ class DiffusionTools:
 
         """
         true_mean, _, true_log_variance_clipped = self.q_posterior_mean_variance(x_start=x_start, x_t=x_t, t=t)
-        kl = normal_kl(mean1=true_mean, logvar1=true_log_variance_clipped, mean2=out["mean"], logvar2=out["log_variance"])
+        kl = normal_kl(mean1=true_mean, logvar1=true_log_variance_clipped, mean2=out["mean"].detach(), logvar2=out["log_variance"])
         kl = mean_flat(kl) / np.log(2.0)
 
-        decoder_nll = discretized_gaussian_log_likelihood(x_start, means=out["mean"], log_scales=0.5 * out["log_variance"])
+        decoder_nll = discretized_gaussian_log_likelihood(x_start, means=out["mean"].detach(), log_scales=0.5 * out["log_variance"])
         assert decoder_nll.shape == x_start.shape
         decoder_nll = mean_flat(decoder_nll) / np.log(2.0)
 
